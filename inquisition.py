@@ -107,15 +107,15 @@ def main():
     # read in config file
     cfg = generateCfg()
 
+    # start Anatomize.py instance
     try:
-        # start Anatomize.py instance
         anatomize = Anatomize(cfg)
         pprint(vars(anatomize))
+    except Exception as e:
+        print('[ CRIT ] unknown error encountered, exiting... :: [', str(e), ']')
 
-        # start Destiny.py instance
-        # TODO
-    except err.OperationalError as e:
-        print('[ CRIT ] could not create database connection :: [', str(e),']')
+    # start Destiny.py instance
+    # TODO
 
 
 if __name__ == '__main__':

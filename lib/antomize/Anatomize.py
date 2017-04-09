@@ -30,6 +30,10 @@ __status__ = 'Development'
 
 
 class Anatomize:
+    """
+    Anatomize.py is a class used for reading in and parsing log files based on given field templates
+    """
+
     lgr = None
     cfg = {}
     dbHandle = None
@@ -42,11 +46,15 @@ class Anatomize:
         self.lgr = self.generateLogger()
 
         # create db connection
-        self.dbHandle = self.generateDbConnection(cfg['mysql_database']['db_user'],
-                                                  cfg['mysql_database']['db_pass'],
-                                                  cfg['mysql_database']['db_name'],
-                                                  cfg['mysql_database']['db_host'],
-                                                  int(cfg['mysql_database']['db_port']))
+        try:
+            self.dbHandle = self.generateDbConnection(cfg['mysql_database']['db_user'],
+                                                      cfg['mysql_database']['db_pass'],
+                                                      cfg['mysql_database']['db_name'],
+                                                      cfg['mysql_database']['db_host'],
+                                                      int(cfg['mysql_database']['db_port']))
+
+        except pymysql.OperationalError as e:
+            self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
 
     def generateLogger(self):
         """
@@ -98,5 +106,7 @@ class Anatomize:
         
         :return: void
         """
+
+
 
 
