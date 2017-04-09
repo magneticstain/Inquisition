@@ -12,7 +12,7 @@ before_script:
     - sudo chmod -R 774 /var/log/inquisition/
 script:
     - coverage run --parallel-mode --source="." inquisition.py -h
-    - coverage run --parallel-mode --source="." trumpatron.py -c conf/dev.cfg
+    - coverage run --parallel-mode --source="." inquisition.py -c conf/dev.cfg
     - coverage combine
 after_success:
     - tail /var/log/inquisition/app.log
