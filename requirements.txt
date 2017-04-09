@@ -1,0 +1,4 @@
+#
+# Required packages for Inquisition
+#
+PyMySQL

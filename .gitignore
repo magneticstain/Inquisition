@@ -90,3 +90,6 @@ ENV/
 
 # Project notes
 notes.txt
+
+# Dev Config Files
+/conf/dev.cfg

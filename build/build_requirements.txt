@@ -1,0 +1,7 @@
+#
+# Required packages for build of Inquisition
+#
+pytest
+pytest-cov
+coveralls
+PyMySQL

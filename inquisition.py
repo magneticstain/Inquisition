@@ -16,8 +16,11 @@ import configparser
 from os import path
 
 # | Third-Party
+from pymysql import err
+from pprint import pprint
 
 # | Custom
+from lib.antomize.Anatomize import Anatomize
 
 # METADATA
 __author__ = 'Joshua Carlson-Purcell'
@@ -103,6 +106,16 @@ def main():
 
     # read in config file
     cfg = generateCfg()
+
+    try:
+        # start Anatomize.py instance
+        anatomize = Anatomize(cfg)
+        pprint(vars(anatomize))
+
+        # start Destiny.py instance
+        # TODO
+    except err.OperationalError as e:
+        print('[ CRIT ] could not create database connection :: [', str(e),']')
 
 
 if __name__ == '__main__':
