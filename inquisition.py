@@ -16,7 +16,6 @@ import configparser
 from os import path
 
 # | Third-Party
-from pymysql import err
 from pprint import pprint
 
 # | Custom

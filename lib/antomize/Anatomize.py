@@ -107,6 +107,3 @@ class Anatomize:
         :return: void
         """
 
-
-
-

@@ -1,0 +1,19 @@
+sudo: required
+language: python
+python:
+    - "3.3"
+    - "3.4"
+    - "3.5"
+    - "3.6"
+before_script:
+    - pip install -r build/build_requirements.txt
+    - sudo mkdir /var/log/inquisition
+    - sudo chown -R travis /var/log/inquisition/
+    - sudo chmod -R 774 /var/log/inquisition/
+script:
+    - coverage run --parallel-mode --source="." inquisition.py -h
+    - coverage run --parallel-mode --source="." trumpatron.py -c conf/dev.cfg
+    - coverage combine
+after_success:
+    - tail /var/log/inquisition/app.log
+    - coveralls
