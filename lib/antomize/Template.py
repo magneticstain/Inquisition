@@ -26,9 +26,13 @@ __status__ = 'Development|Staging|Production'
 
 
 class Template:
+    templateID = 0
+    templateName = ''
     field = ''
     regex = ''
 
-    def __init__(self, field, regex):
+    def __init__(self, templateID, field, regex, templateName='Default'):
+        self.templateID = templateID
+        self.templateName = templateName
         self.field = field
         self.regex = regex

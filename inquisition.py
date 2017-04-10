@@ -107,11 +107,8 @@ def main():
     cfg = generateCfg()
 
     # start Anatomize.py instance
-    try:
-        anatomize = Anatomize(cfg)
-        pprint(vars(anatomize))
-    except Exception as e:
-        print('[ CRIT ] unknown error encountered, exiting... :: [', str(e), ']')
+    anatomize = Anatomize(cfg)
+    pprint(vars(anatomize))
 
     # start Destiny.py instance
     # TODO

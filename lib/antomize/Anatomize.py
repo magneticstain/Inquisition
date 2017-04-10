@@ -17,7 +17,7 @@ import logging
 import pymysql
 
 # | Custom
-
+from lib.antomize.Parser import Parser
 
 # METADATA
 __author__ = 'Joshua Carlson-Purcell'
@@ -55,6 +55,9 @@ class Anatomize:
 
         except pymysql.OperationalError as e:
             self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
+
+        # load parsers and associated templates (IN PROGRESS)
+        self.parserStore = self.fetchParsers()
 
     def generateLogger(self):
         """
@@ -100,10 +103,36 @@ class Anatomize:
         return pymysql.connect(host=dbHost, port=dbPort, user=dbUser, password=dbPass, db=dbName,
                                charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
 
-    def loadParsers(self):
+    def fetchParsers(self):
         """
-        Load parsing data from database and add to parser store
+        Fetch parsing data from database
         
-        :return: void
+        :return: dict
         """
+
+        parsers = {}
+
+        # fetch parsers from DB
+        sql = 'SELECT parser_id, parser_name, parser_log FROM Parsers WHERE status = 1'
+
+        # execute query
+        with self.dbHandle.cursor() as dbCursor:
+            dbCursor.execute(sql)
+
+            # fetch results
+            dbResults = dbCursor.fetchall()
+            for row in dbResults:
+                # add each parser to parser store
+                parsers[row['parser_id']] = Parser(self.dbHandle, row['parser_id'], row['parser_name'], row['parser_log'])
+
+        return parsers
+
+    # def startLogPolling(self):
+    #     """
+    #     Start polling log files of all parsers
+    #
+    #     :return: void
+    #     """
+    #
+    #     #
 
