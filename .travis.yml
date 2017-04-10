@@ -17,6 +17,6 @@ script:
     - coverage run --parallel-mode --source="." inquisition.py -h
     - coverage run --parallel-mode --source="." inquisition.py -c conf/main.cfg
     - coverage combine
-after_success:
     - tail /var/log/inquisition/app.log
+after_success:
     - coveralls
