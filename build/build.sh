@@ -14,6 +14,9 @@ mkdir $APP_DIR > /dev/null 2>&1
 echo "Creating log directory..."
 mkdir $LOG_DIR > /dev/null 2>&1
 
+# copy files to app dir
+/bin/cp -rf ./* $APP_DIR
+
 # provision db
 echo "Initializing database..."
 mysql -u root -e "create database inquisition"

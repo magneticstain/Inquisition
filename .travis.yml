@@ -6,6 +6,8 @@ python:
     - "3.5"
     - "3.6"
 before_script:
+    - sudo apt-get update -qq
+    - sudo apt-get install -qq mysql-server
     - pip install -r build/build_requirements.txt
     - sudo mkdir /var/log/inquisition
     - sudo chown -R travis /var/log/inquisition/
