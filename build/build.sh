@@ -15,7 +15,7 @@ echo "Creating log directory..."
 mkdir $LOG_DIR > /dev/null 2>&1
 
 # copy files to app dir
-rsync -av --exclude 'build' --exclude '.travis.yml' ./* $APP_DIR
+rsync -av --exclude 'build' --exclude '.travis.yml' ./* $APP_DIR || exit 1
 
 # provision db
 echo "Initializing database..."
@@ -24,7 +24,7 @@ echo "Creating DB service account..."
 mysql -u root -e "GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost' IDENTIFIED BY ''"
 mysql -u root -e "FLUSH PRIVILEGES"
 echo "Import table schema..."
-mysql -u root inquisition < build/src/inquisition.sql
+mysql -u root inquisition < build/src/inquisition.sql || exit 1
 
 # run any tests
 
