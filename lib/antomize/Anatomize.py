@@ -53,13 +53,16 @@ class Anatomize:
                                                       cfg['mysql_database']['db_host'],
                                                       int(cfg['mysql_database']['db_port']))
 
+            # load parsers and associated templates (IN PROGRESS)
+            self.parserStore = self.fetchParsers()
         except pymysql.OperationalError as e:
             self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
 
-            return
+            exit(1)
+        except pymysql.ProgrammingError as e:
+            self.lgr.critical('could not load log parsers from database :: [ ' + str(e) + ' ]')
 
-        # load parsers and associated templates (IN PROGRESS)
-        self.parserStore = self.fetchParsers()
+            exit(1)
 
     def generateLogger(self):
         """
