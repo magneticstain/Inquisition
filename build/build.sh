@@ -24,7 +24,7 @@ echo "Creating DB service account..."
 mysql -u root -e "GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost' IDENTIFIED BY ''"
 mysql -u root -e "FLUSH PRIVILEGES"
 echo "Import table schema..."
-mysql -u root cltools < build/src/inquisition.sql
+mysql -u root inquisition < build/src/inquisition.sql
 
 # run any tests
 
