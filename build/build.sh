@@ -15,7 +15,7 @@ echo "Creating log directory..."
 mkdir $LOG_DIR > /dev/null 2>&1
 
 # copy files to app dir
-/bin/cp -rf ./* $APP_DIR
+rsync -av --exclude 'build' --exclude '.travis.yml' ./* $APP_DIR
 
 # provision db
 echo "Initializing database..."
