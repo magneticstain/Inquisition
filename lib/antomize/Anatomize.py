@@ -56,6 +56,8 @@ class Anatomize:
         except pymysql.OperationalError as e:
             self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
 
+            return
+
         # load parsers and associated templates (IN PROGRESS)
         self.parserStore = self.fetchParsers()
 
