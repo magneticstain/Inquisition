@@ -110,6 +110,9 @@ def main():
     anatomize = Anatomize(cfg)
     pprint(vars(anatomize))
 
+    # start polling process
+    anatomize.startAnatomizer()
+
     # start Destiny.py instance
     # TODO
 

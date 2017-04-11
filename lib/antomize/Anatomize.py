@@ -12,6 +12,7 @@ CREATION_DATE: 2017-04-08
 # MODULES
 # | Native
 import logging
+from time import sleep
 
 # | Third-Party
 import pymysql
@@ -128,16 +129,23 @@ class Anatomize:
             dbResults = dbCursor.fetchall()
             for row in dbResults:
                 # add each parser to parser store
-                parsers[row['parser_id']] = Parser(self.dbHandle, row['parser_id'], row['parser_name'], row['parser_log'])
+                parsers[row['parser_id']] = Parser(self.lgr, self.dbHandle, row['parser_id'], row['parser_name'], row['parser_log'])
 
         return parsers
 
-    # def startLogPolling(self):
-    #     """
-    #     Start polling log files of all parsers
-    #
-    #     :return: void
-    #     """
-    #
-    #     #
+    def startAnatomizer(self):
+        """
+        Begin cycle of polling of each Parser
+        
+        :return: void 
+        """
+
+        while True:
+            # cycle through parsers
+            for parserId in self.parserStore:
+                # process log
+                self.parserStore[parserId].pollLogFile()
+
+                # sleep so we don't destroy anything
+                sleep(1)
 

@@ -20,4 +20,5 @@ script:
     - coverage combine
     - tail /var/log/inquisition/app.log
 after_success:
+    - ls -l /opt/inquisition/
     - coveralls

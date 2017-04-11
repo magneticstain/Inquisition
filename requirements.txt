@@ -2,3 +2,4 @@
 # Required packages for Inquisition
 #
 PyMySQL
+pygtail
