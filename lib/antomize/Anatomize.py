@@ -146,6 +146,3 @@ class Anatomize:
                 # process log
                 self.parserStore[parserId].pollLogFile()
 
-                # sleep so we don't destroy anything
-                sleep(1)
-

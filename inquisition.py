@@ -41,6 +41,10 @@ def parseCliArgs():
     # set CLI arguments
     cliParser = argparse.ArgumentParser(description='An advanced and versatile open-source SIEM platform')
     cliParser.add_argument('-c', '--config-file', help='Configuration file to be used', default='conf/main.cfg')
+    cliParser.add_argument('-k', '--config-check', action='store_true',
+                           help='Try running Inquisition up to after the configs are read in and parsed', default=False)
+    cliParser.add_argument('-t', '--test-run', action='store_true',
+                           help='Run Inquisition in test mode (read-only, debug-level logs, log limit)', default=False)
 
     # read in args
     return cliParser.parse_args()
@@ -91,6 +95,12 @@ def generateCfg():
 
         exit(1)
 
+    # convert cli args format to config file format and combine them
+    # NOTE: for some reason, all values must be strings with the configparser library
+    cfg.add_section('cli')
+    cfg['cli']['config_check'] = str(cliArgs.config_check)
+    cfg['cli']['test_run'] = str(cliArgs.test_run)
+
     # check each config option to see if override is necessary
 
     return cfg
@@ -108,13 +118,15 @@ def main():
 
     # start Anatomize.py instance
     anatomize = Anatomize(cfg)
-    pprint(vars(anatomize))
 
     # start polling process
-    anatomize.startAnatomizer()
+    if not cfg.getboolean('cli', 'config_check'):
+        anatomize.startAnatomizer()
 
-    # start Destiny.py instance
-    # TODO
+        # start Destiny.py instance
+        # TODO
+    else:
+        print('[INFO] configuration check is SUCCESSFUL, exiting...')
 
 
 if __name__ == '__main__':

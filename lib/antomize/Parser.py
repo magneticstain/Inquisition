@@ -128,6 +128,11 @@ class Parser:
                     self.lgr.warning('could not process log :: [ ' + str(self.parserID) + ' - '
                                      + self.parserName + ' ] :: [ ' + log + ' ]')
         except FileNotFoundError as e:
-            self.lgr.error('could not initialize offset file for parser :: [ ' + str(self.parserID) + ' - '
-                           + self.parserName + ' ] :: [ ' + offsetFile + ' ]')
+            self.lgr.error('could not open file for parser :: [ PARSER: ' + str(self.parserID) + ' - '
+                           + self.parserName + ' ] :: [ READING FROM LOG FILE: ' + self.logFile
+                           + ' ] :: [ OFFSET FILE: ' + offsetFile + ' ]')
+        except PermissionError as e:
+            self.lgr.error('permission denied when trying to access target log file :: [ PARSER: ' + str(self.parserID)
+                           + ' - ' + self.parserName + ' ] :: [ READING FROM LOG FILE: ' + self.logFile
+                           + ' ] :: [ OFFSET FILE: ' + offsetFile + ' ]')
 
