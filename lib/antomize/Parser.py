@@ -43,8 +43,12 @@ class Parser:
         self.parserName = parserName
         self.logFile = logFile
 
+        self.lgr.debug('parser [ ' + self.parserName + ' ] with ID [ ' + str(self.parserID) + ' ] created successfully')
+
         # load templates for template store
         self.templateStore = self.fetchTemplates()
+        self.lgr.debug('loaded [ ' + str(len(self.templateStore)) + ' ] templates for parser [ ' + str(self.parserID) +
+                       ' - ' + self.parserName + ' ]')
 
     def fetchTemplates(self):
         """
@@ -103,17 +107,22 @@ class Parser:
         :return: bool
         """
 
-        # remove trailing newlines/whitespace/etc
-        rawLog.strip(' \t\n\r')
+        self.lgr.debug('processing log [ ' + rawLog + ' ] using parser [ ' + str(self.parserID) + ' - ' +
+                       self.parserName + ' ]')
 
-        print(rawLog)
+        # remove trailing newlines/whitespace/etc
+        rawLog.strip(" \r\n\t")
+
+        self.lgr.debug('POST-PROCESSED LOG [ ' + rawLog + ' ] using parser [ ' + str(self.parserID) + ' - ' +
+                       self.parserName + ' ]')
 
         return True
 
-    def pollLogFile(self):
+    def pollLogFile(self, isTestRun=False):
         """
         Tails the log file for one log and processes it
         
+        :param isTestRun: signifies if we're performing a test run or not
         :return: void
         """
 
@@ -127,6 +136,17 @@ class Parser:
                     # log processing failed :(
                     self.lgr.warning('could not process log :: [ ' + str(self.parserID) + ' - '
                                      + self.parserName + ' ] :: [ ' + log + ' ]')
+
+                    # exit w/ error if we're running a test run
+                    if isTestRun:
+                        self.lgr.debug('this is a test run, we should exit')
+                        exit(1)
+                else:
+                    # log parsed successfully :)
+                    # break after parsing one log if running a test run
+                    if isTestRun:
+                        self.lgr.debug('this is a test run, breaking out of loop')
+                        break
         except FileNotFoundError as e:
             self.lgr.error('could not open file for parser :: [ PARSER: ' + str(self.parserID) + ' - '
                            + self.parserName + ' ] :: [ READING FROM LOG FILE: ' + self.logFile

@@ -13,10 +13,11 @@ before_script:
     - sudo mkdir /var/log/inquisition
     - sudo chown -R travis /var/log/inquisition/
     - sudo chmod -R 774 /var/log/inquisition/
+    - sudo ls -l /var/log/
 script:
     - build/build.sh
     - coverage run --parallel-mode --source="." inquisition.py -h
-    - coverage run --parallel-mode --source="." inquisition.py -c conf/main.cfg
+    - coverage run --parallel-mode --source="." inquisition.py -c conf/main.cfg -t
     - coverage combine
     - tail /var/log/inquisition/app.log
 after_success:

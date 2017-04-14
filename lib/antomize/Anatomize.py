@@ -53,9 +53,11 @@ class Anatomize:
                                                       cfg['mysql_database']['db_name'],
                                                       cfg['mysql_database']['db_host'],
                                                       int(cfg['mysql_database']['db_port']))
+            self.lgr.debug('database connection created')
 
             # load parsers and associated templates (IN PROGRESS)
             self.parserStore = self.fetchParsers()
+            self.lgr.debug('loaded [ ' + str(len(self.parserStore)) + ' ] parsers into parser store')
         except pymysql.OperationalError as e:
             self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
 
@@ -140,9 +142,11 @@ class Anatomize:
         :return: void 
         """
 
-        while True:
-            # cycle through parsers
-            for parserId in self.parserStore:
-                # process log
-                self.parserStore[parserId].pollLogFile()
+        self.lgr.info('anatomizer started...')
+
+        # while True:
+        # cycle through parsers
+        for parserId in self.parserStore:
+            # process log
+            self.parserStore[parserId].pollLogFile(self.cfg.getboolean('cli', 'test_run'))
 

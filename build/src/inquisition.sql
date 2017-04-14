@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.7.17, for Linux (x86_64)
 --
--- Host: localhost    Database: inquisition
+-- Host: localhost    Database: inquisition_DEV
 -- ------------------------------------------------------
 -- Server version	5.7.17-0ubuntu0.16.04.2
 
@@ -91,7 +91,7 @@ CREATE TABLE `Fields` (
 
 LOCK TABLES `Fields` WRITE;
 /*!40000 ALTER TABLE `Fields` DISABLE KEYS */;
-INSERT INTO `Fields` VALUES (1,'prepended_syslog_timestamp');
+INSERT INTO `Fields` VALUES (1,'timestamp');
 /*!40000 ALTER TABLE `Fields` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -147,7 +147,7 @@ CREATE TABLE `Parsers` (
 
 LOCK TABLES `Parsers` WRITE;
 /*!40000 ALTER TABLE `Parsers` DISABLE KEYS */;
-INSERT INTO `Parsers` VALUES (1,'syslog_debian','/var/log/syslog','2017-04-09 16:50:41',1);
+INSERT INTO `Parsers` VALUES (1,'inquisition_application_log','/var/log/inquisition/app.log','2017-04-09 16:50:41',1);
 /*!40000 ALTER TABLE `Parsers` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -160,4 +160,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-04-09 20:18:20
+-- Dump completed on 2017-04-12 20:47:09

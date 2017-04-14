@@ -44,7 +44,8 @@ def parseCliArgs():
     cliParser.add_argument('-k', '--config-check', action='store_true',
                            help='Try running Inquisition up to after the configs are read in and parsed', default=False)
     cliParser.add_argument('-t', '--test-run', action='store_true',
-                           help='Run Inquisition in test mode (read-only, debug-level logs, log limit)', default=False)
+                           help='Run Inquisition in test mode (read-only, debug-level logs, single log processes)',
+                           default=False)
 
     # read in args
     return cliParser.parse_args()
@@ -118,6 +119,7 @@ def main():
 
     # start Anatomize.py instance
     anatomize = Anatomize(cfg)
+    anatomize.lgr.debug('anatomizer initialized...')
 
     # start polling process
     if not cfg.getboolean('cli', 'config_check'):
@@ -125,8 +127,12 @@ def main():
 
         # start Destiny.py instance
         # TODO
+
+        anatomize.lgr.info('anatomizer exiting...')
     else:
-        print('[INFO] configuration check is SUCCESSFUL, exiting...')
+        msg = '[INFO] configuration check is SUCCESSFUL, exiting...'
+        print(msg)
+        anatomize.lgr.info(msg)
 
 
 if __name__ == '__main__':
