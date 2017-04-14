@@ -150,9 +150,9 @@ class Parser:
         except FileNotFoundError as e:
             self.lgr.error('could not open file for parser :: [ PARSER: ' + str(self.parserID) + ' - '
                            + self.parserName + ' ] :: [ READING FROM LOG FILE: ' + self.logFile
-                           + ' ] :: [ OFFSET FILE: ' + offsetFile + ' ]')
+                           + ' ] :: [ OFFSET FILE: ' + offsetFile + ' ] :: [ MSG: ' + str(e) + ' ]')
         except PermissionError as e:
             self.lgr.error('permission denied when trying to access target log file :: [ PARSER: ' + str(self.parserID)
                            + ' - ' + self.parserName + ' ] :: [ READING FROM LOG FILE: ' + self.logFile
-                           + ' ] :: [ OFFSET FILE: ' + offsetFile + ' ]')
+                           + ' ] :: [ OFFSET FILE: ' + offsetFile + ' ] :: [ MSG: ' + str(e) + ' ]')
 

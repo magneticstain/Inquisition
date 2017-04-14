@@ -138,7 +138,7 @@ CREATE TABLE `Parsers` (
   `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `status` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`parser_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -147,7 +147,7 @@ CREATE TABLE `Parsers` (
 
 LOCK TABLES `Parsers` WRITE;
 /*!40000 ALTER TABLE `Parsers` DISABLE KEYS */;
-INSERT INTO `Parsers` VALUES (1,'inquisition_application_log','/var/log/inquisition/app.log','2017-04-09 16:50:41',1);
+INSERT INTO `Parsers` VALUES (1,'inquisition_application_log','/var/log/inquisition/app.log','2017-04-09 16:50:41',1),(2,'syslog_debian','/var/log/syslog','2017-04-13 21:12:43',1),(3,'auth_log','/var/log/auth.log','2017-04-13 21:14:30',1);
 /*!40000 ALTER TABLE `Parsers` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -160,4 +160,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-04-12 20:47:09
+-- Dump completed on 2017-04-13 21:15:26

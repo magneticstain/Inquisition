@@ -13,7 +13,7 @@ before_script:
     - sudo mkdir /var/log/inquisition
     - sudo chown -R travis /var/log/inquisition/
     - sudo chmod -R 774 /var/log/inquisition/
-    - sudo ls -l /var/log/
+    - sudo chmod 644 /var/log/syslog
 script:
     - build/build.sh
     - coverage run --parallel-mode --source="." inquisition.py -h
