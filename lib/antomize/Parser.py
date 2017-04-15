@@ -107,13 +107,13 @@ class Parser:
         :return: bool
         """
 
-        self.lgr.debug('processing log [ ' + rawLog + ' ] using parser [ ' + str(self.parserID) + ' - ' +
+        self.lgr.debug('processing log [[[ ' + rawLog + ' ]]] using parser [ ' + str(self.parserID) + ' - ' +
                        self.parserName + ' ]')
 
-        # remove trailing newlines/whitespace/etc
+        # remove prepended and trailing newlines/whitespace/etc
         rawLog.strip(" \r\n\t")
 
-        self.lgr.debug('POST-PROCESSED LOG [ ' + rawLog + ' ] using parser [ ' + str(self.parserID) + ' - ' +
+        self.lgr.debug('POST-PROCESSED LOG [[[ ' + rawLog + ' ]]] using parser [ ' + str(self.parserID) + ' - ' +
                        self.parserName + ' ]')
 
         return True
@@ -132,6 +132,7 @@ class Parser:
         # fetch log
         try:
             for log in Pygtail(self.logFile, offset_file=offsetFile, paranoid=True):
+                # try to process the log
                 if not self.processLog(log):
                     # log processing failed :(
                     self.lgr.warning('could not process log :: [ ' + str(self.parserID) + ' - '
@@ -139,13 +140,15 @@ class Parser:
 
                     # exit w/ error if we're running a test run
                     if isTestRun:
-                        self.lgr.debug('this is a test run, we should exit')
+                        self.lgr.debug('configured as a test run, we should exit')
                         exit(1)
                 else:
                     # log parsed successfully :)
+                    self.lgr.debug('log successfully processed :: [ ' + str(self.parserID) + ' - ' + self.parserName
+                                   + ' ]')
                     # break after parsing one log if running a test run
                     if isTestRun:
-                        self.lgr.debug('this is a test run, breaking out of loop')
+                        self.lgr.debug('configured as a test run, breaking out of loop')
                         break
         except FileNotFoundError as e:
             self.lgr.error('could not open file for parser :: [ PARSER: ' + str(self.parserID) + ' - '
@@ -153,6 +156,10 @@ class Parser:
                            + ' ] :: [ OFFSET FILE: ' + offsetFile + ' ] :: [ MSG: ' + str(e) + ' ]')
         except PermissionError as e:
             self.lgr.error('permission denied when trying to access target log file :: [ PARSER: ' + str(self.parserID)
+                           + ' - ' + self.parserName + ' ] :: [ READING FROM LOG FILE: ' + self.logFile
+                           + ' ] :: [ OFFSET FILE: ' + offsetFile + ' ] :: [ MSG: ' + str(e) + ' ]')
+        except UnicodeDecodeError as e:
+            self.lgr.error('content with invalid formatting found in target log file :: [ PARSER: ' + str(self.parserID)
                            + ' - ' + self.parserName + ' ] :: [ READING FROM LOG FILE: ' + self.logFile
                            + ' ] :: [ OFFSET FILE: ' + offsetFile + ' ] :: [ MSG: ' + str(e) + ' ]')
 

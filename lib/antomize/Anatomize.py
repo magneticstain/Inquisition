@@ -150,3 +150,6 @@ class Anatomize:
             # process log
             self.parserStore[parserId].pollLogFile(self.cfg.getboolean('cli', 'test_run'))
 
+        # self.lgr.debug('sleeping for 5s...')
+        # sleep(5)
+
