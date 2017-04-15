@@ -148,7 +148,7 @@ class Parser:
                                    + ' ]')
                     # break after parsing one log if running a test run
                     if isTestRun:
-                        self.lgr.debug('configured as a test run, breaking out of loop')
+                        self.lgr.debug('configured as a test run, ceasing parsing')
                         break
         except FileNotFoundError as e:
             self.lgr.error('could not open file for parser :: [ PARSER: ' + str(self.parserID) + ' - '

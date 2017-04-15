@@ -12,6 +12,8 @@ CREATION_DATE: 2017-04-08
 # MODULES
 # | Native
 import logging
+
+from os import fork, _exit
 from time import sleep
 
 # | Third-Party
@@ -144,12 +146,26 @@ class Anatomize:
 
         self.lgr.info('anatomizer started...')
 
-        # while True:
+        # check if this is a test run
+        testRun = self.cfg.getboolean('cli', 'test_run')
+
         # cycle through parsers
         for parserId in self.parserStore:
-            # process log
-            self.parserStore[parserId].pollLogFile(self.cfg.getboolean('cli', 'test_run'))
+            # fork process before beginning read
+            self.lgr.debug('forking off new parser to child process')
+            newParserPID = fork()
+            if newParserPID == 0:
+                # in child process, start parsing
+                while True:
+                    # process log
+                    self.parserStore[parserId].pollLogFile(testRun)
 
-        # self.lgr.debug('sleeping for 5s...')
-        # sleep(5)
+                    if testRun:
+                        self.lgr.debug('test run, exiting anatomizer loop')
+                        break
+
+                    self.lgr.debug('sleeping for [ ' + self.cfg['parsing']['sleepTime'] + ' ] seconds...')
+                    sleep(int(self.cfg['parsing']['sleepTime']))
+
+        self.lgr.info('all parsers loaded and started')
 
