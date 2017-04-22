@@ -55,3 +55,25 @@ class Template:
         # compile raw regex
         self.compiledRegex = re.compile(regex)
 
+    def matchLogAgainstRegex(self, log):
+        """
+        Matches given log against set regex and returns the value
+        
+        :param log: raw log message
+        :return: parsed string
+        """
+
+        matchedString = ''
+
+        if not log:
+            # no log provided
+            raise ValueError('no log provided')
+
+        # try regex matching
+        regexMatch = self.compiledRegex.search(log)
+        if regexMatch:
+            # match found, return result
+            matchedString = regexMatch.group()
+
+        return matchedString
+

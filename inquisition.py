@@ -19,7 +19,7 @@ from os import path
 from pprint import pprint
 
 # | Custom
-from lib.antomize.Anatomize import Anatomize
+from lib.anatomize.Anatomize import Anatomize
 
 # METADATA
 __author__ = 'Joshua Carlson-Purcell'
@@ -119,7 +119,7 @@ def main():
 
     # start Anatomize.py instance
     anatomize = Anatomize(cfg)
-    anatomize.lgr.debug('anatomizer initialized...')
+    anatomize.lgr.debug('anatomizer initialization SUCCESSFUL')
 
     # start polling process
     if not cfg.getboolean('cli', 'config_check'):
@@ -127,8 +127,6 @@ def main():
 
         # start Destiny.py instance
         # TODO
-
-        anatomize.lgr.info('anatomizer exiting...')
     else:
         msg = '[INFO] configuration check is SUCCESSFUL, exiting...'
         print(msg)

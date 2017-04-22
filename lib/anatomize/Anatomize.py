@@ -18,9 +18,10 @@ from time import sleep
 
 # | Third-Party
 import pymysql
+import redis
 
 # | Custom
-from lib.antomize.Parser import Parser
+from lib.anatomize.Parser import Parser
 
 # METADATA
 __author__ = 'Joshua Carlson-Purcell'
@@ -39,7 +40,9 @@ class Anatomize:
 
     lgr = None
     cfg = {}
-    dbHandle = None
+    inquisitionDbHandle = None
+    logDbHandle = None
+    # logDbConnInfo = {}
     parserStore = {}
 
     def __init__(self, cfg):
@@ -48,14 +51,31 @@ class Anatomize:
         # start logger
         self.lgr = self.generateLogger()
 
-        # create db connection
+        self.lgr.info('starting Anatomize engine...')
+
+        # # set log DB info
+        # self.logDbConnInfo = {
+        #     'host': self.cfg['log_database']['host'],
+        #     'port': int(self.cfg['log_database']['port'])
+        # }
+        # self.lgr.debug('using [ ' + self.logDbConnInfo['host'] + ':' + self.logDbConnInfo['port']
+        #                + ' ] as log database')
+
+        # create db handle for log database
+        self.logDbHandle = redis.StrictRedis(host=cfg['log_database']['host'], port=cfg['log_database']['port'])
+        self.lgr.debug('database connection established for log database :: [ ' + cfg['log_database']['host']
+                       + ':' + cfg['log_database']['port'] + ' ]')
+
+        # create connection to inquisition db
         try:
-            self.dbHandle = self.generateDbConnection(cfg['mysql_database']['db_user'],
-                                                      cfg['mysql_database']['db_pass'],
-                                                      cfg['mysql_database']['db_name'],
-                                                      cfg['mysql_database']['db_host'],
-                                                      int(cfg['mysql_database']['db_port']))
-            self.lgr.debug('database connection created')
+            self.inquisitionDbHandle = self.generateInquisitionDbConnection(cfg['mysql_database']['db_user'],
+                                                                            cfg['mysql_database']['db_pass'],
+                                                                            cfg['mysql_database']['db_name'],
+                                                                            cfg['mysql_database']['db_host'],
+                                                                            int(cfg['mysql_database']['db_port']))
+            self.lgr.debug('database connection established for main inquisition database :: [ '
+                           + cfg['mysql_database']['db_host'] + ':' + cfg['mysql_database']['db_port'] + ' ]')
+            self.lgr.info('all database connections established SUCCESSFULLY')
 
             # load parsers and associated templates (IN PROGRESS)
             self.parserStore = self.fetchParsers()
@@ -97,10 +117,9 @@ class Anatomize:
 
         return newLgr
 
-
-    def generateDbConnection(self, dbUser, dbPass, dbName, dbHost='127.0.0.1', dbPort=3306):
+    def generateInquisitionDbConnection(self, dbUser, dbPass, dbName, dbHost='127.0.0.1', dbPort=3306):
         """
-        Generate PyMySQL database connection handler
+        Generate main Inquisition database connection handler
 
         :param dbUser: username of db account
         :param dbPass: password of db account
@@ -115,7 +134,7 @@ class Anatomize:
 
     def fetchParsers(self):
         """
-        Fetch parsing data from database
+        Fetch parsing data from inquisition database
         
         :return: dict
         """
@@ -126,14 +145,15 @@ class Anatomize:
         sql = 'SELECT parser_id, parser_name, parser_log FROM Parsers WHERE status = 1'
 
         # execute query
-        with self.dbHandle.cursor() as dbCursor:
+        with self.inquisitionDbHandle.cursor() as dbCursor:
             dbCursor.execute(sql)
 
             # fetch results
             dbResults = dbCursor.fetchall()
             for row in dbResults:
                 # add each parser to parser store
-                parsers[row['parser_id']] = Parser(self.lgr, self.dbHandle, row['parser_id'], row['parser_name'], row['parser_log'])
+                parsers[row['parser_id']] = Parser(self.lgr, self.inquisitionDbHandle, self.logDbHandle, row['parser_id'],
+                                                   row['parser_name'], row['parser_log'])
 
         return parsers
 
@@ -144,20 +164,19 @@ class Anatomize:
         :return: void 
         """
 
-        self.lgr.info('anatomizer started...')
-
         # check if this is a test run
         testRun = self.cfg.getboolean('cli', 'test_run')
 
         # cycle through parsers
         for parserId in self.parserStore:
             # fork process before beginning read
-            self.lgr.debug('forking off new parser to child process')
+            self.lgr.debug('forking off parser [ ' + str(parserId) + ' - ' + self.parserStore[parserId].parserName
+                           + ' ] to child process')
             newParserPID = fork()
             if newParserPID == 0:
                 # in child process, start parsing
                 while True:
-                    # process log
+                    # poll for new logs
                     self.parserStore[parserId].pollLogFile(testRun)
 
                     if testRun:
