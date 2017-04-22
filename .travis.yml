@@ -17,6 +17,7 @@ before_script:
     - sudo chown -R travis /var/log/fake_apache_logs/
     - sudo chmod -R 774 /var/log/fake_apache_logs/
     - git clone https://github.com/kiritbasu/Fake-Apache-Log-Generator.git
+    - chmod +x Fake-Apache-Log-Generator/apache-fake-log-gen.py
     - Fake-Apache-Log-Generator/apache-fake-log-gen.py -o CONSOLE -n 5 >> /var/log/fake_apache_logs/access_log.log
 script:
     - build/build.sh
