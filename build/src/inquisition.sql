@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.7.17, for Linux (x86_64)
 --
--- Host: localhost    Database: inquisition_DEV
+-- Host: localhost    Database: inquisition
 -- ------------------------------------------------------
 -- Server version	5.7.17-0ubuntu0.16.04.2
 
@@ -26,7 +26,7 @@ CREATE TABLE `FieldTemplateRegex` (
   `regex_id` int(11) NOT NULL AUTO_INCREMENT,
   `regex` text NOT NULL,
   PRIMARY KEY (`regex_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -35,7 +35,7 @@ CREATE TABLE `FieldTemplateRegex` (
 
 LOCK TABLES `FieldTemplateRegex` WRITE;
 /*!40000 ALTER TABLE `FieldTemplateRegex` DISABLE KEYS */;
-INSERT INTO `FieldTemplateRegex` VALUES (1,'^[A-Za-z]{3} [0-9 ]{2} [0-9:]{8}');
+INSERT INTO `FieldTemplateRegex` VALUES (1,'^[A-Za-z]{3} [0-9 ]{2} [0-9:]{8}'),(2,'^[0-9.]+');
 /*!40000 ALTER TABLE `FieldTemplateRegex` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -58,7 +58,7 @@ CREATE TABLE `FieldTemplates` (
   KEY `fk_regex` (`regex_id`),
   CONSTRAINT `fk_fields` FOREIGN KEY (`field_id`) REFERENCES `Fields` (`field_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_regex` FOREIGN KEY (`regex_id`) REFERENCES `FieldTemplateRegex` (`regex_id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,7 +67,7 @@ CREATE TABLE `FieldTemplates` (
 
 LOCK TABLES `FieldTemplates` WRITE;
 /*!40000 ALTER TABLE `FieldTemplates` DISABLE KEYS */;
-INSERT INTO `FieldTemplates` VALUES (1,'match_std_linux_syslog_timestamp',1,1,'2017-04-09 19:43:16',1);
+INSERT INTO `FieldTemplates` VALUES (1,'match_std_linux_syslog_timestamp',1,1,'2017-04-09 19:43:16',1),(2,'match_fake_apache_src_ip',2,2,'2017-04-21 20:19:44',1);
 /*!40000 ALTER TABLE `FieldTemplates` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -82,7 +82,7 @@ CREATE TABLE `Fields` (
   `field_id` int(11) NOT NULL AUTO_INCREMENT,
   `field_name` varchar(40) NOT NULL,
   PRIMARY KEY (`field_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -91,7 +91,7 @@ CREATE TABLE `Fields` (
 
 LOCK TABLES `Fields` WRITE;
 /*!40000 ALTER TABLE `Fields` DISABLE KEYS */;
-INSERT INTO `Fields` VALUES (1,'timestamp');
+INSERT INTO `Fields` VALUES (1,'timestamp'),(2,'src_ip');
 /*!40000 ALTER TABLE `Fields` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -111,7 +111,7 @@ CREATE TABLE `ParserToFieldTemplateMapping` (
   KEY `fk_template` (`template_id`),
   CONSTRAINT `fk_parser` FOREIGN KEY (`parser_id`) REFERENCES `Parsers` (`parser_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_template` FOREIGN KEY (`template_id`) REFERENCES `FieldTemplates` (`template_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -120,7 +120,7 @@ CREATE TABLE `ParserToFieldTemplateMapping` (
 
 LOCK TABLES `ParserToFieldTemplateMapping` WRITE;
 /*!40000 ALTER TABLE `ParserToFieldTemplateMapping` DISABLE KEYS */;
-INSERT INTO `ParserToFieldTemplateMapping` VALUES (1,1,1);
+INSERT INTO `ParserToFieldTemplateMapping` VALUES (1,1,1),(2,2,1),(3,2,2);
 /*!40000 ALTER TABLE `ParserToFieldTemplateMapping` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -138,7 +138,7 @@ CREATE TABLE `Parsers` (
   `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `status` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`parser_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -147,7 +147,7 @@ CREATE TABLE `Parsers` (
 
 LOCK TABLES `Parsers` WRITE;
 /*!40000 ALTER TABLE `Parsers` DISABLE KEYS */;
-INSERT INTO `Parsers` VALUES (1,'inquisition_application_log','/var/log/inquisition/app.log','2017-04-09 16:50:41',1),(2,'syslog_debian','/var/log/syslog','2017-04-13 21:12:43',1),(3,'auth_log','/var/log/auth.log','2017-04-13 21:14:30',1);
+INSERT INTO `Parsers` VALUES (1,'kernel_log','/var/log/kern.log','2017-04-09 16:50:41',0),(2,'fake_apache_logs','/var/log/fake_apache_logs/access_log.log','2017-04-15 18:00:01',1);
 /*!40000 ALTER TABLE `Parsers` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -160,4 +160,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-04-13 21:15:26
+-- Dump completed on 2017-04-22 10:49:25

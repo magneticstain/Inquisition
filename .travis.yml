@@ -13,7 +13,11 @@ before_script:
     - sudo mkdir /var/log/inquisition
     - sudo chown -R travis /var/log/inquisition/
     - sudo chmod -R 774 /var/log/inquisition/
-    - sudo chmod 644 /var/log/syslog
+    - sudo mkdir /var/log/fake_apache_logs
+    - sudo chown -R travis /var/log/fake_apache_logs/
+    - sudo chmod -R 774 /var/log/fake_apache_logs/
+    - git clone https://github.com/kiritbasu/Fake-Apache-Log-Generator.git
+    - Fake-Apache-Log-Generator/apache-fake-log-gen.py -o CONSOLE -n 5 >> /var/log/fake_apache_logs/access_log.log
 script:
     - build/build.sh
     - coverage run --parallel-mode --source="." inquisition.py -h
