@@ -12,7 +12,7 @@ LOG_DIR='/var/log/inquisition/'
 echo "Creating application directory..."
 mkdir $APP_DIR > /dev/null 2>&1
 echo "Creating application subdirectories..."
-exho "tmp/"
+echo "tmp/"
 mkdir $APP_DIR'tmp/' > /dev/null 2>&1
 echo "Creating log directory..."
 mkdir $LOG_DIR > /dev/null 2>&1
@@ -28,6 +28,9 @@ mysql -u root -e "GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisit
 mysql -u root -e "FLUSH PRIVILEGES"
 echo "Import table schema..."
 mysql -u root inquisition < build/src/inquisition.sql || exit 1
+
+# setup log db
+redis-cli set log_id 0
 
 # run any tests
 
