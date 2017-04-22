@@ -11,6 +11,9 @@ LOG_DIR='/var/log/inquisition/'
 # create directories
 echo "Creating application directory..."
 mkdir $APP_DIR > /dev/null 2>&1
+echo "Creating application subdirectories..."
+exho "tmp/"
+mkdir $APP_DIR'tmp/' > /dev/null 2>&1
 echo "Creating log directory..."
 mkdir $LOG_DIR > /dev/null 2>&1
 
