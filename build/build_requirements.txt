@@ -4,6 +4,7 @@
 pytest
 pytest-cov
 coveralls
+pytz
 PyMySQL
 pygtail
 redis
