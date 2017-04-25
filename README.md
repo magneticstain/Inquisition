@@ -42,10 +42,10 @@ To install the required software, you can follow the instructions below. These i
 and CentOS-based OS's:
 
 #### Third-Party Software and Interpreters
-MySQL: [Debian](https://www.linode.com/docs/databases/mysql/how-to-install-mysql-on-debian-7) | [CentOS](https://www.linode.com/docs/databases/mysql/how-to-install-mysql-on-centos-7)
-Redis: [Redis Quick Start (all OS's)](https://redis.io/topics/quickstart)
-Python 3: [Debian](https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-local-programming-environment-on-debian-8) | [CentOS](https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-local-programming-environment-on-centos-7)
-PHP: [Debian](http://php.net/manual/en/install.unix.debian.php) | [CentOS](http://dev.antoinesolutions.com/php)
+* MySQL: [Debian](https://www.linode.com/docs/databases/mysql/how-to-install-mysql-on-debian-7) | [CentOS](https://www.linode.com/docs/databases/mysql/how-to-install-mysql-on-centos-7)
+* Redis: [Redis Quick Start (all OS's)](https://redis.io/topics/quickstart)
+* Python 3: [Debian](https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-local-programming-environment-on-debian-8) | [CentOS](https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-local-programming-environment-on-centos-7)
+* PHP: [Debian](http://php.net/manual/en/install.unix.debian.php) | [CentOS](http://dev.antoinesolutions.com/php)
 
 #### Plugins
 ##### Python
