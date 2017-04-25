@@ -175,7 +175,11 @@ class Anatomize:
             newParserPID = fork()
             if newParserPID == 0:
                 # in child process, start parsing
+                numRuns = 0
                 while True:
+                    sleepTime = int(self.cfg['parsing']['sleepTime'])
+                    numRunsBetweenStats = int(self.cfg['stats']['numSleepsBetweenStats'])
+
                     # poll for new logs
                     self.parserStore[parserId].pollLogFile(testRun)
 
@@ -183,8 +187,17 @@ class Anatomize:
                         self.lgr.debug('test run, exiting anatomizer loop')
                         break
 
-                    self.lgr.debug('sleeping for [ ' + self.cfg['parsing']['sleepTime'] + ' ] seconds...')
-                    sleep(int(self.cfg['parsing']['sleepTime']))
+                    # run complete, increase counter
+                    numRuns += 1
+                    if numRunsBetweenStats <= numRuns:
+                        # time to print stats and reset run counter
+                        self.lgr.info('|-- STATS --| :: ' + str(self.parserStore[parserId]) + ' :: '
+                                      + self.parserStore[parserId].printStats())
 
-        self.lgr.info('all parsers loaded and started')
+                        numRuns = 0
+
+                    self.lgr.debug('sleeping for [ ' + self.cfg['parsing']['sleepTime'] + ' ] seconds')
+                    sleep(sleepTime)
+
+        self.lgr.info('all templates loaded and parsers started SUCCESSFULLY')
 

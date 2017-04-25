@@ -11,6 +11,8 @@ CREATION_DATE: 2017-04-08
 
 # MODULES
 # | Native
+import datetime
+from sys import getsizeof
 
 # | Third-Party
 from pygtail import Pygtail
@@ -37,6 +39,7 @@ class Parser:
     logFile = ''
     offsetFile = ''
     templateStore = {}
+    stats = {}
 
     def __init__(self, lgr, inquisitionDbHandle, logDbHandle, parserID=0, parserName='Syslog',
                  logFile='/var/log/syslog'):
@@ -47,11 +50,18 @@ class Parser:
         self.parserName = parserName
         self.logFile = logFile
 
-        self.lgr.debug(self.__str__() + ' created SUCCESSFULLY')
+        # initialize offset file
+        self.offsetFile = '/opt/inquisition/tmp/' + str(self.parserID) + '_' + self.parserName + '.offset'
+
+        # init stats
+        self.resetStats()
+        self.lgr.debug(self.__str__() + ' :: stats initialized')
 
         # load templates for template store
         self.templateStore = self.fetchTemplates()
-        self.lgr.debug('loaded [ ' + str(len(self.templateStore)) + ' ] templates for ' + self.__str__())
+        self.lgr.info('loaded [ ' + str(len(self.templateStore)) + ' ] templates for ' + self.__str__())
+
+        self.lgr.debug(self.__str__() + ' created SUCCESSFULLY')
 
     def fetchTemplates(self):
         """
@@ -103,6 +113,91 @@ class Parser:
                 self.lgr.debug('loaded template SUCCESSFULLY :: ' + str(templates[row['TID']]))
 
         return templates
+
+    def avgStat(self, statKey, initialVal, newVal, strict=False):
+        """
+        Find the average of two valuesL initial, established average along with the new value to be incl. w/ initial avg
+        
+        :param statKey: stat to average
+        :param initialVal: initial average value
+        :param newVal: new value to calculate with initialVal to get new average
+        :param strict: if set to true, only fine stat avg if stat key exists; if not, IndexError is raised
+        :return: void
+        """
+
+        # check if stat type exists
+        if statKey not in self.stats:
+            # stat type DOES NOT exist
+            if strict:
+                # strict mode - stat type doesn't exist and we shouldn't create it
+                raise IndexError('stat key not found')
+            else:
+                # create stat type before averaging it
+                self.stats[statKey] = 0
+
+        # find average
+        if initialVal == 0:
+            # first or reset value, set as initial val
+            self.stats[statKey] = newVal
+        else:
+            # calc avg
+            self.stats[statKey] = (initialVal + newVal) / 2
+
+    def incrStat(self, statKey, amt, strict=False):
+        """
+        Increase specific statistic by $amt
+        
+        :param statKey: stat to increase
+        :param amt: amount to increase stat by
+        :param strict: if set to true, only increase stat if stat key exists; if not, IndexError is raised
+        :return: void
+        """
+
+        # make sure amount is valid
+        if amt < 0:
+            raise ValueError('non-positive amount to increase stat by supplied')
+
+        # check if stat type exists
+        if statKey not in self.stats:
+            # stat type DOES NOT exist
+            if strict:
+                # strict mode - stat type doesn't exist and we shouldn't create it
+                raise IndexError('stat key not found')
+            else:
+                # create stat type before increasing it
+                self.stats[statKey] = 0
+
+        # increase stat by amt
+        self.stats[statKey] += amt
+
+    def resetStats(self, statType=None):
+        """
+        Reset all or specific stat(s)
+        
+        :param statType: stat key to reset (default: None, meaning reset all stats)
+        :return: bool
+        """
+
+        if not statType:
+            # reset all stats; initialize to defaults
+            self.stats = {
+                'average_log_length': 0,
+                'average_log_processing_time': 0,
+                'average_log_size': 0,
+                'total_log_processing_failures': 0,
+                'total_logs_processed': 0
+            }
+
+            return True
+
+        # stat type set, see if it exists
+        if statType in self.stats:
+            # stat type exists, reset it
+            self.stats[statType] = 0
+            return True
+
+        # stat doesn't exist, can't reset it
+        return False
 
     def parseLog(self, rawLog):
         """
@@ -169,9 +264,20 @@ class Parser:
 
         self.lgr.debug('POST-PROCESSED LOG [[[ ' + rawLog + ' ]]] using ' + self.__str__())
 
+        # get memory size of log - in bytes - and add to avg
+        memSizeOfLog = getsizeof(rawLog)
+        self.avgStat('average_log_size', self.stats['average_log_size'], memSizeOfLog)
+
+        # get # of chars in log and add to avg
+        self.avgStat('average_log_length', self.stats['average_log_length'], len(rawLog))
+
         # parse post-processed log
         if not self.parseLog(rawLog):
+            self.incrStat('total_log_processing_failures', 1, True)
             return False
+
+        # increase stat for total number of logs processed
+        self.incrStat('total_logs_processed', 1, True)
 
         return True
 
@@ -183,13 +289,11 @@ class Parser:
         :return: void
         """
 
-        # initialize offset file
-        self.offsetFile = '/opt/inquisition/tmp/' + str(self.parserID) + '_' + self.parserName + '.offset'
-
         # fetch new log(s)
         try:
             # NOTE: paranoid denotes updating the offset file after every log is read; statefullness is important ^_^
             for log in Pygtail(self.logFile, offset_file=self.offsetFile, paranoid=True):
+                startTime = datetime.datetime.utcnow()
                 # try to process the log
                 if self.processLog(log):
                     # log parsed successfully :)
@@ -207,6 +311,14 @@ class Parser:
                     if isTestRun:
                         self.lgr.debug('configured as a test run, we should exit')
                         exit(1)
+                endTime = datetime.datetime.utcnow()
+
+                # calculate processing time for log
+                logProcessingTime = endTime - startTime
+
+                # update LPS stat
+                self.avgStat('average_log_processing_time', self.stats['average_log_processing_time'],
+                             logProcessingTime.microseconds)
         except FileNotFoundError as e:
             self.lgr.error('could not open file for parser :: ' + self.__str__() + ' :: [ MSG: ' + str(e) + ' ]')
         except PermissionError as e:
@@ -215,6 +327,27 @@ class Parser:
         except UnicodeDecodeError as e:
             self.lgr.error('content with invalid formatting found in target log file :: ' + self.__str__() + ' :: [ MSG: '
                            + str(e) + ' ]')
+
+    def printStats(self, raw=False):
+        """
+        Generate stats in string or raw form
+        
+        :param raw: flag to determine if raw stats in dict form should be returned (default: False)
+        :return: str or dict
+        """
+
+        # check if raw data should be returned
+        if raw:
+            return self.stats
+
+        # return stats as string
+        # print('ALS:', self.stats['average_log_size'])
+        return '[ TOTAL LOGS PROCESSED: { ' + str(self.stats['total_logs_processed']) \
+               + ' } // TOTAL LOG PROCESSING FAILURES: { ' + str(self.stats['total_log_processing_failures']) \
+               + ' } // AVERAGE LOG PROCESSING TIME: { ' \
+               + '%.2f' % float(self.stats['average_log_processing_time']) + ' microseconds } // AVERAGE LOG SIZE: ' \
+               + str(int(self.stats['average_log_size'])) + ' bytes // AVERAGE LOG LENGTH: ' \
+               + str(int(self.stats['average_log_length'])) + ' characters ]'
 
     def __str__(self):
         """
