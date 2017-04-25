@@ -37,11 +37,12 @@ class Parser:
     parserID = 0
     parserName = ''
     logFile = ''
+    logTTL = 0
     offsetFile = ''
     templateStore = {}
     stats = {}
 
-    def __init__(self, lgr, inquisitionDbHandle, logDbHandle, parserID=0, parserName='Syslog',
+    def __init__(self, lgr, inquisitionDbHandle, logDbHandle, logTTL=30, parserID=0, parserName='Syslog',
                  logFile='/var/log/syslog'):
         self.lgr = lgr
         self.inquisitionDbHandle = inquisitionDbHandle
@@ -49,6 +50,7 @@ class Parser:
         self.parserID = parserID
         self.parserName = parserName
         self.logFile = logFile
+        self.logTTL = int(logTTL)
 
         # initialize offset file
         self.offsetFile = '/opt/inquisition/tmp/' + str(self.parserID) + '_' + self.parserName + '.offset'
@@ -243,6 +245,14 @@ class Parser:
 
         # insert log into db
         if self.logDbHandle.hmset(dbKey, logData):
+            # set log ttl
+            logTTL = int(self.logTTL)
+            if logTTL <= 0:
+                # invalid TTL provided
+                raise ValueError('invalid log TTL provided :: [ ' + str(logTTL) + ' ]')
+            else:
+                self.logDbHandle.expire(dbKey, self.logTTL)
+
             # increase log ID
             if self.logDbHandle.incr('log_id'):
                 return True

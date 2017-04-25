@@ -27,5 +27,5 @@ script:
 after_success:
     - ls -l /opt/inquisition/
     - tail /var/log/inquisition/app.log
-    - redis-cli KEYS *
+    - redis-cli KEYS "*"
     - coveralls

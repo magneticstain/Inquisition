@@ -152,8 +152,9 @@ class Anatomize:
             dbResults = dbCursor.fetchall()
             for row in dbResults:
                 # add each parser to parser store
-                parsers[row['parser_id']] = Parser(self.lgr, self.inquisitionDbHandle, self.logDbHandle, row['parser_id'],
-                                                   row['parser_name'], row['parser_log'])
+                parsers[row['parser_id']] = Parser(self.lgr, self.inquisitionDbHandle, self.logDbHandle,
+                                                   self.cfg['parsing']['logTTL'], row['parser_id'], row['parser_name'],
+                                                   row['parser_log'])
 
         return parsers
 
