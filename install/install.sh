@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 #
-# Inquisition Build Script
-# - invokes build process in order to properly host Inquisition
+# Install.sh
+# Automated installer for inquisition
+# v1.0
 #
 
 APP_DIR='/opt/inquisition/'
@@ -18,7 +19,7 @@ echo "Creating log directory..."
 mkdir $LOG_DIR > /dev/null 2>&1
 
 # copy files to app dir
-rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' ./* $APP_DIR || exit 1
+rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' ../* $APP_DIR || exit 1
 
 # provision db
 echo "Initializing database..."
@@ -26,14 +27,12 @@ mysql -u root -e "create database inquisition"
 echo "Creating DB service account..."
 mysql -u root -e "GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost' IDENTIFIED BY ''"
 mysql -u root -e "FLUSH PRIVILEGES"
-echo "Import table schema..."
-mysql -u root inquisition < build/src/inquisition.sql || exit 1
+echo "Import table schema using root user..."
+mysql -u root inquisition < ./src/inquisition.sql || exit 1
 
 # setup log db
-redis-cli set log_id 0
+redis-cli set log_id 0 || echo "COULD NOT CONNECT TO REDIS!" && exit 1
 
-# run any tests
-
-echo "Build complete!"
+echo "Installation complete!"
 
 exit 0
