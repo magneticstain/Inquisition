@@ -390,16 +390,16 @@ class Parser:
         # check if we should return general or run-specific stats
         if runSpecific:
             # return run-specific stats
-            return '[ NUM LOGS: ' + str(self.stats['last_run']['num_logs']) + ' // RUN TIME: ' \
-                   + str(self.stats['last_run']['run_time']) + 's // LOGS / SEC: ' \
-                   + str(self.stats['last_run']['logs_per_sec']) + ' ]'
+            return '[ NUM LOGS: { ' + str(self.stats['last_run']['num_logs']) + ' } // RUN TIME: { ' \
+                   + str(self.stats['last_run']['run_time']) + 's } // LOGS / SEC: { ' \
+                   + str(self.stats['last_run']['logs_per_sec']) + ' } ]'
         else:
             return '[ TOTAL LOGS PROCESSED: { ' + str(self.stats['total_logs_processed']) \
                    + ' } // TOTAL LOG PROCESSING FAILURES: { ' + str(self.stats['total_log_processing_failures']) \
-                   + ' } // AVERAGE LOG PROCESSING TIME: { ' \
-                   + '%.2f' % float(self.stats['average_log_processing_time']) + ' microseconds } // AVERAGE LOG SIZE: ' \
-                   + str(int(self.stats['average_log_size'])) + ' bytes // AVERAGE LOG LENGTH: ' \
-                   + str(int(self.stats['average_log_length'])) + ' characters ]'
+                   + ' } // AVERAGE LOG PROCESSING TIME: { ' + '%.2f' % float(self.stats['average_log_processing_time']) \
+                   + ' microseconds } // AVERAGE LOG SIZE: { ' + str(int(self.stats['average_log_size'])) \
+                   + ' } bytes // AVERAGE LOG LENGTH: { ' + str(int(self.stats['average_log_length'])) \
+                   + ' } characters ]'
 
     def __str__(self):
         """

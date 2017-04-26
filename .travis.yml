@@ -18,7 +18,7 @@ before_script:
     - sudo mkdir /var/log/fake_apache_logs
     - sudo chown -R travis /var/log/fake_apache_logs/
     - sudo chmod -R 774 /var/log/fake_apache_logs/
-    - cp build/src/test_fake_apache_access_logs /var/log/fake_apache_logs/access_log.log
+    - cp build/src/test_fake_apache_access_logs /var/log/fake_apache_logs/
 script:
     - build/build.sh
     - coverage run --parallel-mode --source="." inquisition.py -h
