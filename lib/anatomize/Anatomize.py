@@ -192,7 +192,7 @@ class Anatomize:
                     numRuns += 1
                     if numRunsBetweenStats <= numRuns:
                         # time to print stats and reset run counter
-                        self.lgr.info('|-- STATS --| :: ' + str(self.parserStore[parserId]) + ' :: '
+                        self.lgr.info('|-- PARSER STATS - GENERAL --| :: ' + str(self.parserStore[parserId]) + ' :: '
                                       + self.parserStore[parserId].printStats())
 
                         numRuns = 0

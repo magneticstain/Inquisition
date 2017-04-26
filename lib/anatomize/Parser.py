@@ -172,11 +172,12 @@ class Parser:
         # increase stat by amt
         self.stats[statKey] += amt
 
-    def resetStats(self, statType=None):
+    def resetStats(self, statType=None, statData=0):
         """
         Reset all or specific stat(s)
         
         :param statType: stat key to reset (default: None, meaning reset all stats)
+        :param statData: value to reset stat to
         :return: bool
         """
 
@@ -186,6 +187,11 @@ class Parser:
                 'average_log_length': 0,
                 'average_log_processing_time': 0,
                 'average_log_size': 0,
+                'last_run': {
+                    'num_logs': 0,
+                    'run_time': 0,
+                    'logs_per_sec': 0
+                },
                 'total_log_processing_failures': 0,
                 'total_logs_processed': 0
             }
@@ -195,7 +201,7 @@ class Parser:
         # stat type set, see if it exists
         if statType in self.stats:
             # stat type exists, reset it
-            self.stats[statType] = 0
+            self.stats[statType] = statData
             return True
 
         # stat doesn't exist, can't reset it
@@ -301,9 +307,22 @@ class Parser:
 
         # fetch new log(s)
         try:
+            # reset stat data
+            runStats = {
+                        'num_logs': 0,
+                        'run_time': 0,
+                        'logs_per_sec': 0
+            }
+            self.resetStats('last_run', runStats)
+
+            runStartTime = datetime.datetime.utcnow()
             # NOTE: paranoid denotes updating the offset file after every log is read; statefullness is important ^_^
             for log in Pygtail(self.logFile, offset_file=self.offsetFile, paranoid=True):
                 startTime = datetime.datetime.utcnow()
+
+                # incr run stat
+                self.stats['last_run']['num_logs'] += 1
+
                 # try to process the log
                 if self.processLog(log):
                     # log parsed successfully :)
@@ -329,6 +348,21 @@ class Parser:
                 # update LPS stat
                 self.avgStat('average_log_processing_time', self.stats['average_log_processing_time'],
                              logProcessingTime.microseconds)
+            runEndTime = datetime.datetime.utcnow()
+
+            # update last run time stat
+            runTime = runEndTime - runStartTime
+            self.stats['last_run']['run_time'] = runTime.seconds or 1
+            # the or operation above usually happens during the first run; defaults to 1s
+
+            # calc LPS
+            self.stats['last_run']['logs_per_sec'] = self.stats['last_run']['num_logs'] / \
+                                                     self.stats['last_run']['run_time']
+
+            # print run stats
+            self.lgr.info('|-- PARSER STATS - PER RUN --| :: ' + self.__str__() + ' :: '
+                          + self.printStats(runSpecific=True))
+
         except FileNotFoundError as e:
             self.lgr.error('could not open file for parser :: ' + self.__str__() + ' :: [ MSG: ' + str(e) + ' ]')
         except PermissionError as e:
@@ -338,11 +372,13 @@ class Parser:
             self.lgr.error('content with invalid formatting found in target log file :: ' + self.__str__() + ' :: [ MSG: '
                            + str(e) + ' ]')
 
-    def printStats(self, raw=False):
+    def printStats(self, runSpecific=False, raw=False):
         """
         Generate stats in string or raw form
         
         :param raw: flag to determine if raw stats in dict form should be returned (default: False)
+        :param runSpecific: flag to determine whether to return general parser stats (F) or stats related to the current
+                            run (T)
         :return: str or dict
         """
 
@@ -351,13 +387,19 @@ class Parser:
             return self.stats
 
         # return stats as string
-        # print('ALS:', self.stats['average_log_size'])
-        return '[ TOTAL LOGS PROCESSED: { ' + str(self.stats['total_logs_processed']) \
-               + ' } // TOTAL LOG PROCESSING FAILURES: { ' + str(self.stats['total_log_processing_failures']) \
-               + ' } // AVERAGE LOG PROCESSING TIME: { ' \
-               + '%.2f' % float(self.stats['average_log_processing_time']) + ' microseconds } // AVERAGE LOG SIZE: ' \
-               + str(int(self.stats['average_log_size'])) + ' bytes // AVERAGE LOG LENGTH: ' \
-               + str(int(self.stats['average_log_length'])) + ' characters ]'
+        # check if we should return general or run-specific stats
+        if runSpecific:
+            # return run-specific stats
+            return '[ NUM LOGS: ' + str(self.stats['last_run']['num_logs']) + ' // RUN TIME: ' \
+                   + str(self.stats['last_run']['run_time']) + 's // LOGS / SEC: ' \
+                   + str(self.stats['last_run']['logs_per_sec']) + ' ]'
+        else:
+            return '[ TOTAL LOGS PROCESSED: { ' + str(self.stats['total_logs_processed']) \
+                   + ' } // TOTAL LOG PROCESSING FAILURES: { ' + str(self.stats['total_log_processing_failures']) \
+                   + ' } // AVERAGE LOG PROCESSING TIME: { ' \
+                   + '%.2f' % float(self.stats['average_log_processing_time']) + ' microseconds } // AVERAGE LOG SIZE: ' \
+                   + str(int(self.stats['average_log_size'])) + ' bytes // AVERAGE LOG LENGTH: ' \
+                   + str(int(self.stats['average_log_length'])) + ' characters ]'
 
     def __str__(self):
         """
