@@ -42,7 +42,6 @@ class Anatomize:
     cfg = {}
     inquisitionDbHandle = None
     logDbHandle = None
-    # logDbConnInfo = {}
     parserStore = {}
 
     def __init__(self, cfg):
@@ -52,14 +51,6 @@ class Anatomize:
         self.lgr = self.generateLogger()
 
         self.lgr.info('starting Anatomize engine...')
-
-        # # set log DB info
-        # self.logDbConnInfo = {
-        #     'host': self.cfg['log_database']['host'],
-        #     'port': int(self.cfg['log_database']['port'])
-        # }
-        # self.lgr.debug('using [ ' + self.logDbConnInfo['host'] + ':' + self.logDbConnInfo['port']
-        #                + ' ] as log database')
 
         # create db handle for log database
         self.logDbHandle = redis.StrictRedis(host=cfg['log_database']['host'], port=cfg['log_database']['port'])
@@ -152,9 +143,11 @@ class Anatomize:
             dbResults = dbCursor.fetchall()
             for row in dbResults:
                 # add each parser to parser store
-                parsers[row['parser_id']] = Parser(self.lgr, self.inquisitionDbHandle, self.logDbHandle,
-                                                   self.cfg['parsing']['logTTL'], row['parser_id'], row['parser_name'],
-                                                   row['parser_log'])
+                parsers[row['parser_id']] = Parser(lgr=self.lgr, inquisitionDbHandle=self.inquisitionDbHandle,
+                                                   logDbHandle=self.logDbHandle, logTTL=self.cfg['parsing']['logTTL'],
+                                                   parserID=row['parser_id'], parserName=row['parser_name'],
+                                                   logFile=row['parser_log'],
+                                                   keepPersistentStats=bool(int(self.cfg['stats']['keepPersistentStats'])))
 
         return parsers
 

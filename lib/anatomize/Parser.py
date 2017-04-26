@@ -41,9 +41,10 @@ class Parser:
     offsetFile = ''
     templateStore = {}
     stats = {}
+    keepPersistentStats = True
 
     def __init__(self, lgr, inquisitionDbHandle, logDbHandle, logTTL=30, parserID=0, parserName='Syslog',
-                 logFile='/var/log/syslog'):
+                 logFile='/var/log/syslog', keepPersistentStats=True):
         self.lgr = lgr
         self.inquisitionDbHandle = inquisitionDbHandle
         self.logDbHandle = logDbHandle
@@ -51,12 +52,13 @@ class Parser:
         self.parserName = parserName
         self.logFile = logFile
         self.logTTL = int(logTTL)
+        self.keepPersistentStats = bool(keepPersistentStats)
 
         # initialize offset file
         self.offsetFile = '/opt/inquisition/tmp/' + str(self.parserID) + '_' + self.parserName + '.offset'
 
         # init stats
-        self.resetStats()
+        self.resetStats(updateLogDb=self.keepPersistentStats)
         self.lgr.debug(self.__str__() + ' :: stats initialized')
 
         # load templates for template store
@@ -116,13 +118,63 @@ class Parser:
 
         return templates
 
-    def avgStat(self, statKey, initialVal, newVal, strict=False):
+    def updateStatInLogDB(self, statName, action='incrby', incrAmt=0, newVal=0, strict=False):
+        """
+        Perform action on given stat in log db
+        
+        :param statName: field name of stat to implement action on
+        :param action: db action to perform on stat || Valid actions: incrby, set
+        :param incrAmt: if action=incrby, states the amount to increase stat by
+        :param newVal: if action=set, this is the new value field is set to
+        :param strict: if set to true, only fine stat avg if stat key exists; if not, IndexError is raised
+        :return: void 
+        """
+
+        # if keepPersistentStats is turned off, don't bother doing anything further
+        if not self.keepPersistentStats:
+            # persistent stats disabled, don't touch db
+            return
+
+        # generate key name
+        keyName = 'stats:' + str(self.parserID) + '_' + self.parserName
+
+        # check if key for stats already exists; if not, initialize it
+        if not self.logDbHandle.exists(keyName):
+            # stats key doesn't exist in log db yet, see if we should create it
+            if strict:
+                # strict mode - stat type doesn't exist and we shouldn't create it
+                raise IndexError('stat key not present in log database and strict mode is [ ON ]')
+            else:
+                # create initial stats hash in log db
+                self.logDbHandle.hmset(keyName, { statName: newVal })
+        else:
+            # check what action we should take on stat
+            if action == 'incrby':
+                # normalize incrementation val
+                incrAmt = int(incrAmt)
+
+                # increase stat by incrAmt
+                if incrAmt < 1:
+                    # can't increase by less than 1, raise exception
+                    raise ValueError('invalid incrementation amount specified')
+                else:
+                    # increase stat
+                    self.logDbHandle.hincrby(keyName, statName, incrAmt)
+            elif action == 'set':
+                # set new val for field (statName)
+                self.logDbHandle.hset(keyName, statName, newVal)
+            else:
+                raise ValueError('invalid action provided :: [ ' + str(action) + ' ]')
+
+
+    def avgStat(self, statKey, initialVal, newVal, storeInDb=True, strict=False):
         """
         Find the average of two valuesL initial, established average along with the new value to be incl. w/ initial avg
         
         :param statKey: stat to average
         :param initialVal: initial average value
         :param newVal: new value to calculate with initialVal to get new average
+        :param storeInDb: flag noting whether to store/update this statistic in the log db (default: T)
         :param strict: if set to true, only fine stat avg if stat key exists; if not, IndexError is raised
         :return: void
         """
@@ -132,7 +184,7 @@ class Parser:
             # stat type DOES NOT exist
             if strict:
                 # strict mode - stat type doesn't exist and we shouldn't create it
-                raise IndexError('stat key not found')
+                raise IndexError('stat key not found and strict mode is [ ON ]')
             else:
                 # create stat type before averaging it
                 self.stats[statKey] = 0
@@ -140,17 +192,25 @@ class Parser:
         # find average
         if initialVal == 0:
             # first or reset value, set as initial val
-            self.stats[statKey] = newVal
+            avgVal = newVal
         else:
             # calc avg
-            self.stats[statKey] = (initialVal + newVal) / 2
+            avgVal = (initialVal + newVal) / 2
 
-    def incrStat(self, statKey, amt, strict=False):
+        # update in-memory val of stat
+        self.stats[statKey] = avgVal
+
+        # update stat in log db, if requested
+        if storeInDb:
+            self.updateStatInLogDB(statKey, action='set', newVal=avgVal, strict=strict)
+
+    def incrStat(self, statKey, amt, storeInDb=True, strict=False):
         """
         Increase specific statistic by $amt
         
         :param statKey: stat to increase
         :param amt: amount to increase stat by
+        :param storeInDb: flag noting whether to store/update this statistic in the log db (default: T)
         :param strict: if set to true, only increase stat if stat key exists; if not, IndexError is raised
         :return: void
         """
@@ -172,40 +232,89 @@ class Parser:
         # increase stat by amt
         self.stats[statKey] += amt
 
-    def resetStats(self, statType=None, statData=0):
+        # update stat in log db, if requested
+        if storeInDb:
+            self.updateStatInLogDB(statKey, incrAmt=amt, strict=strict)
+
+    def resetStats(self, statType=None, statData=0, updateLogDb=True):
         """
         Reset all or specific stat(s)
         
         :param statType: stat key to reset (default: None, meaning reset all stats)
         :param statData: value to reset stat to
+        :param updateLogDb: flag indication whether we should update the db or just the in-memory stats (default: T)
         :return: bool
         """
 
-        if not statType:
-            # reset all stats; initialize to defaults
-            self.stats = {
-                'average_log_length': 0,
-                'average_log_processing_time': 0,
-                'average_log_size': 0,
-                'last_run': {
-                    'num_logs': 0,
-                    'run_time': 0,
-                    'logs_per_sec': 0
-                },
-                'total_log_processing_failures': 0,
-                'total_logs_processed': 0
-            }
-
-            return True
-
-        # stat type set, see if it exists
+        # see if stat type exists and set it if it does
         if statType in self.stats:
             # stat type exists, reset it
             self.stats[statType] = statData
+
+            # check if we should reset it in the db too
+            if updateLogDb:
+                self.updateStatInLogDB(statType, action='set', newVal=statData)
+
             return True
 
+        # no stat type specified, recreate it all
+        # initialize default stats for in-memory stat store
+        self.stats = {
+            'average_log_length': 0,
+            'average_log_processing_time': 0,
+            'average_log_size': 0,
+            'last_run': {
+                'num_logs': 0,
+                'run_time': 0,
+                'logs_per_sec': 0
+            },
+            'total_log_processing_failures': 0,
+            'total_logs_processed': 0
+        }
+
+        # check if db should be re-inited too
+        if updateLogDb:
+            # remove run-based stats from db set (db support for those isn't supported at this time)
+            statsForDb = self.stats
+            del statsForDb['last_run']
+
+            # proceed w/ db insertion
+            # generate key name
+            keyName = 'stats:' + str(self.parserID) + '_' + self.parserName
+            # set stat vals in log db
+            self.logDbHandle.hmset(keyName, statsForDb)
+
         # stat doesn't exist, can't reset it
-        return False
+        return True
+
+    def printStats(self, runSpecific=False, raw=False):
+        """
+        Generate stats in string or raw form
+        
+        :param raw: flag to determine if raw stats in dict form should be returned (default: False)
+        :param runSpecific: flag to determine whether to return general parser stats (F) or stats related to the current
+                            run (T)
+        :return: str or dict
+        """
+
+        # check if raw data should be returned
+        if raw:
+            return self.stats
+
+        # return stats as string
+        # check if we should return general or run-specific stats
+        if runSpecific:
+            # return run-specific stats
+            return '[ NUM LOGS: { ' + str(self.stats['last_run']['num_logs']) + ' } // RUN TIME: { ' \
+                   + str(self.stats['last_run']['run_time']) + 's } // LOGS / SEC: { ' \
+                   + str(self.stats['last_run']['logs_per_sec']) + ' } ]'
+        else:
+            return '[ TOTAL LOGS PROCESSED: { ' + str(self.stats['total_logs_processed']) \
+                   + ' } // TOTAL LOG PROCESSING FAILURES: { ' + str(self.stats['total_log_processing_failures']) \
+                   + ' } // AVERAGE LOG PROCESSING TIME: { ' + '%.2f' % float(self.stats['average_log_processing_time']) \
+                   + ' microseconds } // AVERAGE LOG SIZE: { ' + str(int(self.stats['average_log_size'])) \
+                   + ' } bytes // AVERAGE LOG LENGTH: { ' + str(int(self.stats['average_log_length'])) \
+                   + ' } characters ]'
 
     def parseLog(self, rawLog):
         """
@@ -220,18 +329,19 @@ class Parser:
         # get current log ID
         logId = self.logDbHandle.get('log_id')
         if not logId:
-            # could not fetch log ID
-            errMsg = 'could not fetch ID for new log'
-            self.lgr.critical(errMsg)
-            raise RuntimeError(errMsg)
+            # initialize log_id val
+            logId = 0
+            self.logDbHandle.set('log_id', logId)
 
-        # normalize logId
-        logId = int(logId.decode('utf-8'))
+        # check logId
+        if logId != 0:
+            # log ID a non-zero val (i.e. a utf-8 val from the log db), let's decode and normalize it
+            logId = int(logId.decode('utf-8'))
         if logId < 0:
             raise ValueError('invalid log ID provided when trying to parse new log')
 
         # craft db key
-        dbKey = str(self.parserID) + '_' + self.parserName + ':' + str(logId)
+        dbKey = 'log:' + str(self.parserID) + '_' + self.parserName + ':' + str(logId)
 
         # try to match log against each template in template store
         for templateId in self.templateStore:
@@ -313,7 +423,7 @@ class Parser:
                         'run_time': 0,
                         'logs_per_sec': 0
             }
-            self.resetStats('last_run', runStats)
+            self.resetStats('last_run', runStats, False)
 
             runStartTime = datetime.datetime.utcnow()
             # NOTE: paranoid denotes updating the offset file after every log is read; statefullness is important ^_^
@@ -360,7 +470,7 @@ class Parser:
                                                      self.stats['last_run']['run_time']
 
             # print run stats
-            self.lgr.info('|-- PARSER STATS - PER RUN --| :: ' + self.__str__() + ' :: '
+            self.lgr.debug('|-- PARSER STATS - PER RUN --| :: ' + self.__str__() + ' :: '
                           + self.printStats(runSpecific=True))
 
         except FileNotFoundError as e:
@@ -371,35 +481,6 @@ class Parser:
         except UnicodeDecodeError as e:
             self.lgr.error('content with invalid formatting found in target log file :: ' + self.__str__() + ' :: [ MSG: '
                            + str(e) + ' ]')
-
-    def printStats(self, runSpecific=False, raw=False):
-        """
-        Generate stats in string or raw form
-        
-        :param raw: flag to determine if raw stats in dict form should be returned (default: False)
-        :param runSpecific: flag to determine whether to return general parser stats (F) or stats related to the current
-                            run (T)
-        :return: str or dict
-        """
-
-        # check if raw data should be returned
-        if raw:
-            return self.stats
-
-        # return stats as string
-        # check if we should return general or run-specific stats
-        if runSpecific:
-            # return run-specific stats
-            return '[ NUM LOGS: { ' + str(self.stats['last_run']['num_logs']) + ' } // RUN TIME: { ' \
-                   + str(self.stats['last_run']['run_time']) + 's } // LOGS / SEC: { ' \
-                   + str(self.stats['last_run']['logs_per_sec']) + ' } ]'
-        else:
-            return '[ TOTAL LOGS PROCESSED: { ' + str(self.stats['total_logs_processed']) \
-                   + ' } // TOTAL LOG PROCESSING FAILURES: { ' + str(self.stats['total_log_processing_failures']) \
-                   + ' } // AVERAGE LOG PROCESSING TIME: { ' + '%.2f' % float(self.stats['average_log_processing_time']) \
-                   + ' microseconds } // AVERAGE LOG SIZE: { ' + str(int(self.stats['average_log_size'])) \
-                   + ' } bytes // AVERAGE LOG LENGTH: { ' + str(int(self.stats['average_log_length'])) \
-                   + ' } characters ]'
 
     def __str__(self):
         """
