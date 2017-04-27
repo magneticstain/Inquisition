@@ -56,11 +56,6 @@ class Parser:
 
         # initialize offset file
         self.offsetFile = '/opt/inquisition/tmp/' + str(self.parserID) + '_' + self.parserName + '.offset'
-
-        # init stats
-        self.resetStats(updateLogDb=self.keepPersistentStats)
-        self.lgr.debug(self.__str__() + ' :: stats initialized')
-
         # load templates for template store
         self.templateStore = self.fetchTemplates()
         self.lgr.info('loaded [ ' + str(len(self.templateStore)) + ' ] templates for ' + self.__str__())
@@ -118,7 +113,8 @@ class Parser:
 
         return templates
 
-    def updateStatInLogDB(self, statName, action='incrby', incrAmt=0, newVal=0, strict=False):
+    def updateStatInLogDB(self, statName, action='incrby', incrAmt=0, newVal=0, strict=False, statKey=None,
+                          statsType='parser'):
         """
         Perform action on given stat in log db
         
@@ -127,6 +123,8 @@ class Parser:
         :param incrAmt: if action=incrby, states the amount to increase stat by
         :param newVal: if action=set, this is the new value field is set to
         :param strict: if set to true, only fine stat avg if stat key exists; if not, IndexError is raised
+        :param statKey: name of key to save/update stat of
+        :param statsType: type of stat to update
         :return: void 
         """
 
@@ -135,36 +133,35 @@ class Parser:
             # persistent stats disabled, don't touch db
             return
 
-        # generate key name
-        keyName = 'stats:' + str(self.parserID) + '_' + self.parserName
+        # check is statKey is set, generate if it's not
+        if not statKey:
+            # set default stat key
+            statKey = str(self.parserID) + '_' + self.parserName
+        # set key name
+        keyName = 'stats:' + statsType + ':' + statKey
 
         # check if key for stats already exists; if not, initialize it
-        if not self.logDbHandle.exists(keyName):
-            # stats key doesn't exist in log db yet, see if we should create it
-            if strict:
-                # strict mode - stat type doesn't exist and we shouldn't create it
-                raise IndexError('stat key not present in log database and strict mode is [ ON ]')
-            else:
-                # create initial stats hash in log db
-                self.logDbHandle.hmset(keyName, { statName: newVal })
-        else:
-            # check what action we should take on stat
-            if action == 'incrby':
-                # normalize incrementation val
-                incrAmt = int(incrAmt)
+        if not self.logDbHandle.exists(keyName) and strict:
+            # stats key doesn't exist and we're in strict mode - stat type doesn't exist and we shouldn't create it
+            raise IndexError('stat key not present in log database and strict mode is [ ON ]')
 
-                # increase stat by incrAmt
-                if incrAmt < 1:
-                    # can't increase by less than 1, raise exception
-                    raise ValueError('invalid incrementation amount specified')
-                else:
-                    # increase stat
-                    self.logDbHandle.hincrby(keyName, statName, incrAmt)
-            elif action == 'set':
-                # set new val for field (statName)
-                self.logDbHandle.hset(keyName, statName, newVal)
+        # check what action we should take on stat
+        if action == 'incrby':
+            # normalize incrementation val
+            incrAmt = int(incrAmt)
+
+            # increase stat by incrAmt
+            if incrAmt < 1:
+                # can't increase by less than 1, raise exception
+                raise ValueError('invalid incrementation amount specified')
             else:
-                raise ValueError('invalid action provided :: [ ' + str(action) + ' ]')
+                # increase stat
+                self.logDbHandle.hincrby(keyName, statName, incrAmt)
+        elif action == 'set':
+            # set new val for field (statName)
+            self.logDbHandle.hset(keyName, statName, newVal)
+        else:
+            raise ValueError('invalid action provided :: [ ' + str(action) + ' ]')
 
 
     def avgStat(self, statKey, initialVal, newVal, storeInDb=True, strict=False):
@@ -236,7 +233,7 @@ class Parser:
         if storeInDb:
             self.updateStatInLogDB(statKey, incrAmt=amt, strict=strict)
 
-    def resetStats(self, statType=None, statData=0, updateLogDb=True):
+    def resetParserStats(self, statType=None, statData=0, updateLogDb=True):
         """
         Reset all or specific stat(s)
         
@@ -269,7 +266,9 @@ class Parser:
                 'logs_per_sec': 0
             },
             'total_log_processing_failures': 0,
-            'total_logs_processed': 0
+            'total_logs_processed': 0,
+            'total_matches': 0,
+            'total_misses': 0
         }
 
         # check if db should be re-inited too
@@ -280,7 +279,7 @@ class Parser:
 
             # proceed w/ db insertion
             # generate key name
-            keyName = 'stats:' + str(self.parserID) + '_' + self.parserName
+            keyName = 'stats:parser:' + str(self.parserID) + '_' + self.parserName
             # set stat vals in log db
             self.logDbHandle.hmset(keyName, statsForDb)
 
@@ -345,14 +344,27 @@ class Parser:
 
         # try to match log against each template in template store
         for templateId in self.templateStore:
+            templateKey = str(templateId) + '_' + self.templateStore[templateId].templateName
             matchedString = self.templateStore[templateId].matchLogAgainstRegex(rawLog)
             if matchedString:
                 # add matched field and value to log data dict
                 logData[self.templateStore[templateId].field] = matchedString
                 self.lgr.debug('template MATCHED log :: ' + str(self.templateStore[templateId]))
+
+                # increase match stats for parser
+                self.incrStat('total_matches', 1)
+
+                # increase match stats for specific template in db
+                self.updateStatInLogDB(statName='matches', incrAmt=1, statKey=templateKey, statsType='template')
             else:
                 # didn't match template
                 self.lgr.debug('template DID NOT MATCH log :: ' + str(self.templateStore[templateId]))
+
+                # increase miss stats
+                self.incrStat('total_misses', 1)
+
+                # increase miss stats for specific template
+                self.updateStatInLogDB(statName='misses', incrAmt=1, statKey=templateKey, statsType='template')
 
         # check if we matched anything
         if not logData:
@@ -423,7 +435,7 @@ class Parser:
                         'run_time': 0,
                         'logs_per_sec': 0
             }
-            self.resetStats('last_run', runStats, False)
+            self.resetParserStats('last_run', runStats, False)
 
             runStartTime = datetime.datetime.utcnow()
             # NOTE: paranoid denotes updating the offset file after every log is read; statefullness is important ^_^
