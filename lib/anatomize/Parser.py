@@ -56,11 +56,12 @@ class Parser:
 
         # initialize offset file
         self.offsetFile = '/opt/inquisition/tmp/' + str(self.parserID) + '_' + self.parserName + '.offset'
-        # load templates for template store
+
+        # load templates from template store
         self.templateStore = self.fetchTemplates()
         self.lgr.info('loaded [ ' + str(len(self.templateStore)) + ' ] templates for ' + self.__str__())
 
-        self.lgr.debug(self.__str__() + ' created SUCCESSFULLY')
+        self.lgr.debug(self.__str__() + ' created [ SUCCESSFULLY ]')
 
     def fetchTemplates(self):
         """
@@ -419,17 +420,26 @@ class Parser:
 
         return True
 
-    def pollLogFile(self, isTestRun=False):
+    def pollLogFile(self, isTestRun=False, useHazyStateTracking=False, numLogsBetweenTrackingUpdate=0):
         """
-        Tails the log file for one log and processes it
+        Tails the log file for new logs and processes them
         
         :param isTestRun: signifies if we're performing a test run or not
+        :param useHazyStateTracking: this feature gives up some exactitude in exchange for better efficiency and 
+                                        faster speeds; updates the offset file every $numLogsBetweenTrackingUpdate
+        :param numLogsBetweenTrackingUpdate: num logs to update offset file after
         :return: void
         """
 
+        # check tracking update if applicable
+        if useHazyStateTracking:
+            if numLogsBetweenTrackingUpdate < 1:
+                raise ValueError('invalid tracking update log count ( ' + str(numLogsBetweenTrackingUpdate)
+                                 + ' ) w/ hazy state tracking enabled')
+
         # fetch new log(s)
         try:
-            # reset stat data
+            # reset run stats
             runStats = {
                         'num_logs': 0,
                         'run_time': 0,
@@ -437,22 +447,31 @@ class Parser:
             }
             self.resetParserStats('last_run', runStats, False)
 
-            runStartTime = datetime.datetime.utcnow()
+            totalRunStartTime = datetime.datetime.utcnow()
+
+            # check if hazy state tracking is enabled and set paranoia setting accordingly
+            if useHazyStateTracking:
+                paranoidMode = False
+            else:
+                paranoidMode = True
+
             # NOTE: paranoid denotes updating the offset file after every log is read; statefullness is important ^_^
-            for log in Pygtail(self.logFile, offset_file=self.offsetFile, paranoid=True):
+            # begin polling
+            for log in Pygtail(self.logFile, offset_file=self.offsetFile, paranoid=paranoidMode,
+                               every_n=numLogsBetweenTrackingUpdate):
                 startTime = datetime.datetime.utcnow()
 
-                # incr run stat
+                # incr stat for total log during current run
                 self.stats['last_run']['num_logs'] += 1
 
                 # try to process the log
                 if self.processLog(log):
-                    # log parsed successfully :)
+                    # log parsed successfully :D
                     self.lgr.debug('log successfully processed :: ' + self.__str__())
 
                     # break after parsing a single log if running a test run
                     if isTestRun:
-                        self.lgr.debug('configured as a test run, ceasing parsing')
+                        self.lgr.debug('configured as a test run, stopping parsing')
                         break
                 else:
                     # log processing failed :(
@@ -462,19 +481,19 @@ class Parser:
                     if isTestRun:
                         self.lgr.debug('configured as a test run, we should exit')
                         exit(1)
-                endTime = datetime.datetime.utcnow()
 
                 # calculate processing time for log
+                endTime = datetime.datetime.utcnow()
                 logProcessingTime = endTime - startTime
 
                 # update LPS stat
                 self.avgStat('average_log_processing_time', self.stats['average_log_processing_time'],
                              logProcessingTime.microseconds)
-            runEndTime = datetime.datetime.utcnow()
+            totalRunEndTime = datetime.datetime.utcnow()
 
             # update last run time stat
-            runTime = runEndTime - runStartTime
-            self.stats['last_run']['run_time'] = runTime.seconds or 1
+            totalRunTime = totalRunEndTime - totalRunStartTime
+            self.stats['last_run']['run_time'] = totalRunTime.seconds or 1
             # the or operation above usually happens during the first run; defaults to 1s
 
             # calc LPS

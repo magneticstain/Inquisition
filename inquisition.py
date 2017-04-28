@@ -16,7 +16,6 @@ import configparser
 from os import path
 
 # | Third-Party
-from pprint import pprint
 
 # | Custom
 from lib.anatomize.Anatomize import Anatomize
@@ -35,6 +34,7 @@ __status__ = 'Development'
 def parseCliArgs():
     """
     Parse CLI arguments
+    
     :return: post-parsing ArgumentParser() obj
     """
 
@@ -50,10 +50,10 @@ def parseCliArgs():
     # read in args
     return cliParser.parse_args()
 
-
 def parseConfigFile(configFile):
     """
     Parse App Configuration from File
+    
     :param configFile: filename of configuration file to read in
     :return: configparser.ConfigParser()
     """
@@ -71,7 +71,6 @@ def parseConfigFile(configFile):
         print('[CRIT] config file not found :: [', configFile, ']')
 
         exit(1)
-
 
 def generateCfg():
     """
@@ -106,7 +105,6 @@ def generateCfg():
 
     return cfg
 
-
 def main():
     """
     Main runtime module
@@ -119,7 +117,7 @@ def main():
 
     # start Anatomize.py instance
     anatomize = Anatomize(cfg)
-    anatomize.lgr.debug('anatomizer initialization SUCCESSFUL')
+    anatomize.lgr.debug('anatomizer initialization [ SUCCESSFUL ]')
 
     # start polling process
     if not cfg.getboolean('cli', 'config_check'):
@@ -128,8 +126,8 @@ def main():
         # start Destiny.py instance
         # TODO
     else:
-        msg = '[INFO] configuration check is SUCCESSFUL, exiting...'
-        print(msg)
+        msg = 'configuration check is SUCCESSFUL, exiting...'
+        print('[INFO] ' + msg)
         anatomize.lgr.info(msg)
 
 

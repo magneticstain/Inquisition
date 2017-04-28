@@ -12,8 +12,7 @@ CREATION_DATE: 2017-04-08
 # MODULES
 # | Native
 import logging
-
-from os import fork, _exit
+from os import fork
 from time import sleep
 
 # | Third-Party
@@ -53,6 +52,8 @@ class Anatomize:
         self.lgr.info('starting Anatomize engine...')
 
         # create db handle for log database
+        # NOTE: StrictRedis won't actually raise an exception if we can't connect; only when we run queries
+        # go figure -_-
         self.logDbHandle = redis.StrictRedis(host=cfg['log_database']['host'], port=cfg['log_database']['port'])
         self.lgr.debug('database connection established for log database :: [ ' + cfg['log_database']['host']
                        + ':' + cfg['log_database']['port'] + ' ]')
@@ -66,17 +67,17 @@ class Anatomize:
                                                                             int(cfg['mysql_database']['db_port']))
             self.lgr.debug('database connection established for main inquisition database :: [ '
                            + cfg['mysql_database']['db_host'] + ':' + cfg['mysql_database']['db_port'] + ' ]')
-            self.lgr.info('all database connections established SUCCESSFULLY')
+            self.lgr.info('all database connections established [ SUCCESSFULLY ]')
 
             # load parsers and associated templates (IN PROGRESS)
             self.parserStore = self.fetchParsers()
             self.lgr.debug('loaded [ ' + str(len(self.parserStore)) + ' ] parsers into parser store')
-        except pymysql.OperationalError as e:
-            self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
+        except (pymysql.InternalError, pymysql.ProgrammingError) as e:
+            self.lgr.critical('could not fetch parsers from inquisition database :: [ ' + str(e) + ' ]')
 
             exit(1)
-        except pymysql.ProgrammingError as e:
-            self.lgr.critical('could not load log parsers from database :: [ ' + str(e) + ' ]')
+        except pymysql.OperationalError as e:
+            self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
 
             exit(1)
 
@@ -147,7 +148,8 @@ class Anatomize:
                                                    logDbHandle=self.logDbHandle, logTTL=self.cfg['parsing']['logTTL'],
                                                    parserID=row['parser_id'], parserName=row['parser_name'],
                                                    logFile=row['parser_log'],
-                                                   keepPersistentStats=bool(int(self.cfg['stats']['keepPersistentStats'])))
+                                                   keepPersistentStats=self.cfg.getboolean('stats', 'keepPersistentStats')
+                                                   )
 
         return parsers
 
@@ -175,15 +177,21 @@ class Anatomize:
                     numRunsBetweenStats = int(self.cfg['stats']['numSleepsBetweenStats'])
 
                     # poll for new logs
-                    self.parserStore[parserId].pollLogFile(testRun)
+                    self.parserStore[parserId].pollLogFile(testRun,
+                                                           useHazyStateTracking=self.cfg.getboolean(
+                                                               'parsing', 'enableHazyStateTracking'),
+                                                           numLogsBetweenTrackingUpdate=self.cfg.getint('parsing',
+                                                                                                        'stateTrackingWaitNumLogs')
+                                                           )
 
+                    # check if running a test run
                     if testRun:
                         self.lgr.debug('test run, exiting anatomizer loop')
                         break
 
                     # run complete, increase counter
                     numRuns += 1
-                    if numRunsBetweenStats <= numRuns:
+                    if numRuns >= numRunsBetweenStats:
                         # time to print stats and reset run counter
                         self.lgr.info('|-- PARSER STATS - GENERAL --| :: ' + str(self.parserStore[parserId]) + ' :: '
                                       + self.parserStore[parserId].printStats())
