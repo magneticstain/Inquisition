@@ -31,6 +31,10 @@ __status__ = 'Development'
 
 
 class Parser:
+    """
+    Parser engine for Anatomize.py; reads in and processes new logs
+    """
+
     lgr = None
     inquisitionDbHandle = None
     logDbHandle = None
@@ -134,14 +138,15 @@ class Parser:
             # persistent stats disabled, don't touch db
             return
 
-        # check is statKey is set, generate if it's not
+        # check if statKey is set, generate if it's not
         if not statKey:
             # set default stat key
             statKey = str(self.parserID) + '_' + self.parserName
-        # set key name
+
+        # set key name for db
         keyName = 'stats:' + statsType + ':' + statKey
 
-        # check if key for stats already exists; if not, initialize it
+        # check if key for stats already exists in log db
         if not self.logDbHandle.exists(keyName) and strict:
             # stats key doesn't exist and we're in strict mode - stat type doesn't exist and we shouldn't create it
             raise IndexError('stat key not present in log database and strict mode is [ ON ]')
@@ -153,7 +158,7 @@ class Parser:
 
             # increase stat by incrAmt
             if incrAmt < 1:
-                # can't increase by less than 1, raise exception
+                # can't increase by less than 1 in this context, raise exception
                 raise ValueError('invalid incrementation amount specified')
             else:
                 # increase stat
@@ -164,10 +169,9 @@ class Parser:
         else:
             raise ValueError('invalid action provided :: [ ' + str(action) + ' ]')
 
-
     def avgStat(self, statKey, initialVal, newVal, storeInDb=True, strict=False):
         """
-        Find the average of two valuesL initial, established average along with the new value to be incl. w/ initial avg
+        Find the average of two values: initial, established average along with the new value to be incl. w/ initial avg
         
         :param statKey: stat to average
         :param initialVal: initial average value
@@ -192,7 +196,7 @@ class Parser:
             # first or reset value, set as initial val
             avgVal = newVal
         else:
-            # calc avg
+            # incorporate newVal by calculatingavg
             avgVal = (initialVal + newVal) / 2
 
         # update in-memory val of stat
@@ -244,7 +248,7 @@ class Parser:
         :return: bool
         """
 
-        # see if stat type exists and set it if it does
+        # see if stat type exists, and set it if it does
         if statType in self.stats:
             # stat type exists, reset it
             self.stats[statType] = statData
@@ -255,7 +259,7 @@ class Parser:
 
             return True
 
-        # no stat type specified, recreate it all
+        # no stat type specified if we get here, recreate it all
         # initialize default stats for in-memory stat store
         self.stats = {
             'average_log_length': 0,
@@ -274,7 +278,7 @@ class Parser:
 
         # check if db should be re-inited too
         if updateLogDb:
-            # remove run-based stats from db set (db support for those isn't supported at this time)
+            # remove run-based stats from db set (db support for those isn't supported at this time; see issue #20)
             statsForDb = self.stats
             del statsForDb['last_run']
 
@@ -284,7 +288,7 @@ class Parser:
             # set stat vals in log db
             self.logDbHandle.hmset(keyName, statsForDb)
 
-        # stat doesn't exist, can't reset it
+        # everything reset successfully
         return True
 
     def printStats(self, runSpecific=False, raw=False):
@@ -309,6 +313,7 @@ class Parser:
                    + str(self.stats['last_run']['run_time']) + 's } // LOGS / SEC: { ' \
                    + str(self.stats['last_run']['logs_per_sec']) + ' } ]'
         else:
+            # return parser stats
             return '[ TOTAL LOGS PROCESSED: { ' + str(self.stats['total_logs_processed']) \
                    + ' } // TOTAL LOG PROCESSING FAILURES: { ' + str(self.stats['total_log_processing_failures']) \
                    + ' } // AVERAGE LOG PROCESSING TIME: { ' + '%.2f' % float(self.stats['average_log_processing_time']) \
@@ -329,13 +334,13 @@ class Parser:
         # get current log ID
         logId = self.logDbHandle.get('log_id')
         if not logId:
-            # initialize log_id val
+            # initialize log_id val locally and in log db
             logId = 0
             self.logDbHandle.set('log_id', logId)
 
         # check logId
         if logId != 0:
-            # log ID a non-zero val (i.e. a utf-8 val from the log db), let's decode and normalize it
+            # log ID is a non-zero val (i.e. a utf-8 val), let's decode and normalize it
             logId = int(logId.decode('utf-8'))
         if logId < 0:
             raise ValueError('invalid log ID provided when trying to parse new log')
@@ -375,14 +380,13 @@ class Parser:
         # insert log into db
         if self.logDbHandle.hmset(dbKey, logData):
             # set log ttl
-            logTTL = int(self.logTTL)
-            if logTTL <= 0:
+            if self.logTTL <= 0:
                 # invalid TTL provided
-                raise ValueError('invalid log TTL provided :: [ ' + str(logTTL) + ' ]')
+                raise ValueError('invalid log TTL provided :: [ ' + str(self.logTTL) + ' ]')
             else:
                 self.logDbHandle.expire(dbKey, self.logTTL)
 
-            # increase log ID
+            # increase log ID for the next log in line
             if self.logDbHandle.incr('log_id'):
                 return True
 
@@ -412,6 +416,7 @@ class Parser:
 
         # parse post-processed log
         if not self.parseLog(rawLog):
+            # uh oh, couldn't process the log for some reason
             self.incrStat('total_log_processing_failures', 1, True)
             return False
 
@@ -462,6 +467,7 @@ class Parser:
                 startTime = datetime.datetime.utcnow()
 
                 # incr stat for total log during current run
+                # NOTE: last_run stats aren't currently stored in the db; see issue #20
                 self.stats['last_run']['num_logs'] += 1
 
                 # try to process the log
@@ -482,11 +488,12 @@ class Parser:
                         self.lgr.debug('configured as a test run, we should exit')
                         exit(1)
 
-                # calculate processing time for log
                 endTime = datetime.datetime.utcnow()
+
+                # calculate processing time for log
                 logProcessingTime = endTime - startTime
 
-                # update LPS stat
+                # update ALPT stat
                 self.avgStat('average_log_processing_time', self.stats['average_log_processing_time'],
                              logProcessingTime.microseconds)
             totalRunEndTime = datetime.datetime.utcnow()
@@ -496,7 +503,7 @@ class Parser:
             self.stats['last_run']['run_time'] = totalRunTime.seconds or 1
             # the or operation above usually happens during the first run; defaults to 1s
 
-            # calc LPS
+            # calc LPS for latest run
             self.stats['last_run']['logs_per_sec'] = self.stats['last_run']['num_logs'] / \
                                                      self.stats['last_run']['run_time']
 

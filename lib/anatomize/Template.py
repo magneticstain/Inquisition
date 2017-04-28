@@ -28,6 +28,10 @@ __status__ = 'Development'
 
 
 class Template:
+    """
+    Logical representation of template with all the bells and whistles
+    """
+
     templateID = 0
     templateName = ''
     field = ''
