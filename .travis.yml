@@ -22,9 +22,9 @@ before_script:
 script:
     - build/build.sh
     - coverage run --parallel-mode --source="." inquisition.py -h
-    - coverage run --parallel-mode --source="." inquisition.py -c conf/main.cfg -k
-    - coverage run --parallel-mode --source="." inquisition.py -c conf/main.cfg -t
-    - timeout 5s coverage run --parallel-mode --source="." inquisition.py -c conf/main.cfg -l 5
+    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -k
+    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -t
+    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg
     - coverage combine
 after_success:
     - ls -l /opt/inquisition/
