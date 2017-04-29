@@ -172,7 +172,12 @@ class Anatomize:
         numLogsBetweenTrackingUpdate = self.cfg.getint('state_tracking', 'stateTrackingWaitNumLogs')
 
         # check if this is a test run
-        testRun = self.cfg.getboolean('cli', 'test_run')
+        try:
+            testRun = self.cfg.getboolean('cli', 'test_run')
+        except KeyError as e:
+            # test run not defined, set to default of FALSE
+            self.lgr.warning('test run flag not set, defaulting to [ FALSE ]')
+            testRun = False
 
         # let user know if anatomizer was started in hazy state tracking mode
         if hazyStateTrackingStatus:
@@ -193,8 +198,7 @@ class Anatomize:
                     numRunsBetweenStats = int(self.cfg['parsing']['numSleepsBetweenPolls'])
 
                     # poll for new logs
-                    self.parserStore[parserId].pollLogFile(testRun,
-                                                           useHazyStateTracking=hazyStateTrackingStatus,
+                    self.parserStore[parserId].pollLogFile(testRun, useHazyStateTracking=hazyStateTrackingStatus,
                                                            numLogsBetweenTrackingUpdate=numLogsBetweenTrackingUpdate)
 
                     # check if running a test run
@@ -214,5 +218,5 @@ class Anatomize:
                     self.lgr.debug('sleeping for [ ' + self.cfg['parsing']['sleepTime'] + ' ] seconds')
                     sleep(sleepTime)
 
-        self.lgr.info('all templates loaded and parsers started SUCCESSFULLY')
+        self.lgr.info('all templates loaded and parsers started [ SUCCESSFULLY ]')
 
