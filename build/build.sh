@@ -30,7 +30,7 @@ echo "Import table schema..."
 mysql -u root inquisition < build/src/inquisition.sql || exit 1
 
 # run any tests
-python -m pytest build/tests/ || exit 1
+python -m unittest discover build/tests/ || exit 1
 
 echo "Build complete!"
 
