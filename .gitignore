@@ -99,3 +99,4 @@ notes.txt
 
 # Files Not To Be Included in Commits
 /noncommit_bucket/
+!/build/test_TESTS/test_anatomize.py
