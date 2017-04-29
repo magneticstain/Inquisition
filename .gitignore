@@ -93,3 +93,6 @@ notes.txt
 
 # Dev Config Files
 /conf/dev.cfg
+
+# Unit Tests Currently in Testing
+/build/test_TESTS/
