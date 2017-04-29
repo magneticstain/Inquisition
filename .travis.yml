@@ -23,9 +23,11 @@ script:
     - build/build.sh
     - coverage run --parallel-mode --source="." inquisition.py -h
     - coverage run --parallel-mode --source="." inquisition.py -c conf/main.cfg -t
+    - coverage run -m unittest --parallel-mode --source="." -s build/tests/
     - coverage combine
 after_success:
     - ls -l /opt/inquisition/
     - tail /var/log/inquisition/app.log
     - redis-cli KEYS "*"
+    - coverage report -m
     - coveralls
