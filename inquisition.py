@@ -101,8 +101,6 @@ def generateCfg():
     cfg['cli']['config_check'] = str(cliArgs.config_check)
     cfg['cli']['test_run'] = str(cliArgs.test_run)
 
-    # check each config option to see if override is necessary
-
     return cfg
 
 def main():
