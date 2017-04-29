@@ -168,8 +168,16 @@ class Anatomize:
         :return: void 
         """
 
+        hazyStateTrackingStatus = self.cfg.getboolean('state_tracking', 'enableHazyStateTracking')
+        numLogsBetweenTrackingUpdate = self.cfg.getint('state_tracking', 'stateTrackingWaitNumLogs')
+
         # check if this is a test run
         testRun = self.cfg.getboolean('cli', 'test_run')
+
+        # let user know if anatomizer was started in hazy state tracking mode
+        if hazyStateTrackingStatus:
+            self.lgr.info('hazy state tracking is [ ENABLED ] with updates set to occur every { '
+                          + str(numLogsBetweenTrackingUpdate) + ' } logs read in')
 
         # cycle through parsers
         for parserId in self.parserStore:
@@ -186,11 +194,8 @@ class Anatomize:
 
                     # poll for new logs
                     self.parserStore[parserId].pollLogFile(testRun,
-                                                           useHazyStateTracking=self.cfg.getboolean(
-                                                               'state_tracking', 'enableHazyStateTracking'),
-                                                           numLogsBetweenTrackingUpdate=self.cfg.getint(
-                                                               'state_tracking',
-                                                               'stateTrackingWaitNumLogs'))
+                                                           useHazyStateTracking=hazyStateTrackingStatus,
+                                                           numLogsBetweenTrackingUpdate=numLogsBetweenTrackingUpdate)
 
                     # check if running a test run
                     if testRun:

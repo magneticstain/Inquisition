@@ -477,6 +477,7 @@ class Parser:
             # check if hazy state tracking is enabled and set paranoia setting accordingly
             if useHazyStateTracking:
                 paranoidMode = False
+                self.lgr.debug('enabling hazy state tracking for this run')
             else:
                 paranoidMode = True
 

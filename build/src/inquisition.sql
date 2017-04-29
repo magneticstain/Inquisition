@@ -147,7 +147,7 @@ CREATE TABLE `Parsers` (
 
 LOCK TABLES `Parsers` WRITE;
 /*!40000 ALTER TABLE `Parsers` DISABLE KEYS */;
-INSERT INTO `Parsers` VALUES (1,'kernel_log','/var/log/kern.log','2017-04-09 16:50:41',0),(2,'fake_apache_logs','/var/log/fake_apache_logs/test_fake_apache_access_logs','2017-04-15 18:00:01',1);
+INSERT INTO `Parsers` VALUES (1,'kernel_log','/var/log/kern.log','2017-04-09 16:50:41',0),(2,'fake_apache_logs','/var/log/fake_apache_logs/test_fake_apache_access_logs','2017-04-15 18:00:01',1),(3,'fake_missing_log_file','/var/log/does_not_exist.log','2017-04-15 18:00:01',1);
 /*!40000 ALTER TABLE `Parsers` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
