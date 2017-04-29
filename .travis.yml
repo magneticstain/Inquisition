@@ -26,6 +26,7 @@ script:
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -t
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/bad_build.cfg -t || sh -c "exit 0"
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg
+    - timeout 10s coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_no_log_limit.cfg
     - coverage combine
 after_success:
     - ls -l /opt/inquisition/
