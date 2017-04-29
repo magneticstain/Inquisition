@@ -24,7 +24,7 @@ script:
     - coverage run --parallel-mode --source="." inquisition.py -h
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -k
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -t
-    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/bad_build.cfg -t
+    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/bad_build.cfg -t || exit 0
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg
     - coverage combine
 after_success:
