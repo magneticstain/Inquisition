@@ -29,9 +29,6 @@ mysql -u root -e "FLUSH PRIVILEGES"
 echo "Import table schema..."
 mysql -u root inquisition < build/src/inquisition.sql || exit 1
 
-# setup log db
-redis-cli set log_id 0
-
 # run any tests
 python -m pytest build/tests/ || exit 1
 
