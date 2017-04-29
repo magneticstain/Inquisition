@@ -96,3 +96,6 @@ notes.txt
 
 # Unit Tests Currently in Testing
 /build/test_TESTS/
+
+# Files Not To Be Included in Commits
+/noncommit_bucket/
