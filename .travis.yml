@@ -18,13 +18,13 @@ before_script:
     - sudo mkdir /var/log/fake_apache_logs
     - sudo chown -R travis /var/log/fake_apache_logs/
     - sudo chmod -R 774 /var/log/fake_apache_logs/
-    - cp build/src/test_fake_apache_access_logs /var/log/fake_apache_logs/
+    - cp build/src/test_fake_apache_access_logs_min /var/log/fake_apache_logs/test_fake_apache_access_logs
 script:
     - build/build.sh
     - coverage run --parallel-mode --source="." inquisition.py -h
     - coverage run --parallel-mode --source="." inquisition.py -c conf/main.cfg -k
     - coverage run --parallel-mode --source="." inquisition.py -c conf/main.cfg -t
-    - coverage run --parallel-mode --source="." inquisition.py -c conf/main.cfg -l 5
+    - timeout 5s coverage run --parallel-mode --source="." inquisition.py -c conf/main.cfg -l 5
     - coverage combine
 after_success:
     - ls -l /opt/inquisition/
