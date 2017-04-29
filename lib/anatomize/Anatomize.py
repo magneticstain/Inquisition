@@ -75,11 +75,11 @@ class Anatomize:
         except (pymysql.InternalError, pymysql.ProgrammingError) as e:
             self.lgr.critical('could not fetch parsers from inquisition database :: [ ' + str(e) + ' ]')
 
-            exit(1)
+            exit(2)
         except pymysql.OperationalError as e:
             self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
 
-            exit(1)
+            exit(2)
 
     def generateLogger(self):
         """
