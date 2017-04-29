@@ -42,14 +42,15 @@ class Parser:
     parserName = ''
     logFile = ''
     logTTL = 0
+    maxLogsToProcess = 0
     offsetFile = ''
     templateStore = {}
     stats = {}
     keepPersistentStats = True
     metricsMode = False
 
-    def __init__(self, lgr, inquisitionDbHandle, logDbHandle, logTTL=30, parserID=0, parserName='Syslog',
-                 logFile='/var/log/syslog', keepPersistentStats=True, metricsMode=False):
+    def __init__(self, lgr, inquisitionDbHandle, logDbHandle, logTTL=30, maxLogsToProcess=0, parserID=0,
+                 parserName='Syslog', logFile='/var/log/syslog', keepPersistentStats=True, metricsMode=False):
         self.lgr = lgr
         self.inquisitionDbHandle = inquisitionDbHandle
         self.logDbHandle = logDbHandle
@@ -57,6 +58,7 @@ class Parser:
         self.parserName = parserName
         self.logFile = logFile
         self.logTTL = int(logTTL)
+        self.maxLogsToProcess = int(maxLogsToProcess)
         self.keepPersistentStats = bool(keepPersistentStats)
         self.metricsMode = bool(metricsMode)
 
@@ -190,9 +192,6 @@ class Parser:
             if strict:
                 # strict mode - stat type doesn't exist and we shouldn't create it
                 raise IndexError('stat key not found and strict mode is [ ON ]')
-            else:
-                # create stat type before averaging it
-                self.stats[statKey] = 0
 
         # find average
         if initialVal == 0:
@@ -403,6 +402,12 @@ class Parser:
         :return: bool
         """
 
+        # check if the log processing max has been reached, exit if so
+        if self.maxLogsToProcess > 0 and self.stats['total_logs_processed'] > self.maxLogsToProcess:
+            # we hit the limit, let's exit
+            self.lgr.info('will NOT PROCESS log, max number of logs to process has been reached; exiting w/ SUCCESS')
+            exit(0)
+
         self.lgr.debug('processing log [[[ ' + rawLog + ' ]]] using ' + self.__str__())
 
         # remove prepended and trailing newlines/whitespace/etc
@@ -447,6 +452,16 @@ class Parser:
                 raise ValueError('invalid tracking update log count ( ' + str(numLogsBetweenTrackingUpdate)
                                  + ' ) w/ hazy state tracking enabled')
 
+        # make sure we haven't already hit the max number of logs we want to read it
+        try:
+            if self.maxLogsToProcess > 0 and self.stats['total_logs_processed'] >= self.maxLogsToProcess:
+                # we hit the limit, let's exit
+                self.lgr.info('max number of logs to process has been reached, exiting w/ SUCCESS')
+                exit(0)
+        except KeyError as e:
+            # this means we haven't read any logs yet; we can just proceed
+            pass
+
         # fetch new log(s)
         try:
             # reset run stats
@@ -470,10 +485,6 @@ class Parser:
             for log in Pygtail(self.logFile, offset_file=self.offsetFile, paranoid=paranoidMode,
                                every_n=numLogsBetweenTrackingUpdate):
                 startTime = datetime.datetime.utcnow()
-
-                # incr stat for total log during current run
-                # NOTE: last_run stats aren't currently stored in the db; see issue #20
-                self.stats['last_run']['num_logs'] += 1
 
                 # try to process the log
                 if self.processLog(log):
@@ -501,6 +512,11 @@ class Parser:
                 # update ALPT stat
                 self.avgStat('average_log_processing_time', self.stats['average_log_processing_time'],
                              logProcessingTime.microseconds, self.stats['total_logs_processed'])
+
+                # incr stat for total log during current run
+                # NOTE: last_run stats aren't currently stored in the db; see issue #20
+                self.stats['last_run']['num_logs'] += 1
+
             totalRunEndTime = datetime.datetime.utcnow()
 
             # update last run time stat

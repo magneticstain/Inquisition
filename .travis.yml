@@ -22,7 +22,9 @@ before_script:
 script:
     - build/build.sh
     - coverage run --parallel-mode --source="." inquisition.py -h
+    - coverage run --parallel-mode --source="." inquisition.py -c conf/main.cfg -k
     - coverage run --parallel-mode --source="." inquisition.py -c conf/main.cfg -t
+    - coverage run --parallel-mode --source="." inquisition.py -c conf/non_existant.cfg -t
     - coverage combine
 after_success:
     - ls -l /opt/inquisition/

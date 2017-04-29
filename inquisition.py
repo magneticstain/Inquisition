@@ -46,6 +46,8 @@ def parseCliArgs():
     cliParser.add_argument('-t', '--test-run', action='store_true',
                            help='Run Inquisition in test mode (read-only, debug-level logs, single log processes)',
                            default=False)
+    cliParser.add_argument('-l', '--max-logs-to-parse',
+                           help='The maximum number of logs to parse before the parser dies', default=-1)
 
     # read in args
     return cliParser.parse_args()
@@ -100,6 +102,11 @@ def generateCfg():
     cfg.add_section('cli')
     cfg['cli']['config_check'] = str(cliArgs.config_check)
     cfg['cli']['test_run'] = str(cliArgs.test_run)
+
+    # check if any CLI args overlap with config file options (CLI wins)
+    if int(cliArgs.max_logs_to_parse) >= 0:
+        # max logs set by cli, override config file val
+        cfg['parsing']['maxLogsToParse'] = cliArgs.max_logs_to_parse
 
     return cfg
 

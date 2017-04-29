@@ -153,6 +153,7 @@ class Anatomize:
                 # add each parser to parser store
                 parsers[row['parser_id']] = Parser(lgr=self.lgr, inquisitionDbHandle=self.inquisitionDbHandle,
                                                    logDbHandle=self.logDbHandle, logTTL=self.cfg['parsing']['logTTL'],
+                                                   maxLogsToProcess=self.cfg.getint('parsing', 'maxLogsToParse'),
                                                    parserID=row['parser_id'], parserName=row['parser_name'],
                                                    logFile=row['parser_log'],
                                                    keepPersistentStats=self.cfg.getboolean('stats', 'keepPersistentStats'),
