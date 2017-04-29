@@ -46,9 +46,10 @@ class Parser:
     templateStore = {}
     stats = {}
     keepPersistentStats = True
+    metricsMode = False
 
     def __init__(self, lgr, inquisitionDbHandle, logDbHandle, logTTL=30, parserID=0, parserName='Syslog',
-                 logFile='/var/log/syslog', keepPersistentStats=True):
+                 logFile='/var/log/syslog', keepPersistentStats=True, metricsMode=False):
         self.lgr = lgr
         self.inquisitionDbHandle = inquisitionDbHandle
         self.logDbHandle = logDbHandle
@@ -57,6 +58,7 @@ class Parser:
         self.logFile = logFile
         self.logTTL = int(logTTL)
         self.keepPersistentStats = bool(keepPersistentStats)
+        self.metricsMode = bool(metricsMode)
 
         # initialize offset file
         self.offsetFile = '/opt/inquisition/tmp/' + str(self.parserID) + '_' + self.parserName + '.offset'
@@ -169,13 +171,14 @@ class Parser:
         else:
             raise ValueError('invalid action provided :: [ ' + str(action) + ' ]')
 
-    def avgStat(self, statKey, initialVal, newVal, storeInDb=True, strict=False):
+    def avgStat(self, statKey, initialVal, newVal, numValsInSet, storeInDb=True, strict=False):
         """
         Find the average of two values: initial, established average along with the new value to be incl. w/ initial avg
         
         :param statKey: stat to average
         :param initialVal: initial average value
         :param newVal: new value to calculate with initialVal to get new average
+        :param numValsInSet: total number of values currently in set, !! including the new value !!
         :param storeInDb: flag noting whether to store/update this statistic in the log db (default: T)
         :param strict: if set to true, only fine stat avg if stat key exists; if not, IndexError is raised
         :return: void
@@ -196,8 +199,8 @@ class Parser:
             # first or reset value, set as initial val
             avgVal = newVal
         else:
-            # incorporate newVal by calculatingavg
-            avgVal = (initialVal + newVal) / 2
+            # incorporate newVal by calculating moving avg
+            avgVal = initialVal + (newVal - initialVal) / numValsInSet
 
         # update in-memory val of stat
         self.stats[statKey] = avgVal
@@ -409,10 +412,12 @@ class Parser:
 
         # get memory size of log - in bytes - and add to avg
         memSizeOfLog = getsizeof(rawLog)
-        self.avgStat('average_log_size', self.stats['average_log_size'], memSizeOfLog)
+        self.avgStat('average_log_size', self.stats['average_log_size'], memSizeOfLog
+                     , self.stats['total_logs_processed'])
 
         # get # of chars in log and add to avg
-        self.avgStat('average_log_length', self.stats['average_log_length'], len(rawLog))
+        self.avgStat('average_log_length', self.stats['average_log_length'], len(rawLog)
+                     , self.stats['total_logs_processed'])
 
         # parse post-processed log
         if not self.parseLog(rawLog):
@@ -495,7 +500,7 @@ class Parser:
 
                 # update ALPT stat
                 self.avgStat('average_log_processing_time', self.stats['average_log_processing_time'],
-                             logProcessingTime.microseconds)
+                             logProcessingTime.microseconds, self.stats['total_logs_processed'])
             totalRunEndTime = datetime.datetime.utcnow()
 
             # update last run time stat
@@ -508,8 +513,13 @@ class Parser:
                                                      self.stats['last_run']['run_time']
 
             # print run stats
-            self.lgr.debug('|-- PARSER STATS - PER RUN --| :: ' + self.__str__() + ' :: '
-                          + self.printStats(runSpecific=True))
+            statsLogMsg = '|-- PARSER STATS - PER RUN --| :: ' + self.__str__() + ' :: ' \
+                          + self.printStats(runSpecific=True)
+            # print as debug level unless in metrics mode
+            if self.metricsMode:
+                self.lgr.info(statsLogMsg)
+            else:
+                self.lgr.debug(statsLogMsg)
 
         except FileNotFoundError as e:
             self.lgr.error('could not open file for parser :: ' + self.__str__() + ' :: [ MSG: ' + str(e) + ' ]')

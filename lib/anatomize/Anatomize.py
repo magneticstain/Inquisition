@@ -92,16 +92,16 @@ class Anatomize:
         newLgr = logging.getLogger(__name__)
 
         # set logging level
-        logLvl = getattr(logging, self.cfg['application_logs']['logLvl'].upper())
+        logLvl = getattr(logging, self.cfg['logging']['logLvl'].upper())
         newLgr.setLevel(logLvl)
 
         # create file handler for log file
-        fileHandler = logging.FileHandler(self.cfg['application_logs']['logFile'])
+        fileHandler = logging.FileHandler(self.cfg['logging']['logFile'])
         fileHandler.setLevel(logLvl)
 
         # set output formatter
         # NOTE: we need to get the logFormat val with the raw flag set in order to avoid logging from interpolating
-        frmtr = logging.Formatter(self.cfg.get('application_logs', 'logFormat', raw=True))
+        frmtr = logging.Formatter(self.cfg.get('logging', 'logFormat', raw=True))
         fileHandler.setFormatter(frmtr)
 
         # associate file handler w/ logger
@@ -148,8 +148,8 @@ class Anatomize:
                                                    logDbHandle=self.logDbHandle, logTTL=self.cfg['parsing']['logTTL'],
                                                    parserID=row['parser_id'], parserName=row['parser_name'],
                                                    logFile=row['parser_log'],
-                                                   keepPersistentStats=self.cfg.getboolean('stats', 'keepPersistentStats')
-                                                   )
+                                                   keepPersistentStats=self.cfg.getboolean('stats', 'keepPersistentStats'),
+                                                   metricsMode=self.cfg.getboolean('logging', 'enableMetricsMode'))
 
         return parsers
 
@@ -174,15 +174,15 @@ class Anatomize:
                 numRuns = 0
                 while True:
                     sleepTime = int(self.cfg['parsing']['sleepTime'])
-                    numRunsBetweenStats = int(self.cfg['stats']['numSleepsBetweenStats'])
+                    numRunsBetweenStats = int(self.cfg['parsing']['numSleepsBetweenPolls'])
 
                     # poll for new logs
                     self.parserStore[parserId].pollLogFile(testRun,
                                                            useHazyStateTracking=self.cfg.getboolean(
-                                                               'parsing', 'enableHazyStateTracking'),
-                                                           numLogsBetweenTrackingUpdate=self.cfg.getint('parsing',
-                                                                                                        'stateTrackingWaitNumLogs')
-                                                           )
+                                                               'state_tracking', 'enableHazyStateTracking'),
+                                                           numLogsBetweenTrackingUpdate=self.cfg.getint(
+                                                               'state_tracking',
+                                                               'stateTrackingWaitNumLogs'))
 
                     # check if running a test run
                     if testRun:
