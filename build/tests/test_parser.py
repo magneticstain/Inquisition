@@ -169,5 +169,63 @@ class AnatomizeTestCase(unittest.TestCase):
         logDbStatVal = int(self.parser.logDbHandle.hget('stats:parser:' + statKey, statName).decode('utf-8'))
         self.assertEqual(logDbStatVal, 1)
 
+    def test_parseLog(self):
+        self.assertTrue(self.parser.parseLog(rawLog='raw log'))
+
+    def test_parseLog_invalidLogTTL(self):
+        # set log TTL to invalid values
+        self.parser.logTTL = 0
+        try:
+            self.parser.parseLog(rawLog='164.169.65.152')
+
+            # if we get here, we didn't get to where we expected; considered failure
+            self.assertTrue(False)
+        except ValueError:
+            self.assertTrue(True)
+
+    def test_processLog(self):
+        self.parser.resetParserStats(statType='total_logs_processed')
+
+        self.assertTrue(self.parser.processLog('raw log'))
+
+    def test_pollLogFile_useHazyStateTracking(self):
+        try:
+            self.parser.pollLogFile(useHazyStateTracking=True, numLogsBetweenTrackingUpdate=0)
+
+            # if we get here, we didn't get to where we expected; considered failure
+            self.assertTrue(False)
+        except ValueError:
+            self.assertTrue(True)
+
+        try:
+            self.parser.pollLogFile(useHazyStateTracking=True, numLogsBetweenTrackingUpdate=-10000)
+
+            # if we get here, we didn't get to where we expected; considered failure
+            self.assertTrue(False)
+        except ValueError:
+            self.assertTrue(True)
+
+    def test_pollLogFile_nonExistantFile(self):
+        try:
+            self.parser.logFile = '/var/log/non_existant_file'
+
+            self.parser.pollLogFile()
+
+            # if we get here, we didn't get to where we expected; considered failure
+            self.assertTrue(False)
+        except Exception:
+            self.assertTrue(True)
+
+    def test_pollLogFile_nonAccessibleFile(self):
+        try:
+            self.parser.logFile = '/var/log/inaccessible_test_log'
+
+            self.parser.pollLogFile()
+
+            # if we get here, we didn't get to where we expected; considered failure
+            self.assertTrue(False)
+        except Exception:
+            self.assertTrue(True)
+
 if __name__ == '__main__':
     unittest.main()

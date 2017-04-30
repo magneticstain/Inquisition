@@ -446,6 +446,8 @@ class Parser:
         :return: void
         """
 
+        totalRunStartTime = datetime.datetime.utcnow()
+
         # check tracking update if applicable
         if useHazyStateTracking:
             if numLogsBetweenTrackingUpdate < 1:
@@ -458,35 +460,32 @@ class Parser:
                 # we hit the limit, let's exit
                 self.lgr.info('max number of logs to process has been reached, exiting w/ SUCCESS')
                 exit(0)
-        except KeyError as e:
+        except KeyError:
             # this means we haven't read any logs yet; we can just proceed
             pass
 
         # fetch new log(s)
+        # reset run stats
+        runStats = {
+                    'num_logs': 0,
+                    'run_time': 0,
+                    'logs_per_sec': 0
+        }
+        self.resetParserStats('last_run', runStats, False)
+
+        # check if hazy state tracking is enabled and set paranoia setting accordingly
+        if useHazyStateTracking:
+            paranoidMode = False
+            self.lgr.debug('enabling hazy state tracking for this run')
+        else:
+            paranoidMode = True
+
+        # NOTE: paranoid denotes updating the offset file after every log is read; statefullness is important ^_^
+        # begin polling
+        pollStartTime = datetime.datetime.utcnow()
         try:
-            # reset run stats
-            runStats = {
-                        'num_logs': 0,
-                        'run_time': 0,
-                        'logs_per_sec': 0
-            }
-            self.resetParserStats('last_run', runStats, False)
-
-            totalRunStartTime = datetime.datetime.utcnow()
-
-            # check if hazy state tracking is enabled and set paranoia setting accordingly
-            if useHazyStateTracking:
-                paranoidMode = False
-                self.lgr.debug('enabling hazy state tracking for this run')
-            else:
-                paranoidMode = True
-
-            # NOTE: paranoid denotes updating the offset file after every log is read; statefullness is important ^_^
-            # begin polling
             for log in Pygtail(self.logFile, offset_file=self.offsetFile, paranoid=paranoidMode,
                                every_n=numLogsBetweenTrackingUpdate):
-                startTime = datetime.datetime.utcnow()
-
                 # try to process the log
                 if self.processLog(log):
                     # log parsed successfully :D
@@ -504,48 +503,46 @@ class Parser:
                     if isTestRun:
                         self.lgr.debug('configured as a test run, we should exit')
                         exit(1)
-
-                endTime = datetime.datetime.utcnow()
-
-                # calculate processing time for log
-                logProcessingTime = endTime - startTime
-
-                # update ALPT stat
-                self.avgStat('average_log_processing_time', self.stats['average_log_processing_time'],
-                             logProcessingTime.microseconds, self.stats['total_logs_processed'])
-
-                # incr stat for total log during current run
-                # NOTE: last_run stats aren't currently stored in the db; see issue #20
-                self.stats['last_run']['num_logs'] += 1
-
-            totalRunEndTime = datetime.datetime.utcnow()
-
-            # update last run time stat
-            totalRunTime = totalRunEndTime - totalRunStartTime
-            self.stats['last_run']['run_time'] = totalRunTime.seconds or 1
-            # the or operation above usually happens during the first run; defaults to 1s
-
-            # calc LPS for latest run
-            self.stats['last_run']['logs_per_sec'] = self.stats['last_run']['num_logs'] / \
-                                                     self.stats['last_run']['run_time']
-
-            # print run stats
-            statsLogMsg = '|-- PARSER STATS - PER RUN --| :: ' + self.__str__() + ' :: ' \
-                          + self.printStats(runSpecific=True)
-            # print as debug level unless in metrics mode
-            if self.metricsMode:
-                self.lgr.info(statsLogMsg)
-            else:
-                self.lgr.debug(statsLogMsg)
-
+        except PermissionError as e:
+            self.lgr.error('permission denied when trying to access target log file :: ' + self.__str__()
+                           + ' :: [ MSG: ' + str(e) + ' ]')
         except FileNotFoundError as e:
             self.lgr.error('could not open file for parser :: ' + self.__str__() + ' :: [ MSG: ' + str(e) + ' ]')
-        except PermissionError as e:
-            self.lgr.error('permission denied when trying to access target log file :: ' + self.__str__() + ' :: [ MSG: '
-                           + str(e) + ' ]')
         except UnicodeDecodeError as e:
-            self.lgr.error('content with invalid formatting found in target log file :: ' + self.__str__() + ' :: [ MSG: '
-                           + str(e) + ' ]')
+            self.lgr.error('content with invalid formatting found in target log file :: ' + self.__str__()
+                           + ' :: [ MSG: ' + str(e) + ' ]')
+        pollEndTime = datetime.datetime.utcnow()
+
+        # calculate processing time for log
+        logProcessingTime = pollEndTime - pollStartTime
+
+        # update ALPT stat
+        self.avgStat('average_log_processing_time', self.stats['average_log_processing_time'],
+                     logProcessingTime.microseconds, self.stats['total_logs_processed'])
+
+        # incr stat for total log during current run
+        # NOTE: last_run stats aren't currently stored in the db; see issue #20
+        self.stats['last_run']['num_logs'] += 1
+
+        totalRunEndTime = datetime.datetime.utcnow()
+
+        # update last run time stat
+        totalRunTime = totalRunEndTime - totalRunStartTime
+        self.stats['last_run']['run_time'] = totalRunTime.seconds or 1
+        # the or operation above usually happens during the first run; defaults to 1s
+
+        # calc LPS for latest run
+        self.stats['last_run']['logs_per_sec'] = self.stats['last_run']['num_logs'] / \
+                                                 self.stats['last_run']['run_time']
+
+        # print run stats
+        statsLogMsg = '|-- PARSER STATS - PER RUN --| :: ' + self.__str__() + ' :: ' \
+                      + self.printStats(runSpecific=True)
+        # print as debug level unless in metrics mode
+        if self.metricsMode:
+            self.lgr.info(statsLogMsg)
+        else:
+            self.lgr.debug(statsLogMsg)
 
     def __str__(self):
         """
