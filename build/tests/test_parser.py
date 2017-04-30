@@ -100,6 +100,39 @@ class AnatomizeTestCase(unittest.TestCase):
         except ValueError:
             self.assertTrue(True)
 
+    def test_incrStat(self):
+        statName = 'total_logs_processed'
+        self.parser.resetParserStats(statType=statName)
+
+        # increase TLP
+        self.parser.incrStat(statKey=statName, amt=1)
+
+        self.assertEqual(self.parser.stats[statName], 1)
+
+    def test_incrStat_invalidIncrAmt(self):
+        try:
+            statKey = '2_fake_apache_logs'
+            statName = 'total_logs_processed'
+
+            self.parser.incrStat(statKey=statName, amt=-1)
+
+            # if we get here, we didn't get to where we expected; considered failure
+            self.assertTrue(False)
+        except ValueError:
+            self.assertTrue(True)
+
+    def test_incrStat_strictInvalidKey(self):
+        try:
+            statKey = '2_fake_apache_logs'
+            statName = 'total_logs_processed'
+
+            self.parser.incrStat(statKey=statName, amt=1, strict=True)
+
+            # if we get here, we didn't get to where we expected; considered failure
+            self.assertTrue(False)
+        except IndexError:
+            self.assertTrue(True)
+
     def test_avgStat(self):
         statName = 'average_log_length'
         initialVal = 1
@@ -168,6 +201,18 @@ class AnatomizeTestCase(unittest.TestCase):
         # get val in db
         logDbStatVal = int(self.parser.logDbHandle.hget('stats:parser:' + statKey, statName).decode('utf-8'))
         self.assertEqual(logDbStatVal, 1)
+
+    def test_printStats(self):
+        self.parser.resetParserStats()
+        statString = self.parser.printStats()
+
+        self.assertIs(type(statString), str)
+
+    def test_printStats_raw(self):
+        self.parser.resetParserStats()
+        statString = self.parser.printStats(raw=True)
+
+        self.assertIs(type(statString), dict)
 
     def test_parseLog(self):
         self.assertTrue(self.parser.parseLog(rawLog='raw log'))
