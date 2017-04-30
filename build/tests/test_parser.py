@@ -15,11 +15,9 @@ import configparser
 import unittest
 
 # | Third-Party
-import redis
 
 # | Custom
 from lib.anatomize.Anatomize import Anatomize
-from lib.anatomize.Parser import Parser
 
 # METADATA
 __author__ = 'Joshua Carlson-Purcell'
@@ -111,7 +109,6 @@ class AnatomizeTestCase(unittest.TestCase):
 
     def test_incrStat_invalidIncrAmt(self):
         try:
-            statKey = '2_fake_apache_logs'
             statName = 'total_logs_processed'
 
             self.parser.incrStat(statKey=statName, amt=-1)

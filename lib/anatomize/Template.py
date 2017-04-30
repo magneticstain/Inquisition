@@ -62,7 +62,7 @@ class Template:
     def matchLogAgainstRegex(self, log):
         """
         Matches given log against set regex and returns the value
-        
+
         :param log: raw log message
         :return: parsed string
         """

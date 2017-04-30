@@ -4,6 +4,3 @@
 pytest
 pytest-cov
 coveralls
-PyMySQL
-pygtail
-redis

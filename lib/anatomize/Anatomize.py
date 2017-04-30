@@ -128,7 +128,7 @@ class Anatomize:
     def fetchParsers(self):
         """
         Fetch parsing data from inquisition database
-        
+
         :return: dict
         """
 
@@ -166,7 +166,7 @@ class Anatomize:
         """
         Begin cycle of polling of each Parser
 
-        :return: void 
+        :return: void
         """
 
         hazyStateTrackingStatus = self.cfg.getboolean('state_tracking', 'enableHazyStateTracking')

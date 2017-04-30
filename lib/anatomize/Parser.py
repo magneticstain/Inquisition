@@ -176,11 +176,11 @@ class Parser:
     def avgStat(self, statKey, initialVal, newVal, numValsInSet, storeInDb=True, strict=False):
         """
         Find the average of two values: initial, established average along with the new value to be incl. w/ initial avg
-        
+
         :param statKey: stat to average
         :param initialVal: initial average value
         :param newVal: new value to calculate with initialVal to get new average
-        :param numValsInSet: total number of values currently in set, !! NOT including the new value !! 
+        :param numValsInSet: total number of values currently in set, !! NOT including the new value !!
                                 that's added here when calculating the avg
         :param storeInDb: flag noting whether to store/update this statistic in the log db (default: T)
         :param strict: if set to true, only fine stat avg if stat key exists; if not, IndexError is raised

@@ -55,7 +55,7 @@ def parseCliArgs():
 def parseConfigFile(configFile):
     """
     Parse App Configuration from File
-    
+
     :param configFile: filename of configuration file to read in
     :return: configparser.ConfigParser()
     """

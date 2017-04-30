@@ -12,7 +12,6 @@ CREATION_DATE: 2017-04-28
 # MODULES
 # | Native
 import unittest
-import re
 
 # | Third-Party
 

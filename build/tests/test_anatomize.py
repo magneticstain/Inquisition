@@ -17,7 +17,6 @@ import unittest
 
 # | Third-Party
 import pymysql
-import redis
 
 # | Custom
 from lib.anatomize.Anatomize import Anatomize
