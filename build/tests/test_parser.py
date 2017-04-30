@@ -123,7 +123,6 @@ class AnatomizeTestCase(unittest.TestCase):
 
     def test_incrStat_strictInvalidKey(self):
         try:
-            statKey = '2_fake_apache_logs'
             statName = 'total_logs_processed'
 
             self.parser.incrStat(statKey=statName, amt=1, strict=True)
@@ -137,15 +136,15 @@ class AnatomizeTestCase(unittest.TestCase):
         statName = 'average_log_length'
         initialVal = 1
         newVal = 5
-        numValsInSet = 2
+        numValsCurrentlyInSet = 1
 
         # set stat
         self.parser.stats[statName] = initialVal
 
-        self.parser.avgStat(statKey=statName, initialVal=initialVal, newVal=newVal, numValsInSet=numValsInSet)
+        self.parser.avgStat(statKey=statName, initialVal=initialVal, newVal=newVal, numValsInSet=numValsCurrentlyInSet)
 
         calcAvg = self.parser.stats[statName]
-        actualAvg = (initialVal + newVal) / 2
+        actualAvg = (initialVal + newVal) / (numValsCurrentlyInSet + 1)
 
         self.assertEqual(calcAvg, actualAvg)
 
@@ -166,20 +165,36 @@ class AnatomizeTestCase(unittest.TestCase):
         except IndexError:
             self.assertTrue(True)
 
+    def test_avgStat_invalidNumValsInSet(self):
+        statName = 'average_log_length'
+        initialVal = 1
+        newVal = 5
+        numValsInSet = -1000
+
+        try:
+            self.parser.avgStat(statKey=statName, initialVal=initialVal, newVal=newVal, numValsInSet=numValsInSet
+                                , strict=True)
+
+            # if we get here, we didn't get to where we expected; considered failure
+            self.assertTrue(False)
+        except ValueError:
+            self.assertTrue(True)
+
     def test_avgStat_checkDbVals(self):
         statKey = '2_fake_apache_logs'
         statName = 'average_log_length'
         initialVal = 1
         newVal = 5
-        numValsInSet = 2
+        numValsCurrentlyInSet = 1
 
         # set stat
         self.parser.stats[statName] = initialVal
 
-        self.parser.avgStat(statKey=statName, initialVal=initialVal, newVal=newVal, numValsInSet=numValsInSet, storeInDb=True)
+        self.parser.avgStat(statKey=statName, initialVal=initialVal, newVal=newVal, numValsInSet=numValsCurrentlyInSet
+                            , storeInDb=True)
 
         inMemAvg = self.parser.stats[statName]
-        actualAvg = (initialVal + newVal) / 2
+        actualAvg = (initialVal + newVal) / (numValsCurrentlyInSet + 1)
 
         # check val in db
         logDbAvgStat = float(self.parser.logDbHandle.hget('stats:parser:' + statKey, statName).decode('utf-8'))

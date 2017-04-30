@@ -180,7 +180,8 @@ class Parser:
         :param statKey: stat to average
         :param initialVal: initial average value
         :param newVal: new value to calculate with initialVal to get new average
-        :param numValsInSet: total number of values currently in set, !! including the new value !!
+        :param numValsInSet: total number of values currently in set, !! NOT including the new value !! 
+                                that's added here when calculating the avg
         :param storeInDb: flag noting whether to store/update this statistic in the log db (default: T)
         :param strict: if set to true, only fine stat avg if stat key exists; if not, IndexError is raised
         :return: void
@@ -193,13 +194,19 @@ class Parser:
                 # strict mode - stat type doesn't exist and we shouldn't create it
                 raise IndexError('stat key not found and strict mode is [ ON ]')
 
+        # check num values in set
+        if numValsInSet < 0:
+            # invalid num vals in set
+            raise ValueError('invalid value provided for number of values in set when calculating stat avg :: [ '
+                             + str(numValsInSet) + ' ]')
+
         # find average
         if initialVal == 0:
             # first or reset value, set as initial val
             avgVal = newVal
         else:
             # incorporate newVal by calculating moving avg
-            avgVal = initialVal + (newVal - initialVal) / numValsInSet
+            avgVal = initialVal + (newVal - initialVal) / (numValsInSet + 1)
 
         # update in-memory val of stat
         self.stats[statKey] = avgVal
@@ -482,10 +489,11 @@ class Parser:
 
         # NOTE: paranoid denotes updating the offset file after every log is read; statefullness is important ^_^
         # begin polling
-        pollStartTime = datetime.datetime.utcnow()
         try:
             for log in Pygtail(self.logFile, offset_file=self.offsetFile, paranoid=paranoidMode,
                                every_n=numLogsBetweenTrackingUpdate):
+                pollStartTime = datetime.datetime.utcnow()
+
                 # try to process the log
                 if self.processLog(log):
                     # log parsed successfully :D
@@ -503,6 +511,19 @@ class Parser:
                     if isTestRun:
                         self.lgr.debug('configured as a test run, we should exit')
                         exit(1)
+
+                pollEndTime = datetime.datetime.utcnow()
+
+                # calculate processing time for log
+                logProcessingTime = pollEndTime - pollStartTime
+
+                # update ALPT stat
+                self.avgStat('average_log_processing_time', self.stats['average_log_processing_time'],
+                             logProcessingTime.microseconds, self.stats['total_logs_processed'])
+
+                # incr stat for total log during current run
+                # NOTE: last_run stats aren't currently stored in the db; see issue #20
+                self.stats['last_run']['num_logs'] += 1
         except PermissionError as e:
             self.lgr.error('permission denied when trying to access target log file :: ' + self.__str__()
                            + ' :: [ MSG: ' + str(e) + ' ]')
@@ -511,18 +532,6 @@ class Parser:
         except UnicodeDecodeError as e:
             self.lgr.error('content with invalid formatting found in target log file :: ' + self.__str__()
                            + ' :: [ MSG: ' + str(e) + ' ]')
-        pollEndTime = datetime.datetime.utcnow()
-
-        # calculate processing time for log
-        logProcessingTime = pollEndTime - pollStartTime
-
-        # update ALPT stat
-        self.avgStat('average_log_processing_time', self.stats['average_log_processing_time'],
-                     logProcessingTime.microseconds, self.stats['total_logs_processed'])
-
-        # incr stat for total log during current run
-        # NOTE: last_run stats aren't currently stored in the db; see issue #20
-        self.stats['last_run']['num_logs'] += 1
 
         totalRunEndTime = datetime.datetime.utcnow()
 
