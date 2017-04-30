@@ -26,7 +26,10 @@ script:
     - coverage run --parallel-mode --source="." inquisition.py -h
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -k
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -t
+    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -t -l 5
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/bad_build.cfg -t || sh -c "exit 0"
+    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/non_existent.cfg -t || sh -c "exit 0"
+    - coverage run --parallel-mode --source="." inquisition.py -c /var/log/inquisition/app.log -t || sh -c "exit 0"
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg
     - timeout 10s coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_no_log_limit.cfg
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_hazy_tracking_enabled.cfg
