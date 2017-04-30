@@ -174,7 +174,7 @@ class Anatomize:
         # check if this is a test run
         try:
             testRun = self.cfg.getboolean('cli', 'test_run')
-        except KeyError as e:
+        except KeyError:
             # test run not defined, set to default of FALSE
             self.lgr.warning('test run flag not set, defaulting to [ FALSE ]')
             testRun = False
