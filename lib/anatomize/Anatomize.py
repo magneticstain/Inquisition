@@ -60,7 +60,7 @@ class Anatomize:
 
         # create connection to inquisition db
         try:
-            self.inquisitionDbHandle = self.generateInquisitionDbConnection(cfg['mysql_database']['db_user'],
+            self.inquisitionDbHandle = Anatomize.generateInquisitionDbConnection(cfg['mysql_database']['db_user'],
                                                                             cfg['mysql_database']['db_pass'],
                                                                             cfg['mysql_database']['db_name'],
                                                                             cfg['mysql_database']['db_host'],
@@ -109,7 +109,7 @@ class Anatomize:
 
         return newLgr
 
-    @classmethod
+    @staticmethod
     def generateInquisitionDbConnection(dbUser, dbPass, dbName, dbHost='127.0.0.1', dbPort=3306):
         """
         Generate main Inquisition database connection handler
