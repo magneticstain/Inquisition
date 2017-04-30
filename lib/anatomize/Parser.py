@@ -126,7 +126,7 @@ class Parser:
                           statsType='parser'):
         """
         Perform action on given stat in log db
-        
+
         :param statName: field name of stat to implement action on
         :param action: db action to perform on stat || Valid actions: incrby, set
         :param incrAmt: if action=incrby, states the amount to increase stat by
@@ -134,7 +134,7 @@ class Parser:
         :param strict: if set to true, only fine stat avg if stat key exists; if not, IndexError is raised
         :param statKey: name of key to save/update stat of
         :param statsType: type of stat to update
-        :return: void 
+        :return: void
         """
 
         # if keepPersistentStats is turned off, don't bother doing anything further
@@ -440,7 +440,7 @@ class Parser:
         Tails the log file for new logs and processes them
         
         :param isTestRun: signifies if we're performing a test run or not
-        :param useHazyStateTracking: this feature gives up some exactitude in exchange for better efficiency and 
+        :param useHazyStateTracking: this feature gives up some exactitude in exchange for better efficiency and
                                         faster speeds; updates the offset file every $numLogsBetweenTrackingUpdate
         :param numLogsBetweenTrackingUpdate: num logs to update offset file after
         :return: void

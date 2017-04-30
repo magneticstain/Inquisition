@@ -48,7 +48,7 @@ class Template:
     def setRegex(self, regex):
         """
         Sets raw and compiled regex from provided regex pattern
-        
+
         :param regex: raw regex pattern
         :return: void
         """

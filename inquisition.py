@@ -34,7 +34,7 @@ __status__ = 'Development'
 def parseCliArgs():
     """
     Parse CLI arguments
-    
+
     :return: post-parsing ArgumentParser() obj
     """
 

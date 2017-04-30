@@ -84,8 +84,8 @@ class Anatomize:
     def generateLogger(self):
         """
         Generate logging handler with given info
-        
-        :return: logger 
+
+        :return: logger
         """
 
         # initialize logger
@@ -109,7 +109,8 @@ class Anatomize:
 
         return newLgr
 
-    def generateInquisitionDbConnection(self, dbUser, dbPass, dbName, dbHost='127.0.0.1', dbPort=3306):
+    @classmethod
+    def generateInquisitionDbConnection(dbUser, dbPass, dbName, dbHost='127.0.0.1', dbPort=3306):
         """
         Generate main Inquisition database connection handler
 
@@ -164,7 +165,7 @@ class Anatomize:
     def startAnatomizer(self):
         """
         Begin cycle of polling of each Parser
-        
+
         :return: void 
         """
 
