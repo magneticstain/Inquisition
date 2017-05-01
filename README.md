@@ -24,14 +24,4 @@ Installation of Inquisition is easy: install the requirements, install the softw
 You can find instructions on how to install Inquisition by visiting the [installation guide](https://github.com/magneticstain/Inquisition/wiki/Installing-Inquisition-Suite) page in the project wiki.
 
 # Usage
-After installing the software, we're now ready to start using it. To start Inquisition, run inquisition.py with the application
-config file provided as a parameter.
-```bash
-root@localhost ~ $ /opt/inquisition/inquisition.py -c /opt/inquisition/conf/main.cfg 
-```
-
-That will start the main inquisition process and fork off each subprocess in order to perform its repective role. To stop
-inquisition.py, we can simply issue a SIGTERM for the process and it will shutdown gracefully:
-```bash
-root@localhost ~ $ killall inquisition.py
-```
+After installing the software, we're now ready to start using it. For information on how to use Inquisition, visit the [Inquisition user guide](Inquisition User Guide).
