@@ -218,7 +218,7 @@ class Parser:
     def incrStat(self, statKey, amt, storeInDb=True, strict=False):
         """
         Increase specific statistic by $amt
-        
+
         :param statKey: stat to increase
         :param amt: amount to increase stat by
         :param storeInDb: flag noting whether to store/update this statistic in the log db (default: T)

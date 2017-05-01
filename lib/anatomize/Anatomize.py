@@ -219,5 +219,5 @@ class Anatomize:
                     self.lgr.debug('sleeping for [ ' + self.cfg['parsing']['sleepTime'] + ' ] seconds')
                     sleep(sleepTime)
 
-        self.lgr.info('all templates loaded and parsers started [ SUCCESSFULLY')
+        self.lgr.info('all templates loaded and parsers started [ SUCCESSFULLY ]')
 

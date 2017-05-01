@@ -19,54 +19,9 @@ that you **actually** want to know about.
 awareness of the security of your environment.
 
 # Installation
-Installation of Inquisition is easy: install the requirements, install the software, and run through setup for your environment
+Installation of Inquisition is easy: install the requirements, install the software, and run through setup for your environment.
 
-## Requirements
-### Required Software
-Inquisition requires the following software in order to run properly:
-
-#### Databases
-* MySQL 5.4<=
-* Redis (latest)
-
-#### Interpreters
-* Python 3+
-* PHP 5.4<=
-
-#### Plugins
-* PyMySQL
-* redis-py
-* pygtail ( https://pypi.python.org/pypi/pygtail )
-
-### Install Requiremed Software
-To install the required software, you can follow the instructions below. These instructions should work on both Debian-based
-and CentOS-based OS's:
-
-#### Third-Party Software and Interpreters
-* MySQL: [Debian](https://www.linode.com/docs/databases/mysql/how-to-install-mysql-on-debian-7) | [CentOS](https://www.linode.com/docs/databases/mysql/how-to-install-mysql-on-centos-7)
-* Redis: [Redis Quick Start (all OS's)](https://redis.io/topics/quickstart)
-* Python 3: [Debian](https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-local-programming-environment-on-debian-8) | [CentOS](https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-local-programming-environment-on-centos-7)
-* PHP: [Debian](http://php.net/manual/en/install.unix.debian.php) | [CentOS](http://dev.antoinesolutions.com/php)
-
-#### Plugins
-##### Python
-Installing the required python pluging is easy with pip:
-```bash
-root@localhost ~ $ pip3 install -r requirements.txt
-```
-
-## Install Inquisition
-To install the Inquisition software, perform the following.
-
-CD to the install directory:
-```bash
-root@localhost ~ $ cd ~/InquisitionFiles/install/
-```
-
-Run the installation script and follow the prompts:
-```bash
-root@localhost ~/InquisitionFiles/install/ $ ./install.sh
-```
+You can find instructions on how to install Inquisition by visiting the [installation guide](https://github.com/magneticstain/Inquisition/wiki/Installing-Inquisition-Suite) page in the project wiki.
 
 # Usage
 After installing the software, we're now ready to start using it. To start Inquisition, run inquisition.py with the application
