@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.7.17, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 5.7.18, for Linux (x86_64)
 --
--- Host: localhost    Database: inquisition
+-- Host: localhost    Database: inquisition_DEV
 -- ------------------------------------------------------
--- Server version	5.7.17-0ubuntu0.16.04.2
+-- Server version	5.7.18-0ubuntu0.16.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -26,7 +26,7 @@ CREATE TABLE `FieldTemplateRegex` (
   `regex_id` int(11) NOT NULL AUTO_INCREMENT,
   `regex` text NOT NULL,
   PRIMARY KEY (`regex_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -35,7 +35,7 @@ CREATE TABLE `FieldTemplateRegex` (
 
 LOCK TABLES `FieldTemplateRegex` WRITE;
 /*!40000 ALTER TABLE `FieldTemplateRegex` DISABLE KEYS */;
-INSERT INTO `FieldTemplateRegex` VALUES (1,'^[A-Za-z]{3} [0-9 ]{2} [0-9:]{8}'),(2,'^[0-9.]+');
+INSERT INTO `FieldTemplateRegex` VALUES (1,'^[A-Za-z]{3} [0-9 ]{2} [0-9:]{8}'),(2,'^[0-9.]+'),(3,'\\[[\\S]+ -[\\d]+\\]'),(4,'\"[A-Z]{3,6} [\\S]+ [A-Z0-9/\\.]+\" [0-9]{3}'),(5,'([0-9]{3}) (?:[0-9]+) (?:\"http://)'),(6,'\"[a-z]+:\\/\\/[\\S]+\"'),(7,'\"[\\S]+[ .]\\([A-Za-z0-9 ,:;./_-]+\\)([ \\w/]+)?(\\([\\w ,:;./_-]+\\))?([ \\w,:;./_-]+\")?'),(8,'[\\d]{4}-[\\d]{2}-[\\d]{2} [\\d]{2}:[\\d]{2}:[\\d]{2}'),(9,'[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3}\\.[\\d]{1,3} [\\d]{3} [A-Z_]+'),(10,'[A-Z]+IED [\\w0-9.]+ -'),(11,'^[\\d]{4}-[\\d]{2}-[\\d]{2}'),(12,'[\\d]{2}:[\\d]{2}:[\\d]{2}'),(13,'[a-z]{1,4},dp=[\\d]{1,5},sp=[\\d]{1,5}');
 /*!40000 ALTER TABLE `FieldTemplateRegex` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -58,7 +58,7 @@ CREATE TABLE `FieldTemplates` (
   KEY `fk_regex` (`regex_id`),
   CONSTRAINT `fk_fields` FOREIGN KEY (`field_id`) REFERENCES `Fields` (`field_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_regex` FOREIGN KEY (`regex_id`) REFERENCES `FieldTemplateRegex` (`regex_id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,7 +67,7 @@ CREATE TABLE `FieldTemplates` (
 
 LOCK TABLES `FieldTemplates` WRITE;
 /*!40000 ALTER TABLE `FieldTemplates` DISABLE KEYS */;
-INSERT INTO `FieldTemplates` VALUES (1,'match_std_linux_syslog_timestamp',1,1,'2017-04-09 19:43:16',1),(2,'match_fake_apache_src_ip',2,2,'2017-04-21 20:19:44',1);
+INSERT INTO `FieldTemplates` VALUES (1,'match_std_linux_syslog_timestamp',1,1,'2017-04-09 19:43:16',1),(2,'match_fake_apache_src_ip',2,2,'2017-04-21 20:19:44',1),(4,'match_fake_apache_timestamp',1,3,'2017-04-29 15:37:50',1),(5,'match_fake_apache_http_request',3,4,'2017-04-30 09:01:25',1),(6,'match_fake_apache_http_status_code',4,5,'2017-04-30 09:28:37',0),(7,'match_fake_apache_http_referrer',5,6,'2017-04-30 10:18:19',1),(8,'match_http_user_agent',6,7,'2017-04-30 11:07:08',1),(9,'match_fake_bluecoat_timestamp',1,8,'2017-04-30 19:10:51',1),(10,'match_fake_bluecoat_proxy_request',3,9,'2017-04-30 19:42:39',1),(11,'match_fake_bluecoat_action',7,10,'2017-04-30 19:56:52',1),(12,'match_ISO-8601_date',8,11,'2017-04-30 21:09:02',1),(13,'match_ISO-8601_time',9,12,'2017-04-30 21:09:33',1),(14,'match_fake_dragon_host',10,NULL,'2017-04-30 21:09:54',0),(15,'match_fake_dragon_alert_summary',11,NULL,'2017-04-30 21:10:10',0),(16,'match_fake_dragon_dst_ip',12,NULL,'2017-04-30 21:10:30',0),(17,'match_fake_dragon_src_ip',2,NULL,'2017-04-30 21:10:51',0),(18,'match_fake_dragon_dst_port',14,NULL,'2017-04-30 21:11:07',0),(19,'match_fake_dragon_src_port',13,NULL,'2017-04-30 21:11:18',0),(20,'match_fake_dragon_connection_summary',15,13,'2017-04-30 21:11:44',1);
 /*!40000 ALTER TABLE `FieldTemplates` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -82,7 +82,7 @@ CREATE TABLE `Fields` (
   `field_id` int(11) NOT NULL AUTO_INCREMENT,
   `field_name` varchar(40) NOT NULL,
   PRIMARY KEY (`field_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -91,7 +91,7 @@ CREATE TABLE `Fields` (
 
 LOCK TABLES `Fields` WRITE;
 /*!40000 ALTER TABLE `Fields` DISABLE KEYS */;
-INSERT INTO `Fields` VALUES (1,'timestamp'),(2,'src_ip');
+INSERT INTO `Fields` VALUES (1,'timestamp'),(2,'src_ip'),(3,'http_request'),(4,'http_status_code'),(5,'http_referrer'),(6,'http_user_agent'),(7,'action'),(8,'date'),(9,'time'),(10,'host'),(11,'summary'),(12,'dst_ip'),(13,'src_port'),(14,'dst_port'),(15,'connection_summary');
 /*!40000 ALTER TABLE `Fields` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -111,7 +111,7 @@ CREATE TABLE `ParserToFieldTemplateMapping` (
   KEY `fk_template` (`template_id`),
   CONSTRAINT `fk_parser` FOREIGN KEY (`parser_id`) REFERENCES `Parsers` (`parser_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_template` FOREIGN KEY (`template_id`) REFERENCES `FieldTemplates` (`template_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -120,7 +120,7 @@ CREATE TABLE `ParserToFieldTemplateMapping` (
 
 LOCK TABLES `ParserToFieldTemplateMapping` WRITE;
 /*!40000 ALTER TABLE `ParserToFieldTemplateMapping` DISABLE KEYS */;
-INSERT INTO `ParserToFieldTemplateMapping` VALUES (1,1,1),(2,2,1),(3,2,2);
+INSERT INTO `ParserToFieldTemplateMapping` VALUES (1,1,1),(3,2,2),(4,2,4),(5,2,5),(6,2,6),(7,2,7),(8,2,8),(9,3,9),(10,3,8),(11,3,10),(12,3,11),(13,4,12),(14,4,13),(15,4,20);
 /*!40000 ALTER TABLE `ParserToFieldTemplateMapping` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -138,7 +138,7 @@ CREATE TABLE `Parsers` (
   `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `status` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`parser_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -147,7 +147,7 @@ CREATE TABLE `Parsers` (
 
 LOCK TABLES `Parsers` WRITE;
 /*!40000 ALTER TABLE `Parsers` DISABLE KEYS */;
-INSERT INTO `Parsers` VALUES (1,'kernel_log','/var/log/kern.log','2017-04-09 16:50:41',0),(2,'fake_apache_logs','/var/log/fake_apache_logs/test_fake_apache_access_logs','2017-04-15 18:00:01',1),(3,'fake_missing_log_file','/var/log/does_not_exist.log','2017-04-15 18:00:01',1);
+INSERT INTO `Parsers` VALUES (1,'kernel_log','/var/log/kern.log','2017-04-09 16:50:41',0),(2,'fake_apache_logs','/var/log/inquisition/test_logs/apache_access.log','2017-04-15 18:00:01',1),(3,'fake_bluecoat_logs','/var/log/inquisition/test_logs/bluecoat.log','2017-04-30 19:01:57',1),(4,'fake_dragon_ids_alert_logs','/var/log/inquisition/test_logs/dragon_alerts.log','2017-04-30 19:03:28',1);
 /*!40000 ALTER TABLE `Parsers` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -160,4 +160,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-04-22 10:49:25
+-- Dump completed on 2017-05-02 19:52:09

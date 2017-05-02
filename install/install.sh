@@ -23,12 +23,12 @@ rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' ../* $AP
 
 # provision db
 echo "Initializing database..."
-mysql -u root -e "create database inquisition"
+mysql -u root -p -e "create database inquisition"
 echo "Creating DB service account..."
-mysql -u root -e "GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost' IDENTIFIED BY ''"
-mysql -u root -e "FLUSH PRIVILEGES"
+mysql -u root -p -e "GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost' IDENTIFIED BY ''"
+mysql -u root -p -e "FLUSH PRIVILEGES"
 echo "Import table schema using root user..."
-mysql -u root inquisition < ./src/inquisition.sql || exit 1
+mysql -u root -p  inquisition < ./src/inquisition.sql || exit 1
 
 # setup log db
 redis-cli set log_id 0 || echo "COULD NOT CONNECT TO REDIS!" && exit 1

@@ -1,0 +1,5 @@
+#Software: SGOS 3.2.4.8
+#Version: 1.0
+#Date: 2005-04-12 19:56:33
+#Fields: date time time-taken c-ip sc-status s-action sc-bytes cs-bytes cs-method cs-uri-scheme cs-host cs-uri-path cs-uri-query cs-username s-hierarchy s-supplier-name rs(Content-Type) cs(User-Agent) sc-filter-result sc-filter-category x-virus-id s-ip s-sitename x-virus-details x-icap-error-code x-icap-error-details
+2005-04-12 21:03:45 74603 192.16.170.46 503 TCP_ERR_MISS 1736 430 GET http www.yahoo.com / - - NONE 192.16.170.42 - "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.6) Gecko/20050317 Firefox/1.0.2" DENIED none - 192.16.170.42 SG-HTTP-Service - server_unavailable "Server unavailable: No ICAP server is available to process request."
