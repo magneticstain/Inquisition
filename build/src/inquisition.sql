@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.7.18, for Linux (x86_64)
 --
--- Host: localhost    Database: inquisition_DEV
+-- Host: localhost    Database: inquisition_BUILD
 -- ------------------------------------------------------
 -- Server version	5.7.18-0ubuntu0.16.04.1
 
@@ -51,7 +51,8 @@ CREATE TABLE `FieldTemplates` (
   `template_name` varchar(100) NOT NULL,
   `field_id` int(11) DEFAULT NULL,
   `regex_id` int(11) DEFAULT NULL,
-  `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created` datetime DEFAULT NULL,
+  `updated` datetime DEFAULT NULL,
   `status` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`template_id`),
   KEY `fk_fields` (`field_id`),
@@ -67,9 +68,39 @@ CREATE TABLE `FieldTemplates` (
 
 LOCK TABLES `FieldTemplates` WRITE;
 /*!40000 ALTER TABLE `FieldTemplates` DISABLE KEYS */;
-INSERT INTO `FieldTemplates` VALUES (1,'match_std_linux_syslog_timestamp',1,1,'2017-04-09 19:43:16',1),(2,'match_fake_apache_src_ip',2,2,'2017-04-21 20:19:44',1),(4,'match_fake_apache_timestamp',1,3,'2017-04-29 15:37:50',1),(5,'match_fake_apache_http_request',3,4,'2017-04-30 09:01:25',1),(6,'match_fake_apache_http_status_code',4,5,'2017-04-30 09:28:37',0),(7,'match_fake_apache_http_referrer',5,6,'2017-04-30 10:18:19',1),(8,'match_http_user_agent',6,7,'2017-04-30 11:07:08',1),(9,'match_fake_bluecoat_timestamp',1,8,'2017-04-30 19:10:51',1),(10,'match_fake_bluecoat_proxy_request',3,9,'2017-04-30 19:42:39',1),(11,'match_fake_bluecoat_action',7,10,'2017-04-30 19:56:52',1),(12,'match_ISO-8601_date',8,11,'2017-04-30 21:09:02',1),(13,'match_ISO-8601_time',9,12,'2017-04-30 21:09:33',1),(14,'match_fake_dragon_host',10,NULL,'2017-04-30 21:09:54',0),(15,'match_fake_dragon_alert_summary',11,NULL,'2017-04-30 21:10:10',0),(16,'match_fake_dragon_dst_ip',12,NULL,'2017-04-30 21:10:30',0),(17,'match_fake_dragon_src_ip',2,NULL,'2017-04-30 21:10:51',0),(18,'match_fake_dragon_dst_port',14,NULL,'2017-04-30 21:11:07',0),(19,'match_fake_dragon_src_port',13,NULL,'2017-04-30 21:11:18',0),(20,'match_fake_dragon_connection_summary',15,13,'2017-04-30 21:11:44',1);
+INSERT INTO `FieldTemplates` VALUES (1,'match_std_linux_syslog_timestamp',1,1,'2017-05-03 19:33:33','2017-05-03 19:33:33',1),(2,'match_fake_apache_src_ip',2,2,'2017-05-03 19:33:33','2017-05-03 19:33:33',1),(4,'match_fake_apache_timestamp',1,3,'2017-05-03 19:33:33','2017-05-03 19:33:33',1),(5,'match_fake_apache_http_request',3,4,'2017-05-03 19:33:33','2017-05-03 19:33:33',1),(6,'match_fake_apache_http_status_code',4,5,'2017-05-03 19:33:33','2017-05-03 19:33:33',0),(7,'match_fake_apache_http_referrer',5,6,'2017-05-03 19:33:33','2017-05-03 19:33:33',1),(8,'match_http_user_agent',6,7,'2017-05-03 19:33:33','2017-05-03 19:33:33',1),(9,'match_fake_bluecoat_timestamp',1,8,'2017-05-03 19:33:33','2017-05-03 19:33:33',1),(10,'match_fake_bluecoat_proxy_request',3,9,'2017-05-03 19:33:33','2017-05-03 19:33:33',1),(11,'match_fake_bluecoat_action',7,10,'2017-05-03 19:33:33','2017-05-03 19:33:33',1),(12,'match_ISO-8601_date',8,11,'2017-05-03 19:33:33','2017-05-03 19:33:33',1),(13,'match_ISO-8601_time',9,12,'2017-05-03 19:33:33','2017-05-03 19:33:33',1),(14,'match_fake_dragon_host',10,NULL,'2017-05-03 19:33:33','2017-05-03 19:33:33',0),(15,'match_fake_dragon_alert_summary',11,NULL,'2017-05-03 19:33:33','2017-05-03 19:33:33',0),(16,'match_fake_dragon_dst_ip',12,NULL,'2017-05-03 19:33:33','2017-05-03 19:33:33',0),(17,'match_fake_dragon_src_ip',2,NULL,'2017-05-03 19:33:33','2017-05-03 19:33:33',0),(18,'match_fake_dragon_dst_port',14,NULL,'2017-05-03 19:33:33','2017-05-03 19:33:33',0),(19,'match_fake_dragon_src_port',13,NULL,'2017-05-03 19:33:33','2017-05-03 19:33:33',0),(20,'match_fake_dragon_connection_summary',15,13,'2017-05-03 19:33:33','2017-05-03 19:33:33',1);
 /*!40000 ALTER TABLE `FieldTemplates` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger FieldTemplates_INSERT before insert on FieldTemplates for each row set new.created = now(), new.updated = now() */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger FieldTemplates_UPDATE before update on FieldTemplates for each row set new.updated = now() */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `Fields`
@@ -81,6 +112,8 @@ DROP TABLE IF EXISTS `Fields`;
 CREATE TABLE `Fields` (
   `field_id` int(11) NOT NULL AUTO_INCREMENT,
   `field_name` varchar(40) NOT NULL,
+  `updated` datetime DEFAULT NULL,
+  `created` datetime DEFAULT NULL,
   PRIMARY KEY (`field_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -91,9 +124,39 @@ CREATE TABLE `Fields` (
 
 LOCK TABLES `Fields` WRITE;
 /*!40000 ALTER TABLE `Fields` DISABLE KEYS */;
-INSERT INTO `Fields` VALUES (1,'timestamp'),(2,'src_ip'),(3,'http_request'),(4,'http_status_code'),(5,'http_referrer'),(6,'http_user_agent'),(7,'action'),(8,'date'),(9,'time'),(10,'host'),(11,'summary'),(12,'dst_ip'),(13,'src_port'),(14,'dst_port'),(15,'connection_summary');
+INSERT INTO `Fields` VALUES (1,'timestamp','2017-05-03 19:31:07','2017-05-03 19:31:07'),(2,'src_ip','2017-05-03 19:31:07','2017-05-03 19:31:07'),(3,'http_request','2017-05-03 19:31:07','2017-05-03 19:31:07'),(4,'http_status_code','2017-05-03 19:31:07','2017-05-03 19:31:07'),(5,'http_referrer','2017-05-03 19:31:07','2017-05-03 19:31:07'),(6,'http_user_agent','2017-05-03 19:31:07','2017-05-03 19:31:07'),(7,'action','2017-05-03 19:31:07','2017-05-03 19:31:07'),(8,'date','2017-05-03 19:31:07','2017-05-03 19:31:07'),(9,'time','2017-05-03 19:31:07','2017-05-03 19:31:07'),(10,'host','2017-05-03 19:31:07','2017-05-03 19:31:07'),(11,'summary','2017-05-03 19:31:07','2017-05-03 19:31:07'),(12,'dst_ip','2017-05-03 19:31:07','2017-05-03 19:31:07'),(13,'src_port','2017-05-03 19:31:07','2017-05-03 19:31:07'),(14,'dst_port','2017-05-03 19:31:07','2017-05-03 19:31:07'),(15,'connection_summary','2017-05-03 19:31:07','2017-05-03 19:31:07');
 /*!40000 ALTER TABLE `Fields` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger Fields_INSERT before insert on Fields for each row set new.created = now(), new.updated = now() */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger Fields_UPDATE before update on Fields for each row set new.updated = now() */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `ParserToFieldTemplateMapping`
@@ -135,7 +198,8 @@ CREATE TABLE `Parsers` (
   `parser_id` int(11) NOT NULL AUTO_INCREMENT,
   `parser_name` varchar(100) NOT NULL,
   `parser_log` varchar(100) NOT NULL,
-  `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created` datetime DEFAULT NULL,
+  `updated` datetime DEFAULT NULL,
   `status` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`parser_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
@@ -147,9 +211,39 @@ CREATE TABLE `Parsers` (
 
 LOCK TABLES `Parsers` WRITE;
 /*!40000 ALTER TABLE `Parsers` DISABLE KEYS */;
-INSERT INTO `Parsers` VALUES (1,'kernel_log','/var/log/kern.log','2017-04-09 16:50:41',0),(2,'fake_apache_logs','/var/log/inquisition/test_logs/apache_access.log','2017-04-15 18:00:01',1),(3,'fake_bluecoat_logs','/var/log/inquisition/test_logs/bluecoat.log','2017-04-30 19:01:57',1),(4,'fake_dragon_ids_alert_logs','/var/log/inquisition/test_logs/dragon_alerts.log','2017-04-30 19:03:28',1);
+INSERT INTO `Parsers` VALUES (1,'kernel_log','/var/log/kern.log','2017-05-03 19:30:00','2017-05-03 19:30:00',0),(2,'fake_apache_logs','/var/log/fake_apache_logs/access_log.log','2017-05-03 19:30:00','2017-05-03 19:30:00',1),(3,'fake_bluecoat_logs','/var/log/inquisition/test_logs/bluecoat/Demo_log_001.log','2017-05-03 19:30:00','2017-05-03 19:30:00',1),(4,'fake_dragon_ids_alert_logs','/var/log/inquisition/test_logs/dragon/dragon.log.001.conv','2017-05-03 19:30:00','2017-05-03 19:30:00',1);
 /*!40000 ALTER TABLE `Parsers` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger Parsers_INSERT before insert on Parsers for each row set new.created = now(), new.updated = now() */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger Parsers_UPDATE before update on Parsers for each row set new.updated = now() */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -160,4 +254,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-05-02 19:52:09
+-- Dump completed on 2017-05-03 19:34:34
