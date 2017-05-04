@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.7.18, for Linux (x86_64)
 --
--- Host: localhost    Database: inquisition_BUILD
+-- Host: localhost    Database: inquisition
 -- ------------------------------------------------------
 -- Server version	5.7.18-0ubuntu0.16.04.1
 
@@ -211,7 +211,7 @@ CREATE TABLE `Parsers` (
 
 LOCK TABLES `Parsers` WRITE;
 /*!40000 ALTER TABLE `Parsers` DISABLE KEYS */;
-INSERT INTO `Parsers` VALUES (1,'kernel_log','/var/log/kern.log','2017-05-03 19:30:00','2017-05-03 19:30:00',0),(2,'fake_apache_logs','/var/log/fake_apache_logs/access_log.log','2017-05-03 19:30:00','2017-05-03 19:30:00',1),(3,'fake_bluecoat_logs','/var/log/inquisition/test_logs/bluecoat/Demo_log_001.log','2017-05-03 19:30:00','2017-05-03 19:30:00',1),(4,'fake_dragon_ids_alert_logs','/var/log/inquisition/test_logs/dragon/dragon.log.001.conv','2017-05-03 19:30:00','2017-05-03 19:30:00',1);
+INSERT INTO `Parsers` VALUES (1,'kernel_log','/var/log/kern.log','2017-05-03 19:30:00','2017-05-03 19:30:00',0),(2,'fake_apache_logs','/var/log/inquisition/test_logs/apache_access.log','2017-05-03 19:30:00','2017-05-04 17:42:51',1),(3,'fake_bluecoat_logs','/var/log/inquisition/test_logs/bluecoat.log','2017-05-03 19:30:00','2017-05-04 17:43:08',1),(4,'fake_dragon_ids_alert_logs','/var/log/inquisition/test_logs/dragon_alerts.log','2017-05-03 19:30:00','2017-05-04 17:43:22',1);
 /*!40000 ALTER TABLE `Parsers` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -254,4 +254,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-05-03 19:34:34
+-- Dump completed on 2017-05-04 17:44:50

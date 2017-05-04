@@ -196,7 +196,7 @@ class Anatomize:
                 numRuns = 0
                 while True:
                     sleepTime = int(self.cfg['parsing']['sleepTime'])
-                    numRunsBetweenStats = int(self.cfg['parsing']['numSleepsBetweenPolls'])
+                    numRunsBetweenStats = int(self.cfg['parsing']['numSleepsBetweenStats'])
 
                     # poll for new logs
                     self.parserStore[parserId].pollLogFile(testRun, useHazyStateTracking=hazyStateTrackingStatus,
