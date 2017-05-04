@@ -12,10 +12,10 @@ before_script:
     - sudo apt-get update -qq
     - sudo apt-get install -qq python3-dev
     - pip install -r build/build_requirements.txt
-    - sudo mkdir /var/log/inquisition
+    - cd install/
+    - ./install.sh --is-build
     - sudo chown -R travis /var/log/inquisition/
     - sudo chmod -R 774 /var/log/inquisition/
-    - sudo mkdir /var/log/inquisition/test_logs/
     - sudo chown -R travis /var/log/inquisition/test_logs/
     - sudo chmod -R 774 /var/log/inquisition/test_logs/
     - sudo touch /var/log/inaccessible_test_log
