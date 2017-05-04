@@ -30,7 +30,7 @@ mkdir $LOG_DIR > /dev/null 2>&1
 rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' ../* $APP_DIR || exit 1
 
 # provision db
-if [ "$BUILD_FLAG" == "1" ]
+if [[ "$BUILD_FLAG" == "1" ]]
 then
     echo "Initializing database..."
     mysql -u root -e "CREATE DATABASE inquisition"
