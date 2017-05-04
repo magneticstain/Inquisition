@@ -23,11 +23,10 @@ rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' ../* $AP
 
 # provision db
 echo "Initializing database..."
-mysql -u root -p -e "create database inquisition"
+mysql -u root -e "CREATE DATABASE inquisition"
 echo "Creating DB service account..."
-mysql -u root -p -e "GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost' IDENTIFIED BY ''"
-mysql -u root -p -e "FLUSH PRIVILEGES"
-echo "Import table schema using root user..."
+mysql -u root -p -e "CREATE USER inquisition@'localhost' IDENTIFIED BY ''; GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost'; FLUSH PRIVILEGES"
+echo "Import table schema..."
 mysql -u root -p  inquisition < ./src/inquisition.sql || exit 1
 
 # setup log db
