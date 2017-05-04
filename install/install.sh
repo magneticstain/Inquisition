@@ -7,12 +7,12 @@
 #
 
 # check if this is a build or not (build don't require MySQL passwords
-if [ "$3" == "--is-build" ]
-then
+#if [ "$1" == "--is-build" ]
+#then
     BUILD_FLAG=1
-else
-    BUILD_FLAG=0
-fi
+#else
+#    BUILD_FLAG=0
+#fi
 
 APP_DIR='/opt/inquisition/'
 LOG_DIR='/var/log/inquisition/'
