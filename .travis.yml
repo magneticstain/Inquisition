@@ -13,7 +13,7 @@ before_script:
     - sudo apt-get install -qq python3-dev
     - pip install -r build/build_requirements.txt
     - cd install/
-    - ./install.sh --is-build
+    - sh -x ./install.sh --is-build
     - sudo chown -R travis /var/log/inquisition/
     - sudo chmod -R 774 /var/log/inquisition/
     - sudo chown -R travis /var/log/inquisition/test_logs/
