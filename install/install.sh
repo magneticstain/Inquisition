@@ -48,7 +48,7 @@ else
 fi
 
 # setup log db
-redis-cli set log_id 0 || echo "COULD NOT CONNECT TO REDIS!" && exit 1
+redis-cli set log_id 0 && exit 0 || echo "COULD NOT CONNECT TO REDIS!" && exit 1
 
 echo "Installation complete!"
 
