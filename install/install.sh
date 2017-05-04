@@ -7,7 +7,7 @@
 #
 
 # check if this is a build or not (build don't require MySQL passwords
-if [ "$1" == "--is-build" ]
+if [ "$3" == "--is-build" ]
 then
     BUILD_FLAG=1
 else
