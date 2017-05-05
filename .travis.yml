@@ -14,7 +14,6 @@ before_script:
     - pip install -r build/build_requirements.txt
     - sudo install/install.sh --is-build
 script:
-    - build/build.sh
     - coverage run --parallel-mode --source="." inquisition.py -h
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -k
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -t
