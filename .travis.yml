@@ -14,13 +14,6 @@ before_script:
     - pip install -r build/build_requirements.txt
     - cd install/
     - sudo ./install.sh --is-build
-    - sudo chown -R travis /var/log/inquisition/
-    - sudo chmod -R 774 /var/log/inquisition/
-    - sudo chown -R travis /var/log/inquisition/test_logs/
-    - sudo chmod -R 774 /var/log/inquisition/test_logs/
-    - sudo touch /var/log/inaccessible_test_log
-    - sudo chmod 600 /var/log/inaccessible_test_log
-    - cp build/src/sample_logs/* /var/log/inquisition/test_logs/
 script:
     - build/build.sh
     - coverage run --parallel-mode --source="." inquisition.py -h

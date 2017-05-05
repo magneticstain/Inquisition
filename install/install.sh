@@ -7,12 +7,19 @@
 #
 
 # check if this is a build or not (build don't require MySQL passwords
-if [ "$1" == "--is-build" ]
-then
-    BUILD_FLAG=1
-else
-    BUILD_FLAG=0
-fi
+BUILD_FLAG=0
+while test $# -gt 0
+do
+    case "$1" in
+        --is-build)
+            BUILD_FLAG=1
+            ;;
+        *)
+            echo "UNKNOWN ARGUMENT :: [ $1 ]"
+            ;;
+    esac
+    shift
+done
 
 APP_DIR='/opt/inquisition/'
 LOG_DIR='/var/log/inquisition/'
@@ -30,22 +37,31 @@ mkdir $LOG_DIR > /dev/null 2>&1
 rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' ../* $APP_DIR || exit 1
 
 # provision db
+MYSQL_PASS_FLAG=''
 if [ $BUILD_FLAG = 1 ]
 then
-    echo "Initializing database..."
-    mysql -u root -e "CREATE DATABASE inquisition"
-    echo "Creating DB service account..."
-    mysql -u root -e "CREATE USER inquisition@'localhost' IDENTIFIED BY ''; GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost'; FLUSH PRIVILEGES"
-    echo "Import table schema..."
-    mysql -u root inquisition < ./src/inquisition.sql || exit 1
+    # update directory perms
+    chown -R travis $LOG_DIR
+    chmod -R 774 $LOG_DIR
+    chown -R travis /var/log/inquisition/test_logs/
+    chmod -R 774 /var/log/inquisition/test_logs/
+
+    # create and xfer test/sample log files
+    sudo touch /var/log/inaccessible_test_log
+    sudo chmod 600 /var/log/inaccessible_test_log
+    cp ../build/src/sample_logs/* /var/log/inquisition/test_logs/
 else
-    echo "Initializing database..."
-    mysql -u root -p -e "CREATE DATABASE inquisition"
-    echo "Creating DB service account..."
-    mysql -u root -p -e "CREATE USER inquisition@'localhost' IDENTIFIED BY ''; GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost'; FLUSH PRIVILEGES"
-    echo "Import table schema..."
-    mysql -u root -p  inquisition < ./src/inquisition.sql || exit 1
+    # password is needed for accessing db
+    MYSQL_PASS_FLAG='-p'
 fi
+
+# setup Inquisition db
+echo "Initializing database..."
+mysql -u root $MYSQL_PASS_FLAG -e "CREATE DATABASE inquisition"
+echo "Creating DB service account..."
+mysql -u root $MYSQL_PASS_FLAG -e "CREATE USER inquisition@'localhost' IDENTIFIED BY ''; GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost'; FLUSH PRIVILEGES"
+echo "Import table schema..."
+mysql -u root $MYSQL_PASS_FLAG  inquisition < ./src/inquisition.sql || exit 1
 
 # setup log db
 redis-cli set log_id 0 && exit 0 || echo "COULD NOT CONNECT TO REDIS!" && exit 1
