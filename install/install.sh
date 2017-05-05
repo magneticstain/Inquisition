@@ -38,7 +38,7 @@ rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' ./* $APP
 
 # provision db
 MYSQL_PASS_FLAG=''
-if [ $BUILD_FLAG = 1 ]
+if [ $BUILD_FLAG == 1 ]
 then
     # update directory perms
     mkdir $LOG_DIR'test_logs' > /dev/null 2>&1
@@ -62,7 +62,7 @@ mysql -u root $MYSQL_PASS_FLAG -e "CREATE DATABASE inquisition"
 echo "Creating DB service account..."
 mysql -u root $MYSQL_PASS_FLAG -e "CREATE USER inquisition@'localhost' IDENTIFIED BY ''; GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost'; FLUSH PRIVILEGES"
 echo "Import table schema..."
-mysql -u root $MYSQL_PASS_FLAG  inquisition < install/src/inquisition.sql || exit 1
+mysql -u root $MYSQL_PASS_FLAG inquisition < install/src/inquisition.sql || exit 1
 
 # setup log db
 redis-cli set log_id 0 || (echo "COULD NOT CONNECT TO REDIS!" && exit 1)
@@ -70,9 +70,9 @@ redis-cli set log_id 0 || (echo "COULD NOT CONNECT TO REDIS!" && exit 1)
 echo "Installation complete!"
 
 # run any tests if this is a build install
-if [ $BUILD_FLAG = 1 ]
+if [ $BUILD_FLAG == 1 ]
 then
-    python -m unittest discover build/tests/ || exit 1
+    python -m unittest discover ./build/tests/ || exit 1
 fi
 
 exit 0
