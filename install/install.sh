@@ -13,7 +13,7 @@ function createDirStructure()
     mkdir $1 > /dev/null 2>&1
     echo "Creating application subdirectories..."
     echo "tmp/"
-    mkdir $1'tmp/' > /dev/null 2>&1
+    mkdir $1'/tmp/' > /dev/null 2>&1
     echo "Creating log directory..."
     mkdir $2 > /dev/null 2>&1
 }
@@ -27,9 +27,9 @@ function syncAppFiles()
 function runBuildPrep()
 {
     # run all steps needed to prep for build test
-    TEST_LOG_DIR=$2'test_logs/'
+    TEST_LOG_DIR="$2test_logs/"
     # update directory perms
-    mkdir $1'test_logs' > /dev/null 2>&1
+    mkdir $TEST_LOG_DIR > /dev/null 2>&1
     chown -R travis $1
     chmod -R 774 $1
     chown -R travis $TEST_LOG_DIR
@@ -55,8 +55,8 @@ function initializeInquisitionDb()
 BUILD_FLAG=0
 MYSQL_PASS_FLAG=''
 MYSQL_TABLE_SCHEMA_FILE='install/src/inquisition.sql'
-APP_DIR='/opt/inquisition/'
-LOG_DIR='/var/log/inquisition/'
+APP_DIR='/opt/inquisition'
+LOG_DIR='/var/log/inquisition'
 
 # check if this is a build or not (build don't require MySQL passwords
 while test $# -gt 0
