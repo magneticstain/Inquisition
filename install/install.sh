@@ -41,6 +41,7 @@ MYSQL_PASS_FLAG=''
 if [ $BUILD_FLAG = 1 ]
 then
     # update directory perms
+    mkdir $LOG_DIR'test_logs' > /dev/null 2>&1
     chown -R travis $LOG_DIR
     chmod -R 774 $LOG_DIR
     chown -R travis /var/log/inquisition/test_logs/
