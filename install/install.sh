@@ -74,7 +74,7 @@ do
 done
 
 # create directories
-createDirStructureAndFiles $APP_DIR $LOG_DIR
+createDirStructure $APP_DIR $LOG_DIR
 
 # sync files to app folder
 syncAppFiles $APP_DIR
