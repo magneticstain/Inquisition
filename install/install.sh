@@ -29,7 +29,7 @@ function runBuildPrep()
 {
     # run all steps needed to prep for build test
     echo "Running build prep..."
-    TEST_LOG_DIR="$2/test_logs/"
+    TEST_LOG_DIR="$1/test_logs/"
     echo "Using [ $TEST_LOG_DIR ] for storing sample logs"
 
     # update directory perms
