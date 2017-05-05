@@ -27,7 +27,7 @@ function syncAppFiles()
 function runBuildPrep()
 {
     # run all steps needed to prep for build test
-    TEST_LOG_DIR="$2test_logs/"
+    TEST_LOG_DIR="$2/test_logs/"
     # update directory perms
     mkdir $TEST_LOG_DIR > /dev/null 2>&1
     chown -R travis $1
