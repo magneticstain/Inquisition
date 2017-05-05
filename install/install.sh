@@ -43,13 +43,23 @@ function runBuildPrep()
 
 function initializeInquisitionDb()
 {
+    # check for schema file
+    if [ ! -z $1 ]
+    then
+        # schema file specified
+        TABLE_SCHEMA=$1
+    else
+        # no schema file set, use default
+        TABLE_SCHEMA='install/src/inquisition.sql'
+    fi
+
     # initialize the database for Inquisition
     echo "Initializing database..."
-    mysql -u root $1 -e "CREATE DATABASE inquisition"
+    mysql -u root $2 -e "CREATE DATABASE inquisition"
     echo "Creating DB service account..."
-    mysql -u root $1 -e "CREATE USER inquisition@'localhost' IDENTIFIED BY ''; GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost'; FLUSH PRIVILEGES"
+    mysql -u root $2 -e "CREATE USER inquisition@'localhost' IDENTIFIED BY ''; GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost'; FLUSH PRIVILEGES"
     echo "Import table schema..."
-    mysql -u root $1 inquisition < $2 || exit 1
+    mysql -u root $2 inquisition < $TABLE_SCHEMA || exit 1
 }
 
 BUILD_FLAG=0
@@ -89,7 +99,7 @@ else
 fi
 
 # init inquisition database
-initializeInquisitionDb $MYSQL_PASS_FLAG $MYSQL_TABLE_SCHEMA_FILE
+initializeInquisitionDb $MYSQL_TABLE_SCHEMA_FILE $MYSQL_PASS_FLAG
 
 # setup log db
 redis-cli set log_id 0 || (echo "COULD NOT CONNECT TO REDIS!" && exit 1)
