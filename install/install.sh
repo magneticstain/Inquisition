@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-#
+# =======================================
 # Install.sh
-# Automated installer for inquisition
+# Automated installer for Inquisition
 # v1.0
-#
+# =======================================
 
 BUILD_FLAG=0
 MYSQL_PASS_FLAG=''
