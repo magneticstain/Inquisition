@@ -9,25 +9,29 @@
 function createDirStructure()
 {
     # create directories
-    echo "Creating application directory..."
+    echo "Creating application directory @ [ $1 ]..."
     mkdir $1 > /dev/null 2>&1
     echo "Creating application subdirectories..."
     echo "tmp/"
     mkdir $1'/tmp/' > /dev/null 2>&1
-    echo "Creating log directory..."
+    echo "Creating log directory @ [ $2 ]..."
     mkdir $2 > /dev/null 2>&1
 }
 
 function syncAppFiles()
 {
     # copy files to app dir
+    echo "Syncing application files to [ $1 ]..."
     rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' ./* $1 || exit 1
 }
 
 function runBuildPrep()
 {
     # run all steps needed to prep for build test
+    echo "Running build prep..."
     TEST_LOG_DIR="$2/test_logs/"
+    echo "Using [ $TEST_LOG_DIR ] for storing sample logs"
+
     # update directory perms
     mkdir $TEST_LOG_DIR > /dev/null 2>&1
     chown -R travis $1
@@ -38,7 +42,7 @@ function runBuildPrep()
     # create and xfer test/sample log files
     sudo touch /var/log/inaccessible_test_log
     sudo chmod 600 /var/log/inaccessible_test_log
-    cp build/src/sample_logs/* $TEST_LOG_DIR
+    cp -rf build/src/sample_logs/* $TEST_LOG_DIR
 }
 
 function initializeInquisitionDb()
@@ -62,6 +66,7 @@ function initializeInquisitionDb()
     mysql -u root $2 inquisition < $TABLE_SCHEMA || exit 1
 }
 
+# MAIN
 BUILD_FLAG=0
 MYSQL_PASS_FLAG=''
 MYSQL_TABLE_SCHEMA_FILE='install/src/inquisition.sql'
@@ -82,6 +87,8 @@ do
     esac
     shift
 done
+
+echo "[ STARTING INSTALL ]"
 
 # create directories
 createDirStructure $APP_DIR $LOG_DIR
@@ -104,6 +111,6 @@ initializeInquisitionDb $MYSQL_TABLE_SCHEMA_FILE $MYSQL_PASS_FLAG
 # setup log db
 redis-cli set log_id 0 || (echo "COULD NOT CONNECT TO REDIS!" && exit 1)
 
-echo "Installation complete!"
+echo "[ INSTALL COMPLETE! ]"
 
 exit 0
