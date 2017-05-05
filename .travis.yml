@@ -29,7 +29,7 @@ script:
     - coverage combine
 after_success:
     - ls -l /opt/inquisition/
-    - cat /var/log/inquisition/app.log
     - redis-cli KEYS "*"
     - coverage report -m
     - coveralls
+    - cat /var/log/inquisition/app.log
