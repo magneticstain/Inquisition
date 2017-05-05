@@ -12,7 +12,6 @@ before_script:
     - sudo apt-get update -qq
     - sudo apt-get install -qq python3-dev
     - pip install -r build/build_requirements.txt
-    - cd install/
     - sudo ./install.sh --is-build
 script:
     - build/build.sh

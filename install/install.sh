@@ -34,7 +34,7 @@ echo "Creating log directory..."
 mkdir $LOG_DIR > /dev/null 2>&1
 
 # copy files to app dir
-rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' ../* $APP_DIR || exit 1
+rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' ./* $APP_DIR || exit 1
 
 # provision db
 MYSQL_PASS_FLAG=''
@@ -50,7 +50,7 @@ then
     # create and xfer test/sample log files
     sudo touch /var/log/inaccessible_test_log
     sudo chmod 600 /var/log/inaccessible_test_log
-    cp ../build/src/sample_logs/* /var/log/inquisition/test_logs/
+    cp build/src/sample_logs/* /var/log/inquisition/test_logs/
 else
     # password is needed for accessing db
     MYSQL_PASS_FLAG='-p'
@@ -62,7 +62,7 @@ mysql -u root $MYSQL_PASS_FLAG -e "CREATE DATABASE inquisition"
 echo "Creating DB service account..."
 mysql -u root $MYSQL_PASS_FLAG -e "CREATE USER inquisition@'localhost' IDENTIFIED BY ''; GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost'; FLUSH PRIVILEGES"
 echo "Import table schema..."
-mysql -u root $MYSQL_PASS_FLAG  inquisition < ./src/inquisition.sql || exit 1
+mysql -u root $MYSQL_PASS_FLAG  inquisition < install/src/inquisition.sql || exit 1
 
 # setup log db
 redis-cli set log_id 0 && exit 0 || echo "COULD NOT CONNECT TO REDIS!" && exit 1
