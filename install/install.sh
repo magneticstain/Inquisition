@@ -69,10 +69,4 @@ redis-cli set log_id 0 || (echo "COULD NOT CONNECT TO REDIS!" && exit 1)
 
 echo "Installation complete!"
 
-# run any tests if this is a build install
-if [ $BUILD_FLAG == 1 ]
-then
-    python -m unittest discover ./build/tests/ || exit 1
-fi
-
 exit 0
