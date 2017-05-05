@@ -10,45 +10,46 @@ function createDirStructure()
 {
     # create directories
     echo "Creating application directory..."
-    mkdir $APP_DIR > /dev/null 2>&1
+    mkdir $1 > /dev/null 2>&1
     echo "Creating application subdirectories..."
     echo "tmp/"
-    mkdir $APP_DIR'tmp/' > /dev/null 2>&1
+    mkdir $1'tmp/' > /dev/null 2>&1
     echo "Creating log directory..."
-    mkdir $LOG_DIR > /dev/null 2>&1
+    mkdir $2 > /dev/null 2>&1
 }
 
 function syncAppFiles()
 {
     # copy files to app dir
-    rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' ./* $APP_DIR || exit 1
+    rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' ./* $1 || exit 1
 }
 
 function runBuildPrep()
 {
     # run all steps needed to prep for build test
+    TEST_LOG_DIR=$2'test_logs/'
     # update directory perms
-    mkdir $LOG_DIR'test_logs' > /dev/null 2>&1
-    chown -R travis $LOG_DIR
-    chmod -R 774 $LOG_DIR
-    chown -R travis /var/log/inquisition/test_logs/
-    chmod -R 774 /var/log/inquisition/test_logs/
+    mkdir $1'test_logs' > /dev/null 2>&1
+    chown -R travis $1
+    chmod -R 774 $1
+    chown -R travis $TEST_LOG_DIR
+    chmod -R 774 $TEST_LOG_DIR
 
     # create and xfer test/sample log files
     sudo touch /var/log/inaccessible_test_log
     sudo chmod 600 /var/log/inaccessible_test_log
-    cp build/src/sample_logs/* /var/log/inquisition/test_logs/
+    cp build/src/sample_logs/* $TEST_LOG_DIR
 }
 
 function initializeInquisitionDb()
 {
     # initialize the database for Inquisition
     echo "Initializing database..."
-    mysql -u root $MYSQL_PASS_FLAG -e "CREATE DATABASE inquisition"
+    mysql -u root $1 -e "CREATE DATABASE inquisition"
     echo "Creating DB service account..."
-    mysql -u root $MYSQL_PASS_FLAG -e "CREATE USER inquisition@'localhost' IDENTIFIED BY ''; GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost'; FLUSH PRIVILEGES"
+    mysql -u root $1 -e "CREATE USER inquisition@'localhost' IDENTIFIED BY ''; GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost'; FLUSH PRIVILEGES"
     echo "Import table schema..."
-    mysql -u root $MYSQL_PASS_FLAG inquisition < $MYSQL_TABLE_SCHEMA_FILE || exit 1
+    mysql -u root $1 inquisition < $2 || exit 1
 }
 
 BUILD_FLAG=0
@@ -73,22 +74,22 @@ do
 done
 
 # create directories
-createDirStructureAndFiles
+createDirStructureAndFiles $APP_DIR $LOG_DIR
 
 # sync files to app folder
-syncAppFiles
+syncAppFiles $APP_DIR
 
 # run build prep if needed
 if [ $BUILD_FLAG == 1 ]
 then
-    runBuildPrep
+    runBuildPrep $LOG_DIR
 else
     # password is needed for accessing db
     MYSQL_PASS_FLAG='-p'
 fi
 
 # init inquisition database
-initializeInquisitionDb
+initializeInquisitionDb $MYSQL_PASS_FLAG $MYSQL_TABLE_SCHEMA_FILE
 
 # setup log db
 redis-cli set log_id 0 || (echo "COULD NOT CONNECT TO REDIS!" && exit 1)
