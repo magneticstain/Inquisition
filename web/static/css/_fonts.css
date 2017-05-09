@@ -1,0 +1,10 @@
+/*
+    Inquisition // Celestial // _fonts.css
+
+    - where all font collections are imported for use
+ */
+
+@font-face {
+    font-family: 'Comfortaa';
+    src: url('/IQ/static/fonts/Comfortaa.ttf');
+}

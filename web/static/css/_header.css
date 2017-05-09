@@ -1,0 +1,24 @@
+/*
+    Inquisition // Celestial // _header.css
+
+    - header-specific styles
+ */
+
+header .contentWrapper {
+    background: #2C3D55;
+}
+
+header .contentWrapper #titleLogoWrapper {
+    color: #A5A4AD;
+    display: inline-block;
+    font: 3em "Comfortaa", sans-serif;
+    margin: 24px;
+}
+
+#titleLogoWrapper img, #titleLogoWrapper h1 {
+    vertical-align: middle;
+}
+
+#titleLogoWrapper h1 {
+    display: inline;
+}

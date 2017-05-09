@@ -4,3 +4,4 @@
 PyMySQL
 pygtail
 redis
+tensorflow

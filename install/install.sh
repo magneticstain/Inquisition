@@ -111,6 +111,9 @@ initializeInquisitionDb $MYSQL_TABLE_SCHEMA_FILE $MYSQL_PASS_FLAG
 # setup log db
 redis-cli set log_id 0 || (echo "COULD NOT CONNECT TO REDIS!" && exit 1)
 
+# copy over logrotate manifest
+/bin/cp -f install/src/inquisition_logrotate_manifest /etc/logrotate.d/inquisition
+
 echo "[ INSTALL COMPLETE! ]"
 
 exit 0
