@@ -11,7 +11,6 @@ CREATION_DATE: 2017-04-08
 
 # MODULES
 # | Native
-import logging
 from os import fork
 from time import sleep
 
@@ -20,6 +19,7 @@ import pymysql
 import redis
 
 # | Custom
+from lib.inquisit.Inquisit import Inquisit
 from lib.anatomize.Parser import Parser
 
 # METADATA
@@ -32,98 +32,28 @@ __email__ = 'jcarlson@carlso.net'
 __status__ = 'Development'
 
 
-class Anatomize:
+class Anatomize(Inquisit):
     """
     Anatomize.py is a class used for reading in and parsing log files based on given field templates
     """
 
-    lgr = None
-    cfg = {}
-    inquisitionDbHandle = None
-    logDbHandle = None
     parserStore = {}
 
     def __init__(self, cfg):
-        self.cfg = cfg
+        Inquisit.__init__(self, cfg, lgrName=__name__)
 
-        # start logger
-        self.lgr = self.generateLogger()
+        self.lgr.info('loading Anatomize.py instance...')
 
-        self.lgr.info('starting Anatomize engine...')
-
-        # create db handle for log database
-        # NOTE: StrictRedis won't actually raise an exception if we can't connect; only when we run queries
-        # go figure -_-
-        self.logDbHandle = redis.StrictRedis(host=cfg['log_database']['host'], port=cfg['log_database']['port'])
-        self.lgr.debug('database connection established for log database :: [ ' + cfg['log_database']['host']
-                       + ':' + cfg['log_database']['port'] + ' ]')
-
-        # create connection to inquisition db
+        # load parsers and associated templates
         try:
-            self.inquisitionDbHandle = Anatomize.generateInquisitionDbConnection(cfg['mysql_database']['db_user'],
-                                                                            cfg['mysql_database']['db_pass'],
-                                                                            cfg['mysql_database']['db_name'],
-                                                                            cfg['mysql_database']['db_host'],
-                                                                            int(cfg['mysql_database']['db_port']))
-            self.lgr.debug('database connection established for main inquisition database :: [ '
-                           + cfg['mysql_database']['db_host'] + ':' + cfg['mysql_database']['db_port'] + ' ]')
-            self.lgr.info('all database connections established [ SUCCESSFULLY ]')
-
-            # load parsers and associated templates (IN PROGRESS)
             self.parserStore = self.fetchParsers()
             self.lgr.debug('loaded [ ' + str(len(self.parserStore)) + ' ] parsers into parser store')
         except (pymysql.InternalError, pymysql.ProgrammingError) as e:
             self.lgr.critical('could not fetch parsers from inquisition database :: [ ' + str(e) + ' ]')
 
             exit(1)
-        except pymysql.OperationalError as e:
-            self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
 
-            exit(1)
-
-    def generateLogger(self):
-        """
-        Generate logging handler with given info
-
-        :return: logger
-        """
-
-        # initialize logger
-        newLgr = logging.getLogger(__name__)
-
-        # set logging level
-        logLvl = getattr(logging, self.cfg['logging']['logLvl'].upper())
-        newLgr.setLevel(logLvl)
-
-        # create file handler for log file
-        fileHandler = logging.FileHandler(self.cfg['logging']['logFile'])
-        fileHandler.setLevel(logLvl)
-
-        # set output formatter
-        # NOTE: we need to get the logFormat val with the raw flag set in order to avoid logging from interpolating
-        frmtr = logging.Formatter(self.cfg.get('logging', 'logFormat', raw=True))
-        fileHandler.setFormatter(frmtr)
-
-        # associate file handler w/ logger
-        newLgr.addHandler(fileHandler)
-
-        return newLgr
-
-    @staticmethod
-    def generateInquisitionDbConnection(dbUser, dbPass, dbName, dbHost='127.0.0.1', dbPort=3306):
-        """
-        Generate main Inquisition database connection handler
-
-        :param dbUser: username of db account
-        :param dbPass: password of db account
-        :param dbName: name of database to connect to
-        :param dbHost: (Opt.) database host to connect to (default: 127.0.0.1)
-        :param dbPort: (Opt.) port to use when connecting to database host (default: 3306)
-        :return: PyMySQL connection obj
-        """
-
-        return pymysql.connect(host=dbHost, port=dbPort, user=dbUser, password=dbPass, db=dbName,
-                               charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
+        self.lgr.info('loading of Anatomize.py [ COMPLETE ]')
 
     def fetchParsers(self):
         """
@@ -152,8 +82,7 @@ class Anatomize:
             dbResults = dbCursor.fetchall()
             for row in dbResults:
                 # add each parser to parser store
-                parsers[row['parser_id']] = Parser(lgr=self.lgr, inquisitionDbHandle=self.inquisitionDbHandle,
-                                                   logDbHandle=self.logDbHandle, logTTL=self.cfg['parsing']['logTTL'],
+                parsers[row['parser_id']] = Parser(cfg=self.cfg, logTTL=self.cfg['parsing']['logTTL'],
                                                    maxLogsToProcess=self.cfg.getint('parsing', 'maxLogsToParse'),
                                                    parserID=row['parser_id'], parserName=row['parser_name'],
                                                    logFile=row['parser_log'],
@@ -168,6 +97,8 @@ class Anatomize:
 
         :return: void
         """
+
+        self.lgr.info('starting anatomizer...')
 
         hazyStateTrackingStatus = self.cfg.getboolean('state_tracking', 'enableHazyStateTracking')
         numLogsBetweenTrackingUpdate = self.cfg.getint('state_tracking', 'stateTrackingWaitNumLogs')
@@ -218,6 +149,4 @@ class Anatomize:
 
                     self.lgr.debug('sleeping for [ ' + self.cfg['parsing']['sleepTime'] + ' ] seconds')
                     sleep(sleepTime)
-
-        self.lgr.info('all templates loaded and parsers started [ SUCCESSFULLY ]')
 

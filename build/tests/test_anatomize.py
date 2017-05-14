@@ -39,12 +39,6 @@ class AnatomizeTestCase(unittest.TestCase):
 
         self.anatomizer = Anatomize(cfg)
 
-    def test_generateLogger(self):
-        self.assertIsInstance(self.anatomizer.lgr, logging.Logger)
-
-    def test_generateInquisitionDbConnection(self):
-        self.assertIsInstance(self.anatomizer.inquisitionDbHandle, pymysql.connections.Connection)
-
     def test_fetchParsers(self):
         self.assertGreater(len(self.anatomizer.parserStore), 0)
 

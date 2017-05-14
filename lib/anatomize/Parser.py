@@ -18,6 +18,7 @@ from sys import getsizeof
 from pygtail import Pygtail
 
 # | Custom
+from lib.inquisit.Inquisit import Inquisit
 from lib.anatomize.Template import Template
 
 # METADATA
@@ -30,14 +31,11 @@ __email__ = 'jcarlson@carlso.net'
 __status__ = 'Development'
 
 
-class Parser:
+class Parser(Inquisit):
     """
     Parser engine for Anatomize.py; reads in and processes new logs
     """
 
-    lgr = None
-    inquisitionDbHandle = None
-    logDbHandle = None
     parserID = 0
     parserName = ''
     logFile = ''
@@ -49,11 +47,10 @@ class Parser:
     keepPersistentStats = True
     metricsMode = False
 
-    def __init__(self, lgr, inquisitionDbHandle, logDbHandle, logTTL=30, maxLogsToProcess=0, parserID=0,
+    def __init__(self, cfg, logTTL=30, maxLogsToProcess=0, parserID=0,
                  parserName='Syslog', logFile='/var/log/syslog', keepPersistentStats=True, metricsMode=False):
-        self.lgr = lgr
-        self.inquisitionDbHandle = inquisitionDbHandle
-        self.logDbHandle = logDbHandle
+        Inquisit.__init__(self, cfg, lgrName=__name__)
+
         self.parserID = parserID
         self.parserName = parserName
         self.logFile = logFile

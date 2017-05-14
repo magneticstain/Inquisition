@@ -29,7 +29,7 @@ __email__ = 'jcarlson@carlso.net'
 __status__ = 'Development'
 
 
-class AnatomizeTestCase(unittest.TestCase):
+class ParserTestCase(unittest.TestCase):
     def setUp(self):
         # generate config
         cfg = configparser.ConfigParser()

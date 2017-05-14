@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.org/magneticstain/Inquisition.svg?branch=master)](https://travis-ci.org/magneticstain/Inquisition)
 [![Stories in Ready](https://badge.waffle.io/magneticstain/Inquisition.svg?label=ready&title=Ready)](http://waffle.io/magneticstain/Inquisition)
 
-An advanced and versatile open-source SIEM platform
+An advanced and versatile SIEM platform for SMB and enterprise alike.
 
 # Introduction
 Inquisition utilizes three pieces of software in order to analyze your environments logs and generate security events

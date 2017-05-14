@@ -18,6 +18,7 @@ from os import path
 # | Third-Party
 
 # | Custom
+from lib.inquisit.Inquisit import Inquisit
 from lib.anatomize.Anatomize import Anatomize
 
 # METADATA
@@ -120,9 +121,12 @@ def main():
     # read in config file
     cfg = generateCfg()
 
+    # start local logger
+    lgr = Inquisit.generateLogger(cfg, __name__)
+    lgr.info('starting inquisition.py...')
+
     # start Anatomize.py instance
     anatomize = Anatomize(cfg)
-    anatomize.lgr.debug('anatomizer initialization [ SUCCESSFUL ]')
 
     # start polling process
     if not cfg.getboolean('cli', 'config_check'):
@@ -133,7 +137,9 @@ def main():
     else:
         msg = 'configuration check is SUCCESSFUL, exiting...'
         print('[INFO] ' + msg)
-        anatomize.lgr.info(msg)
+        lgr.info(msg)
+
+    lgr.debug('exiting inquisition.py bootstrapper')
 
 
 if __name__ == '__main__':
