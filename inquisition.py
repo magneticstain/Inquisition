@@ -20,6 +20,7 @@ from os import path
 # | Custom
 from lib.inquisit.Inquisit import Inquisit
 from lib.anatomize.Anatomize import Anatomize
+from lib.destiny.Destiny import Destiny
 
 # METADATA
 __author__ = 'Joshua Carlson-Purcell'
@@ -125,15 +126,13 @@ def main():
     lgr = Inquisit.generateLogger(cfg, __name__)
     lgr.info('starting inquisition.py...')
 
-    # start Anatomize.py instance
+    # initialize Anatomize.py and Destiny.py instance
     anatomize = Anatomize(cfg)
+    destiny = Destiny(cfg)
 
     # start polling process
     if not cfg.getboolean('cli', 'config_check'):
         anatomize.startAnatomizer()
-
-        # start Destiny.py instance
-        # TODO
     else:
         msg = 'configuration check is SUCCESSFUL, exiting...'
         print('[INFO] ' + msg)
