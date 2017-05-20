@@ -39,16 +39,13 @@ class Destiny(Inquisit):
     baselineLogStore = {}
     logStore = {}
     modelData = {
-        'training': None,
-        'testing': None
+        'training': [],
+        'testing': []
     }
     networkBaselineModel = None
 
     def __init__(self, cfg, modelType='std_loss'):
         Inquisit.__init__(self, cfg, lgrName=__name__)
-
-        # run network baseline model
-        self.runNetworkBaselineModel()
 
     def fetchLogData(self, baseline=False):
         """
@@ -80,66 +77,90 @@ class Destiny(Inquisit):
         :return: void 
         """
 
-        # fetch baseline
+        # fetch raw log data
         self.baselineLogStore = self.fetchLogData(baseline=True)
         self.logStore = self.fetchLogData(baseline=False)
 
-    def getLogDataFields(self):
+        # format log data as data frames for use as model data
+        self.modelData['training'] = self.createLogMatrix('training')
+        self.modelData['testing'] = self.createLogMatrix('testing')
+
+    def getLogDataFields(self, logData):
         """
         Returns list of field names from log data for future use as learning model features
         
+        :param logData: dataset of logs to derive list of log fields from
         :return: list
         """
 
         fields = []
 
         # traverse each log in log store
-        for logIdx in self.logStore:
+        for logIdx in logData:
             # traverse the fields of each log
-            for field in self.logStore[logIdx]:
+            for field in logData[logIdx]:
                 # check if field has already been added to list; add if it hasn't
                 if field not in fields:
                     fields.append(field)
 
         return fields
 
-    def fetchAllValsForField(self, field):
+    def fetchAllValsForField(self, field, logData):
         """
         Returns list of all values we have in the log store for a given field name
         
+        :param logData: dataset of logs to derive list of values for field from
         :return: list
         """
 
-        values = []
-
-        # make sure field is valid
+        # make sure field and dataset are both valid
         if not field:
             raise ValueError('invalid field value provided')
+        if not logData:
+            raise ValueError('cannot fetch field-specific values; no log dataset provided')
+
+        values = []
 
         # traverse each log in log store
-        for logIdx in self.logStore:
+        for logIdx in logData:
             # add value of field in given log if exists
-            if field in self.logStore[logIdx]:
-                val = self.logStore[logIdx][field]
-                if val:
-                    # log has field and value is non-null - let's add it
-                    values.append(val)
+            if field in logData[logIdx]:
+                val = logData[logIdx][field].decode('utf-8')
+            else:
+                # field not present in log; use null value
+                val = ''
+
+            # append val to set
+            values.append(val)
 
         return values
 
-    def createLogMatrix(self):
+    def createLogMatrix(self, logMatrixDatasetType):
         """
-        Create matrix of Tensors out of log data
+        Create matrix out of all log data
         
-        :return: dict
+        :param logMatrixDatasetType: type of data to create log matrix for (training|testing)
+        :return: panda dataframe
         """
 
+        dataset = {}
         logMatrix = {}
 
+        # normalize and check logMatrixDatasetType
+        logMatrixDatasetType = logMatrixDatasetType.lower()
+        if logMatrixDatasetType not in ['training', 'testing']:
+            raise ValueError('invalid dataset type provided')
+
+        # get local data
+        if logMatrixDatasetType == 'training':
+            dataset = self.baselineLogStore
+        elif logMatrixDatasetType == 'testing':
+            dataset = self.logStore
+
         # create keys from each field
-        for field in self.getLogDataFields():
-            # set f
-            logMatrix[field] = self.fetchAllValsForField(field)
+        for field in self.getLogDataFields(dataset):
+            # set field-specific data
+            logMatrix[field] = self.fetchAllValsForField(field, dataset)
 
         # create dataframe from log data
         return pd.DataFrame.from_dict(logMatrix)
@@ -169,7 +190,7 @@ class Destiny(Inquisit):
         :return: tuple (features, labels)
         """
 
-        return self.networkBaselineInputFn(self.baselineLogStore)
+        return self.networkBaselineInputFn(self.modelData['training'])
 
     def networkBaselineEvaluationInputFn(self):
         """
@@ -178,7 +199,7 @@ class Destiny(Inquisit):
         :return: tuple (features, labels)
         """
 
-        return self.networkBaselineInputFn(self.logStore)
+        return self.networkBaselineInputFn(self.modelData['testing'])
 
     def getModelFeatures(self):
         """
@@ -190,7 +211,8 @@ class Destiny(Inquisit):
         features = []
 
         # get log fields that features will be based on
-        logFields = self.getLogDataFields()
+        # we'll want to get the uniqe fields of both training and testing datasets
+        logFields = list(set(self.getLogDataFields(self.baselineLogStore) + self.getLogDataFields(self.logStore)))
 
         # traverse log fields and create feature out of each one
         for field in logFields:
@@ -225,7 +247,7 @@ class Destiny(Inquisit):
         """
 
         # start model fitting
-        self.networkBaselineModel.fit(input_fn=self.networkBaselineTrainingInputFn(), steps=1000)
+        self.networkBaselineModel.fit(input_fn=self.networkBaselineTrainingInputFn, steps=1000)
 
     def getNetworkBaselineModelEvaluation(self):
         """
@@ -237,7 +259,7 @@ class Destiny(Inquisit):
         # load baseline
 
         # generate model eval
-        modelEvalResults = self.networkBaselineModel.evaluate(input_fn=self.networkBaselineEvaluationInputFn(),
+        modelEvalResults = self.networkBaselineModel.evaluate(input_fn=self.networkBaselineEvaluationInputFn,
                                                               steps=1000)
 
         return modelEvalResults
@@ -254,33 +276,35 @@ class Destiny(Inquisit):
         newTrainerPID = fork()
         if newTrainerPID == 0:
             # in child process, start analyzing
-            # run model after every $sleepTime seconds
-            sleepTime = int(self.cfg['parsing']['sleepTime'])
-            while True:
-                # initialize log data
-                self.initializeLogData()
+            # initialize log datae
+            self.lgr.info('initializing data for learning models')
+            self.initializeLogData()
 
-                # create model
-                if self.createNetworkBaselineTrainingModel():
+            # create model
+            self.lgr.debug('creating network baseline learning model')
+            if self.createNetworkBaselineTrainingModel():
+                # run model after every $sleepTime seconds
+                sleepTime = int(self.cfg['parsing']['sleepTime'])
+                while True:
                     # model created let's train it
                     if not self.baselineLogStore:
-                        self.lgr.info('no baseline data available, not able to start training for learning model')
-                        return
+                        self.lgr.warning('no baseline data available, not able to start training for learning model')
                     else:
                         # baseline data present, let's try training our model
+                        self.lgr.debug('starting training for network baseline learning model')
                         self.startNetworkBaselineModelTraining()
-    
-                    # run model evaluation and print results
-                    if not self.logStore:
-                        self.lgr.info('no new log data available, nothing to evaluate against learning model')
-                        return
-                    else:
-                        modelEval = self.getNetworkBaselineModelEvaluation()
-                        for key in sorted(modelEval):
-                            print(key, ': ', modelEval[key])
 
-                # sleep for determined time
-                self.lgr.debug('network baseline model is sleeping for [ ' + str(sleepTime)
-                               + ' ] seconds before restarting routines')
-                sleep(sleepTime)
+                        # run model evaluation and print results
+                        if not self.logStore:
+                            self.lgr.warning('no new log data available, nothing to evaluate against learning model')
+                        else:
+                            self.lgr.debug('running network baseline learning model evaluation')
+                            modelEval = self.getNetworkBaselineModelEvaluation()
+                            for key in sorted(modelEval):
+                                self.lgr.info(key + ': ' + modelEval[key])
+
+                    # sleep for determined time
+                    self.lgr.debug('network baseline model is sleeping for [ ' + str(sleepTime)
+                                   + ' ] seconds before restarting routines')
+                    sleep(sleepTime)
 

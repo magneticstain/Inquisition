@@ -87,7 +87,8 @@ class Anatomize(Inquisit):
                                                    parserID=row['parser_id'], parserName=row['parser_name'],
                                                    logFile=row['parser_log'],
                                                    keepPersistentStats=self.cfg.getboolean('stats', 'keepPersistentStats'),
-                                                   metricsMode=self.cfg.getboolean('logging', 'enableMetricsMode'))
+                                                   metricsMode=self.cfg.getboolean('logging', 'enableMetricsMode'),
+                                                   baselineMode=self.cfg.getboolean('learning', 'enableBaselineMode'))
 
         return parsers
 

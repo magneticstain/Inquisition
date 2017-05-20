@@ -46,9 +46,11 @@ class Parser(Inquisit):
     stats = {}
     keepPersistentStats = True
     metricsMode = False
+    baselineMode = False
 
     def __init__(self, cfg, logTTL=30, maxLogsToProcess=0, parserID=0,
-                 parserName='Syslog', logFile='/var/log/syslog', keepPersistentStats=True, metricsMode=False):
+                 parserName='Syslog', logFile='/var/log/syslog', keepPersistentStats=True, metricsMode=False
+                 , baselineMode=False):
         Inquisit.__init__(self, cfg, lgrName=__name__)
 
         self.parserID = parserID
@@ -58,6 +60,7 @@ class Parser(Inquisit):
         self.maxLogsToProcess = int(maxLogsToProcess)
         self.keepPersistentStats = bool(keepPersistentStats)
         self.metricsMode = bool(metricsMode)
+        self.baselineMode = bool(baselineMode)
 
         # initialize offset file
         self.offsetFile = '/opt/inquisition/tmp/' + str(self.parserID) + '_' + self.parserName + '.offset'
@@ -352,7 +355,10 @@ class Parser(Inquisit):
             raise ValueError('invalid log ID provided when trying to parse new log')
 
         # craft db key
-        dbKey = 'log:' + str(self.parserID) + '_' + self.parserName + ':' + str(logId)
+        dbKey = ''
+        if self.baselineMode:
+            dbKey = '_baseline:'
+        dbKey += 'log:' + str(self.parserID) + '_' + self.parserName + ':' + str(logId)
 
         # try to match log against each template in template store
         for templateId in self.templateStore:
@@ -385,12 +391,13 @@ class Parser(Inquisit):
 
         # insert log into db
         if self.logDbHandle.hmset(dbKey, logData):
-            # set log ttl
-            if self.logTTL <= 0:
-                # invalid TTL provided
-                raise ValueError('invalid log TTL provided :: [ ' + str(self.logTTL) + ' ]')
-            else:
-                self.logDbHandle.expire(dbKey, self.logTTL)
+            # set log ttl if applicable
+            if not self.baselineMode:
+                if self.logTTL <= 0:
+                    # invalid TTL provided
+                    raise ValueError('invalid log TTL provided :: [ ' + str(self.logTTL) + ' ]')
+                else:
+                    self.logDbHandle.expire(dbKey, self.logTTL)
 
             # increase log ID for the next log in line
             if self.logDbHandle.incr('log_id'):

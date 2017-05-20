@@ -130,9 +130,12 @@ def main():
     anatomize = Anatomize(cfg)
     destiny = Destiny(cfg)
 
-    # start polling process
+    # start polling and learning processes
     if not cfg.getboolean('cli', 'config_check'):
         anatomize.startAnatomizer()
+        if not cfg.getboolean('learning', 'enableBaselineMode'):
+            # not running in baseline mode; start learning engine
+            destiny.runNetworkBaselineModel()
     else:
         msg = 'configuration check is SUCCESSFUL, exiting...'
         print('[INFO] ' + msg)
