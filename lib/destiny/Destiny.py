@@ -11,12 +11,10 @@ CREATION_DATE: 2017-04-08
 
 # MODULES
 # | Native
-from os import fork
-from time import sleep
 
 # | Third-Party
-import tensorflow as tf
-import pandas as pd
+import numpy as np
+from sklearn import feature_extraction,preprocessing
 
 # | Custom
 from lib.inquisit.Inquisit import Inquisit
@@ -36,59 +34,54 @@ class Destiny(Inquisit):
     Base framework used across the Destiny engine
     """
 
-    baselineLogStore = {}
-    logStore = {}
-    modelData = {
-        'training': [],
-        'testing': []
-    }
-    networkBaselineModel = None
+    featureVectorizer = None
+    labelVectorizer = None
 
-    def __init__(self, cfg, modelType='std_loss'):
-        Inquisit.__init__(self, cfg, lgrName=__name__)
+    def __init__(self, cfg, lgrName, sentryClient=None):
+        Inquisit.__init__(self, cfg, lgrName=lgrName, sentryClient=sentryClient)
 
-    def fetchLogData(self, baseline=False):
+    def fetchLogData(self, logType='raw'):
         """
-        Read in baseline or realtime log data from log DB
+        Read in specified log data from log DB
 
-        :param baseline: flag noting which log data to fetch; fetches baseline logs if true, realtime logs if false
-        :return: void
+        :param logType: type of log data to read in; ['raw','intel']; default = 'raw'
+        :return: dict
         """
 
         logData = {}
 
-        # set search key based on baseline or realtime data
-        logDbSearchKey = ''
-        if baseline:
-            logDbSearchKey = '_baseline:'
-        logDbSearchKey += 'log:*'
+        # normalize type
+        logType = logType.lower()
+
+        # set search key based on log type we're fetching
+        if logType == 'raw':
+            logDbSearchKey = 'log:*'
+        elif logType == 'intel':
+            logDbSearchKey = 'intel:*'
+        elif logType == 'baseline':
+            logDbSearchKey = 'baseline:*'
+        else:
+            raise ValueError('invalid log type specified')
 
         # attempt to retrieve data from db
-        for logRecord in self.logDbHandle.scan_iter(logDbSearchKey):
+        self.lgr.debug('fetching logs from log db')
+        for logRecordKey in self.logDbHandle.scan_iter(logDbSearchKey):
             # get log data in key-value form
-            logData[logRecord.decode('utf-8')] = self.logDbHandle.hgetall(logRecord)
+            logItem = self.logDbHandle.hgetall(logRecordKey)
+
+            # decode log item data
+            decodedLogItem = {logItemDataName.decode('utf-8'): logItemDataVal.decode('utf-8')
+                              for logItemDataName, logItemDataVal in logItem.items()}
+
+            # add to log data collection
+            logData[logRecordKey.decode('utf-8')] = decodedLogItem
 
         return logData
 
-    def initializeLogData(self):
+    def getUniqueLogDataFields(self, logData):
         """
-        Fetch all log store data (in dict format)
-        
-        :return: void 
-        """
+        Returns unqiue list of field names from log data for future use as learning model features
 
-        # fetch raw log data
-        self.baselineLogStore = self.fetchLogData(baseline=True)
-        self.logStore = self.fetchLogData(baseline=False)
-
-        # format log data as data frames for use as model data
-        self.modelData['training'] = self.createLogMatrix('training')
-        self.modelData['testing'] = self.createLogMatrix('testing')
-
-    def getLogDataFields(self, logData):
-        """
-        Returns list of field names from log data for future use as learning model features
-        
         :param logData: dataset of logs to derive list of log fields from
         :return: list
         """
@@ -97,214 +90,124 @@ class Destiny(Inquisit):
 
         # traverse each log in log store
         for logIdx in logData:
-            # traverse the fields of each log
             for field in logData[logIdx]:
-                # check if field has already been added to list; add if it hasn't
+                # check if decoded field name is unique
                 if field not in fields:
+                    # unique - add to field list
                     fields.append(field)
 
         return fields
 
-    def fetchAllValsForField(self, field, logData):
+    def encodeLogData(self, data, isTargetData=False, shouldFit=True):
         """
-        Returns list of all values we have in the log store for a given field name
-        
-        :param logData: dataset of logs to derive list of values for field from
-        :return: list
-        """
+        Encode log data using vectorizer
 
-        # make sure field and dataset are both valid
-        if not field:
-            raise ValueError('invalid field value provided')
-        if not logData:
-            raise ValueError('cannot fetch field-specific values; no log dataset provided')
-
-        values = []
-
-        # traverse each log in log store
-        for logIdx in logData:
-            # add value of field in given log if exists
-            if field in logData[logIdx]:
-                val = logData[logIdx][field].decode('utf-8')
-            else:
-                # field not present in log; use null value
-                val = ''
-
-            # append val to set
-            values.append(val)
-
-        return values
-
-    def createLogMatrix(self, logMatrixDatasetType):
-        """
-        Create matrix out of all log data
-        
-        :param logMatrixDatasetType: type of data to create log matrix for (training|testing)
-        :return: panda dataframe
+        :param logData: pre-formatted log data for vectorization
+        :param isTargetData: bool specifying if we're dealing with target data as it currently uses a different encoder
+        :param shouldFit: bool for flagging whether we should fit the data of just transform it (used w/ testing data)
+        :return: numpy array
         """
 
-        dataset = {}
-        logMatrix = {}
+        if not data:
+            raise ValueError('no log data provided for vectorization')
 
-        # normalize and check logMatrixDatasetType
-        logMatrixDatasetType = logMatrixDatasetType.lower()
-        if logMatrixDatasetType not in ['training', 'testing']:
-            raise ValueError('invalid dataset type provided')
+        # check if we have target data or not and set vectorizer as such
+        if isTargetData:
+            # target data, use label encoder
+            # check if vectorizer has been created yet
+            if not self.labelVectorizer:
+                self.labelVectorizer = preprocessing.LabelEncoder()
 
-        # get local data
-        if logMatrixDatasetType == 'training':
-            dataset = self.baselineLogStore
-        elif logMatrixDatasetType == 'testing':
-            dataset = self.logStore
+            # encode data now since fitting is always done w/ target data
+            encData = self.labelVectorizer.fit_transform(data)
 
-        # create keys from each field
-        for field in self.getLogDataFields(dataset):
-            # set field-specific data
-            logMatrix[field] = self.fetchAllValsForField(field, dataset)
-
-        # create dataframe from log data
-        return pd.DataFrame.from_dict(logMatrix)
-
-    def networkBaselineInputFn(self, inputDF):
-        """
-        Input function for use with network baseline model
-        
-        :param inputDF: data frame to use for processing
-        :return: tuple (features, labels)
-        """
-
-        # generate model feature colns
-        featureColns = {}
-        label = tf.Variable(1.)
-
-        # format input dataframe as feature colns
-        for colnName in inputDF:
-            featureColns[colnName] = tf.constant(inputDF[colnName].values)
-
-        return featureColns, label
-
-    def networkBaselineTrainingInputFn(self):
-        """
-        Abstracted class for running the model input function with training data
-        
-        :return: tuple (features, labels)
-        """
-
-        return self.networkBaselineInputFn(self.modelData['training'])
-
-    def networkBaselineEvaluationInputFn(self):
-        """
-        Abstracted class for running the model input function with testing data
-        
-        :return: tuple (features, labels)
-        """
-
-        return self.networkBaselineInputFn(self.modelData['testing'])
-
-    def getModelFeatures(self):
-        """
-        Returns list of learning model features based on log fields
-
-        :return: dict
-        """
-
-        features = []
-
-        # get log fields that features will be based on
-        # we'll want to get the uniqe fields of both training and testing datasets
-        logFields = list(set(self.getLogDataFields(self.baselineLogStore) + self.getLogDataFields(self.logStore)))
-
-        # traverse log fields and create feature out of each one
-        for field in logFields:
-            features.append(tf.contrib.layers.sparse_column_with_hash_bucket(field, hash_bucket_size=1e7))
-
-        return features
-
-    def createNetworkBaselineTrainingModel(self):
-        """
-        Creates TensorFlow model for LinearClassifier training on log data
-
-        :return: bool
-        """
-
-        # get features
-        features = self.getModelFeatures()
-
-        # initialize estimator
-        if features:
-            self.networkBaselineModel = tf.contrib.learn.LinearClassifier(feature_columns=features)
-
-            return True
+            return encData
         else:
-            self.lgr.info('not creating network baseline learning model; no log data available')
-            return False
+            # receiving regular dataset, use one-hot encoding via DicVectorizer
+            # check if vectorizer has been created yet
+            if not self.featureVectorizer:
+                self.featureVectorizer = feature_extraction.DictVectorizer()
 
-    def startNetworkBaselineModelTraining(self):
+            # encode data
+            if shouldFit:
+                encData = self.featureVectorizer.fit_transform(data)
+            else:
+                # using testing data, which means we're not using target data
+                encData = self.featureVectorizer.transform(data)
+
+            return encData
+
+    def initializeLogData(self, logData, uniqueFields, dataUsage, targetFieldName=None):
         """
-        Start machine-learning training for network baseline model
+        Initialize given log data as feature/label dataframes
 
-        :return: void
-        """
-
-        # start model fitting
-        self.networkBaselineModel.fit(input_fn=self.networkBaselineTrainingInputFn, steps=1000)
-
-    def getNetworkBaselineModelEvaluation(self):
-        """
-        Evaluate machine-learning training for network baseline model
-
-        :return: void
-        """
-
-        # load baseline
-
-        # generate model eval
-        modelEvalResults = self.networkBaselineModel.evaluate(input_fn=self.networkBaselineEvaluationInputFn,
-                                                              steps=1000)
-
-        return modelEvalResults
-
-    def runNetworkBaselineModel(self):
-        """
-        Run each element of network baseline model
-        
-        :return: void
+        :param logData: dataset of logs
+        :param uniqueFields: list of unique fields in all datasets
+        :param dataUsage: designates what this data is used for (training or testing)
+        :param targetFieldName: name of field to use for target data
+        :return: dataframes
         """
 
-        # fork process before beginning analysis
-        self.lgr.debug('forking off network baseline trainer to child process')
-        newTrainerPID = fork()
-        if newTrainerPID == 0:
-            # in child process, start analyzing
-            # initialize log datae
-            self.lgr.info('initializing data for learning models')
-            self.initializeLogData()
+        data = []
+        targets = []
 
-            # create model
-            self.lgr.debug('creating network baseline learning model')
-            if self.createNetworkBaselineTrainingModel():
-                # run model after every $sleepTime seconds
-                sleepTime = int(self.cfg['parsing']['sleepTime'])
-                while True:
-                    # model created let's train it
-                    if not self.baselineLogStore:
-                        self.lgr.warning('no baseline data available, not able to start training for learning model')
-                    else:
-                        # baseline data present, let's try training our model
-                        self.lgr.debug('starting training for network baseline learning model')
-                        self.startNetworkBaselineModelTraining()
+        if not logData:
+            raise ValueError('no log data provided for initialization')
+        if dataUsage != 'testing' and not targetFieldName:
+            raise ValueError('no target field name provided for initialization')
 
-                        # run model evaluation and print results
-                        if not self.logStore:
-                            self.lgr.warning('no new log data available, nothing to evaluate against learning model')
-                        else:
-                            self.lgr.debug('running network baseline learning model evaluation')
-                            modelEval = self.getNetworkBaselineModelEvaluation()
-                            for key in sorted(modelEval):
-                                self.lgr.info(key + ': ' + modelEval[key])
+        # remove target field from unique field list
+        if dataUsage != 'testing':
+            uniqueFields.remove(targetFieldName)
 
-                    # sleep for determined time
-                    self.lgr.debug('network baseline model is sleeping for [ ' + str(sleepTime)
-                                   + ' ] seconds before restarting routines')
-                    sleep(sleepTime)
+        # format log data as data frames for use as model data
+        self.lgr.debug('initializing log data matrix')
+        # traverse each log in log store to add to list
+        for logIdx in logData:
+            # start collecting data vals
+            # append target field value to target dataset if not working with testing data
+            if dataUsage != 'testing':
+                try:
+                    targets.append(logData[logIdx][targetFieldName])
+                except KeyError:
+                    self.lgr.warn('no value found for target field for given log, discarding log entry')
+                    continue
+
+            # iterate through each unique field name to see if value is set (== null if it isn't) and place into list
+            # init blank log entry
+            logEntry = {}
+            for field in uniqueFields:
+                # try appending log value to log entry if it exists
+                try:
+                    logEntry[field] = logData[logIdx][field]
+                except KeyError:
+                    # value not found for this log; set as 0
+                    logEntry[field] = '0'
+
+            # append log entry to master dataset
+            data.append(logEntry)
+
+        # print(data)
+        # print(targets)
+
+        # transform data and targets (if appl.) for use w/ model; and set as DF
+        self.lgr.info('vectorizing log data')
+        if dataUsage == 'testing':
+            # initializing testing data; we won't have any target data and will need to specify to not fit the data when
+            # encoding it (only transforming)
+
+            # data
+            encData = self.encodeLogData(data, shouldFit=False)
+            # encData = self.encodeLogData(data, shouldFit=True)
+            return encData
+        else:
+            # working with training data; we'll have targets and WILL need to fit the data
+
+            # data
+            encData = self.encodeLogData(data)
+
+            # targets
+            encTargets = self.encodeLogData(targets, True)
+
+            return encData, encTargets
 

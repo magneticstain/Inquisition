@@ -36,11 +36,13 @@ class Inquisit:
 
     lgr = None
     cfg = {}
+    sentryClient = None
     inquisitionDbHandle = None
     logDbHandle = None
 
-    def __init__(self, cfg, lgrName=__name__):
+    def __init__(self, cfg, lgrName=__name__, sentryClient=None):
         self.cfg = cfg
+        self.sentryClient = sentryClient
 
         # start logger
         self.lgr = Inquisit.generateLogger(cfg, lgrName)
@@ -66,6 +68,8 @@ class Inquisit:
             self.lgr.debug('all database connections established [ SUCCESSFULLY ]')
         except pymysql.OperationalError as e:
             self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
+            if self.sentryClient:
+                self.sentryClient.captureException()
 
             exit(1)
 

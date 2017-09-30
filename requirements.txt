@@ -4,5 +4,6 @@
 PyMySQL
 pygtail
 redis
-tensorflow
-pandas
+scipy
+scikit-learn
+beautifulsoup4

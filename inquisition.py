@@ -11,16 +11,20 @@ CREATION_DATE: 2017-04-07
 
 # MODULES
 # | Native
+from os import path
 import argparse
 import configparser
 from os import path
 
 # | Third-Party
+import raven
 
 # | Custom
 from lib.inquisit.Inquisit import Inquisit
 from lib.anatomize.Anatomize import Anatomize
-from lib.destiny.Destiny import Destiny
+from lib.destiny.Erudite import Erudite
+from lib.destiny.Sage import Sage
+from lib.destiny.Augur import Augur
 
 # METADATA
 __author__ = 'Joshua Carlson-Purcell'
@@ -126,16 +130,36 @@ def main():
     lgr = Inquisit.generateLogger(cfg, __name__)
     lgr.info('starting inquisition.py...')
 
+    # create Sentry client for debugging (if API key is available)
+    sentryClient = None
+    sentryApiKey = cfg['debug']['sentry_api_key']
+    if sentryApiKey:
+        # API key provided, initialize client
+        sentryClient = raven.Client(
+            dsn='https://' + sentryApiKey + '@sentry.io/174245',
+            release=raven.fetch_git_sha(path.dirname(__file__))
+        )
+
     # initialize Anatomize.py and Destiny.py instance
-    anatomize = Anatomize(cfg)
-    destiny = Destiny(cfg)
+    anatomize = Anatomize(cfg, sentryClient)
+    erudite = Erudite(cfg, sentryClient)
+    sage = Sage(cfg, sentryClient)
+    augur = Augur(cfg, sentryClient)
 
     # start polling and learning processes
     if not cfg.getboolean('cli', 'config_check'):
         anatomize.startAnatomizer()
+
+        # begin fetching OSINT data for future comparison
+        augur.fetchIntelData()
+
         if not cfg.getboolean('learning', 'enableBaselineMode'):
-            # not running in baseline mode; start learning engine
-            destiny.runNetworkBaselineModel()
+            # not running in baseline mode; start learning engines
+            # log anomaly engine (Erudite)
+            # erudite.startAnalysisEngine()
+
+            # network threat engine (Sage)
+            sage.startNetworkThreatEngine()
     else:
         msg = 'configuration check is SUCCESSFUL, exiting...'
         print('[INFO] ' + msg)

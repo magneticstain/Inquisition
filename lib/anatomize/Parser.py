@@ -50,8 +50,8 @@ class Parser(Inquisit):
 
     def __init__(self, cfg, logTTL=30, maxLogsToProcess=0, parserID=0,
                  parserName='Syslog', logFile='/var/log/syslog', keepPersistentStats=True, metricsMode=False
-                 , baselineMode=False):
-        Inquisit.__init__(self, cfg, lgrName=__name__)
+                 , baselineMode=False, sentryClient=None):
+        Inquisit.__init__(self, cfg, lgrName=__name__, sentryClient=sentryClient)
 
         self.parserID = parserID
         self.parserName = parserName
@@ -357,7 +357,7 @@ class Parser(Inquisit):
         # craft db key
         dbKey = ''
         if self.baselineMode:
-            dbKey = '_baseline:'
+            dbKey = 'baseline:'
         dbKey += 'log:' + str(self.parserID) + '_' + self.parserName + ':' + str(logId)
 
         # try to match log against each template in template store
@@ -388,6 +388,11 @@ class Parser(Inquisit):
         if not logData:
             # we parsed everything, but nothing matched; go ahead and exit w/ success
             return True
+
+        # add negative threat flag key-value pair if in baseline mode
+        if self.baselineMode:
+            # known safe log
+            logData['threat'] = 0
 
         # insert log into db
         if self.logDbHandle.hmset(dbKey, logData):
@@ -531,11 +536,17 @@ class Parser(Inquisit):
         except PermissionError as e:
             self.lgr.error('permission denied when trying to access target log file :: ' + self.__str__()
                            + ' :: [ MSG: ' + str(e) + ' ]')
+            if Inquisit.sentryClient:
+                Inquisit.sentryClient.captureException()
         except FileNotFoundError as e:
             self.lgr.error('could not open file for parser :: ' + self.__str__() + ' :: [ MSG: ' + str(e) + ' ]')
+            if Inquisit.sentryClient:
+                Inquisit.sentryClient.captureException()
         except UnicodeDecodeError as e:
             self.lgr.error('content with invalid formatting found in target log file :: ' + self.__str__()
                            + ' :: [ MSG: ' + str(e) + ' ]')
+            if Inquisit.sentryClient:
+                Inquisit.sentryClient.captureException()
 
         totalRunEndTime = datetime.datetime.utcnow()
 

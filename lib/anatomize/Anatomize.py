@@ -39,8 +39,8 @@ class Anatomize(Inquisit):
 
     parserStore = {}
 
-    def __init__(self, cfg):
-        Inquisit.__init__(self, cfg, lgrName=__name__)
+    def __init__(self, cfg, sentryClient=None):
+        Inquisit.__init__(self, cfg, lgrName=__name__, sentryClient=sentryClient)
 
         self.lgr.info('loading Anatomize.py instance...')
 
@@ -50,6 +50,8 @@ class Anatomize(Inquisit):
             self.lgr.debug('loaded [ ' + str(len(self.parserStore)) + ' ] parsers into parser store')
         except (pymysql.InternalError, pymysql.ProgrammingError) as e:
             self.lgr.critical('could not fetch parsers from inquisition database :: [ ' + str(e) + ' ]')
+            if Inquisit.sentryClient:
+                Inquisit.sentryClient.captureException()
 
             exit(1)
 
@@ -110,6 +112,9 @@ class Anatomize(Inquisit):
         except KeyError:
             # test run not defined, set to default of FALSE
             self.lgr.warning('test run flag not set, defaulting to [ FALSE ]')
+            if Inquisit.sentryClient:
+                Inquisit.sentryClient.captureException()
+
             testRun = False
 
         # let user know if anatomizer was started in hazy state tracking mode
