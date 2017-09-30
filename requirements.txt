@@ -1,6 +1,7 @@
 #
 # Required packages for Inquisition
 #
+raven
 PyMySQL
 pygtail
 redis
