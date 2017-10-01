@@ -113,20 +113,21 @@ class Sage(Destiny):
 
                     # run model evaluation and print results
                     self.lgr.info('training threat detection model')
-                    # try:
                     if self.networkThreatClassifier.fit(trainingData, trainingTargets):
                         self.lgr.info('training complete; starting network threat analysis against current log data')
 
+                    # initialize raw logs
+                    if self.logStore:
                         self.lgr.debug('initializing log data')
                         testingData = self.initializeLogData(self.logStore, uniqueFields, 'testing')
                         if testingData == None:
-                            self.lgr.info('no raw log available for threat detection - sleeping...')
+                            self.lgr.info('no data after initialization for threat detection - sleeping...')
                         else:
                             self.lgr.debug('making predictions for testing data')
                             predictionResults = self.networkThreatClassifier.predict(testingData)
                             self.lgr.debug('threat detection results :: [ ' + str(predictionResults) + ' ]')
-                    # except ValueError as e:
-                    #     self.lgr.critical('encountered issue while training and/or testing threat model :: [ ' + str(e) + ' ]')
+                    else:
+                        self.lgr.info('no raw log available for threat detection - sleeping...')
 
                 # sleep for determined time
                 self.lgr.debug('network threat engine is sleeping for [ ' + str(sleepTime)
