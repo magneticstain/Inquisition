@@ -156,6 +156,33 @@ DELIMITER ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
+-- Table structure for table `IOCItemToFieldMapping`
+--
+
+DROP TABLE IF EXISTS `IOCItemToFieldMapping`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `IOCItemToFieldMapping` (
+  `mapping_id` int(11) NOT NULL AUTO_INCREMENT,
+  `ioc_item_name` varchar(50) NOT NULL,
+  `field_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`mapping_id`),
+  KEY `fk_field` (`field_id`),
+  CONSTRAINT `fk_field` FOREIGN KEY (`field_id`) REFERENCES `Fields` (`field_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `IOCItemToFieldMapping`
+--
+
+LOCK TABLES `IOCItemToFieldMapping` WRITE;
+/*!40000 ALTER TABLE `IOCItemToFieldMapping` DISABLE KEYS */;
+INSERT INTO `IOCItemToFieldMapping` VALUES (1,'CreationTime',1),(2,'remoteIP',2),(3,'localPort',14),(4,'remotePort',13);
+/*!40000 ALTER TABLE `IOCItemToFieldMapping` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `ParserToFieldTemplateMapping`
 --
 
