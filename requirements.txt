@@ -8,3 +8,4 @@ redis
 scipy
 scikit-learn
 beautifulsoup4
+lxml
