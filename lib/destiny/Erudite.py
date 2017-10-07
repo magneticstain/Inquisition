@@ -150,7 +150,11 @@ class Erudite(Destiny):
                 freshHostStore = self.fetchKnownHostData()
                 # traverse through list of host records to add raw host_val entries to master host list
                 for hostEntry in freshHostStore:
+                    print('HE: ' + str(hostEntry))
+                    # try:
                     self.hostStore.append(hostEntry['host_val'])
+                    # except KeyError as e:
+                    #     se
 
                 # read through log entries for new hosts
                 # get host field
