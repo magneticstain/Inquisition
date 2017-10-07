@@ -62,7 +62,6 @@ class Erudite(Destiny):
 
             # fetch results
             hosts = dbCursor.fetchall()
-            print("H: " + str(hosts))
 
         return hosts
 
@@ -155,8 +154,10 @@ class Erudite(Destiny):
                 freshHostStore = self.fetchKnownHostData()
                 # traverse through list of host records to add raw host_val entries to master host list
                 for hostEntry in freshHostStore:
-                    print('HE: ' + str(hostEntry))
-                    self.hostStore.append(hostEntry['host_val'])
+                    try:
+                        self.hostStore.append(hostEntry['host_val'])
+                    except IndexError as e:
+                        self.lgr.warn('host entry found with no host value set (see Issue #47) :: [ MSG: ' + str(e) + ' ]')
 
                 # read through log entries for new hosts
                 # get host field
