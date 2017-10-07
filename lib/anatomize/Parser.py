@@ -86,7 +86,9 @@ class Parser(Inquisit):
                     FT.template_id as TID, 
                     template_name, 
                     field_name, 
-                    regex 
+                    regex, 
+                    regex_group, 
+                    regex_match_index 
                 FROM 
                     FieldTemplates FT
                 JOIN 
@@ -116,7 +118,7 @@ class Parser(Inquisit):
             dbResults = dbCursor.fetchall()
             for row in dbResults:
                 # add each template to template store
-                templates[row['TID']] = Template(row['TID'], row['field_name'], row['regex'], row['template_name'])
+                templates[row['TID']] = Template(row['TID'], row['field_name'], row['regex'], row['regex_group'], row['regex_match_index'], row['template_name'])
 
                 self.lgr.debug('loaded template SUCCESSFULLY :: ' + str(templates[row['TID']]))
 
@@ -363,11 +365,21 @@ class Parser(Inquisit):
         # try to match log against each template in template store
         for templateId in self.templateStore:
             templateKey = str(templateId) + '_' + self.templateStore[templateId].templateName
-            matchedString = self.templateStore[templateId].matchLogAgainstRegex(rawLog)
+            matchedString = ''
+            try:
+                matchedString = self.templateStore[templateId].matchLogAgainstRegex(rawLog)
+            except IndexError as e:
+                self.lgr.debug('invalid regex options provided :: [ ' + str(e) + ' ]')
             if matchedString:
                 # add matched field and value to log data dict
                 logData[self.templateStore[templateId].field] = matchedString
-                self.lgr.debug('template MATCHED log :: ' + str(self.templateStore[templateId]))
+
+                # check if we should log matched value or not
+                templateMatchLogMsg = 'template MATCHED log :: ' + str(self.templateStore[templateId])
+                if self.cfg.getboolean('logging', 'printMatchValues'):
+                    # value should be added in
+                    templateMatchLogMsg += ' :: [ VALUE: ' + matchedString + ' ]'
+                self.lgr.debug(templateMatchLogMsg)
 
                 # increase match stats for parser
                 self.incrStat('total_matches', 1)

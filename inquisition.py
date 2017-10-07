@@ -140,23 +140,23 @@ def main():
             release=raven.fetch_git_sha(path.dirname(__file__))
         )
 
-    # initialize Anatomize.py and Destiny.py instance
+    # initialize subroutine instances
     anatomize = Anatomize(cfg, sentryClient)
     erudite = Erudite(cfg, sentryClient)
     sage = Sage(cfg, sentryClient)
     augur = Augur(cfg, sentryClient)
 
-    # start polling and learning processes
     if not cfg.getboolean('cli', 'config_check'):
+        # start log polling/parsing
         anatomize.startAnatomizer()
 
-        # begin fetching OSINT data for future comparison
+        # begin fetching OSINT data for threat detection engine
         augur.fetchIntelData()
 
         if not cfg.getboolean('learning', 'enableBaselineMode'):
-            # not running in baseline mode; start learning engines
+            # not running in baseline mode; start detection engines
             # log anomaly engine (Erudite)
-            # erudite.startAnalysisEngine()
+            erudite.startAnomalyDetectionEngine()
 
             # network threat engine (Sage)
             sage.startNetworkThreatEngine()

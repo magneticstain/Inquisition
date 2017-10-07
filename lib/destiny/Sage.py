@@ -10,9 +10,8 @@ CREATION_DATE: 2017-09-02
 
 # MODULES
 # | Native
-from os import fork,environ
+from os import fork
 from time import sleep
-import tempfile
 
 # | Third-Party
 from sklearn import svm
@@ -57,6 +56,26 @@ class Sage(Destiny):
         self.networkThreatClassifier = svm.SVC()
 
 
+    def gatherAllData(self):
+        """
+        Fetches raw logs, baseline logs, and intel all at once
+
+        :return: void
+        """
+
+        # fetch training data
+        self.lgr.info('fetching intel, baseline, and log data (in that order) for threat detection model')
+        self.lgr.debug('fetching training intel data')
+        self.intelLogStore = self.fetchLogData('intel')
+        self.lgr.debug('fetching training baseline data')
+        self.baselineLogStore = self.fetchLogData('baseline')
+
+        # refresh log data for testing
+        # we need to do this now in order to get the full list of unique fields
+        self.lgr.debug('fetching testing (raw log) data')
+        self.logStore = self.fetchLogData('raw')
+
+
     def startNetworkThreatEngine(self):
         """
         Run network threat analysis engine and all needed components
@@ -74,20 +93,11 @@ class Sage(Destiny):
             self.initClassifier()
 
             # train and predict model after every $sleepTime seconds
-            sleepTime = int(self.cfg['parsing']['sleepTime'])
+            sleepTime = int(self.cfg['learning']['networkThreatDetectionSleepTime'])
 
             while True:
-                # fetch training data
-                self.lgr.info('fetching intel, baseline, and log data (in that order) for threat detection model')
-                self.lgr.debug('fetching training intel data')
-                self.intelLogStore = self.fetchLogData('intel')
-                self.lgr.debug('fetching training baseline data')
-                self.baselineLogStore = self.fetchLogData('baseline')
-
-                # refresh log data for testing
-                # we need to do this now in order to get the full list of unique fields
-                self.lgr.debug('fetching testing (raw log) data')
-                self.logStore = self.fetchLogData('raw')
+                # fetch all needed data
+                self.gatherAllData()
 
                 # model created and data is fetched - let's try to train it
                 if not self.intelLogStore:
@@ -116,18 +126,20 @@ class Sage(Destiny):
                     if self.networkThreatClassifier.fit(trainingData, trainingTargets):
                         self.lgr.info('training complete; starting network threat analysis against current log data')
 
-                    # initialize raw logs
-                    if self.logStore:
-                        self.lgr.debug('initializing log data')
-                        testingData = self.initializeLogData(self.logStore, uniqueFields, 'testing')
-                        if testingData == None:
-                            self.lgr.info('no data after initialization for threat detection - sleeping...')
+                        # initialize raw logs
+                        if self.logStore:
+                            self.lgr.debug('initializing log data')
+                            testingData = self.initializeLogData(self.logStore, uniqueFields, 'testing')
+                            if testingData == None:
+                                self.lgr.info('no data after initialization for threat detection - sleeping...')
+                            else:
+                                self.lgr.info('making predictions for testing data')
+                                predictionResults = self.networkThreatClassifier.predict(testingData)
+                                self.lgr.info('threat detection results :: { ' + str(predictionResults) + ' }')
                         else:
-                            self.lgr.debug('making predictions for testing data')
-                            predictionResults = self.networkThreatClassifier.predict(testingData)
-                            self.lgr.debug('threat detection results :: [ ' + str(predictionResults) + ' ]')
+                            self.lgr.info('no raw log available for threat detection - sleeping...')
                     else:
-                        self.lgr.info('no raw log available for threat detection - sleeping...')
+                        self.lgr.warn('could not train network threat model; threat detection not performed')
 
                 # sleep for determined time
                 self.lgr.debug('network threat engine is sleeping for [ ' + str(sleepTime)

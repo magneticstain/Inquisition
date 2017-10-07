@@ -3,7 +3,7 @@
 """
 
 APP: Inquisition
-DESC: The machine learning engine used to detect log anomalies
+DESC: Library used for anomaly detection in parsed logs
 CREATION_DATE: 2017-09-02
 
 """
@@ -14,10 +14,8 @@ from os import fork
 from time import sleep
 
 # | Third-Party
-from sklearn import cluster
 
 # | Custom
-from lib.inquisit.Inquisit import Inquisit
 from lib.destiny.Destiny import Destiny
 
 # METADATA
@@ -31,80 +29,143 @@ __status__ = 'Development'
 
 
 class Erudite(Destiny):
+    """
+    An elegant and low-friction Log anomaly detection engine
+    """
 
+    hostStore = []
     logStore = {}
-    baselineLogStore = {}
-    logStoreDF = None
-    anomalyClassifier = None
+
 
     def __init__(self, cfg, sentryClient=None):
         Destiny.__init__(self, cfg, lgrName=__name__, sentryClient=sentryClient)
 
-    def initClassifier(self):
+
+    def fetchKnownHostData(self):
         """
-        Initialize classifier model for anomaly detection
+        Fetches known host records from inquisition DB and inserts them into the local host store
 
-        :return: None
-        """
-
-        self.anomalyClassifier = cluster.KMeans(n_clusters=2)
-
-
-    def startAnalysisEngine(self):
-        """
-        Start Erudite engine and begin analysis
-
-        :return:
+        :return: dict
         """
 
-        self.lgr.info('starting anomaly detection engine')
+        # define sql
+        sql = "SELECT " \
+              " host_val " \
+              "FROM " \
+              " KnownHosts"
+
+        # execute query
+        with self.inquisitionDbHandle.cursor() as dbCursor:
+            dbCursor.execute(sql)
+
+            # fetch results
+            hosts = dbCursor.fetchall()
+
+        return hosts
+
+
+    def getHostFieldName(self):
+        """
+        Get name of field to use as host value
+
+        :return: str
+        """
+
+        # define sql
+        sql = "SELECT " \
+              " field_name " \
+              "FROM " \
+              " Fields " \
+              "WHERE " \
+              " is_host_field = 1 " \
+              "LIMIT 1"
+
+        # execute query
+        with self.inquisitionDbHandle.cursor() as dbCursor:
+            dbCursor.execute(sql)
+
+            # fetch results
+            dbResults = dbCursor.fetchone()
+            hostFieldName = dbResults['field_name']
+
+        return hostFieldName
+
+
+    def identifyUnknownHosts(self, hostFieldName):
+        """
+        Searches raw logs for hosts not in host store
+
+        :param hostFieldName: string to use as key/field name to identify host val
+        :return: list
+        """
+
+        unknownHosts = []
+
+        if not hostFieldName:
+            raise ValueError('no host field name provided')
+
+        # traverse through raw logs
+        if self.logStore:
+            # raw logs present, start traversal
+            for logIdx in self.logStore:
+                try:
+                    logHost = self.logStore[logIdx][hostFieldName]
+
+                    # check if log host is already in host store
+                    if logHost not in self.logStore:
+                        # unknown host, add to list
+                        unknownHosts.append(logHost)
+                except KeyError:
+                    # log doesn't have anything set for host field, skip it
+                    continue
+
+        return unknownHosts
+
+
+    def startAnomalyDetectionEngine(self):
+        """
+        Starts anomaly detection engine
+
+        :return: void
+        """
 
         # fork process before beginning analysis
-        self.lgr.debug('forking off log anomaly engine trainer to child process')
+        self.lgr.debug('forking off anomaly detection engine to child process')
         newTrainerPID = fork()
         if newTrainerPID == 0:
             # in child process, start analyzing
-            # set sleep time
-            sleepTime = int(self.cfg['parsing']['sleepTime'])
-
-            # init classifier
-            self.lgr.debug('creating anomaly classifier')
-            self.initClassifier()
+            # run analysis after every $sleepTime seconds
+            sleepTime = int(self.cfg['learning']['anomalyDetectionSleepTime'])
 
             while True:
-                trainingData = None
-                testingData = None
+                # read in list of already known hosts
+                # clear current master host list
+                self.hostStore = []
 
-                # load in log data
-                self.lgr.info('fetching baseline logs for anomaly detection')
-                self.baselineLogStore = self.fetchLogData(logType='baseline')
+                # fetch fresh host list from inquisition DB
+                self.lgr.info('fetching list of already known hosts')
+                freshhostStore = self.fetchKnownHostData()
+                # traverse through list of host records to add raw host_val entries to master host list
+                for hostEntry in freshhostStore:
+                    self.hostStore.append(hostEntry['host_val'])
 
-                # check if we have logs available
-                if self.baselineLogStore:
-                    # initialize data in DF
-                    self.lgr.debug('initializing baseline log data for anomaly detection')
-                    trainingData = self.initializeLogData(self.baselineLogStore)
+                # read through log entries for new hosts
+                # get host field
+                hostField = self.getHostFieldName()
+                self.lgr.debug('using [ ' + hostField + ' ] as host-identifying field name')
 
-                    try:
-                        # fit model w/ baseline anomaly data
-                        self.lgr.debug('fitting anomaly detection model with log data')
-                        if self.anomalyClassifier.fit(trainingData):
-                            # fetch new, unknown logs
-                            self.lgr.info('fetching new logs for anomaly detection')
-                            self.logStore = self.fetchLogData(logType='raw')
-
-                            # initialize log data
-                            self.lgr.debug('initializing current log data for anomaly detection')
-                            testingData = self.initializeLogData(self.logStore)
-
-                            # try prediction
-                            self.lgr.debug('trying prediction for anomaly detection model')
-                            self.anomalyClassifier.predict(testingData)
-                    except ValueError as e:
-                        self.lgr.warn('encountered problem when training anomaly detection engine :: [ ' + str(e) + ' ]')
+                # fetch raw logs
+                self.lgr.info('fetching raw logs for anomaly detection')
+                self.logStore = self.fetchLogData(logType='raw')
+                if self.logStore:
+                    # raw logs available; search them for unknown hosts
+                    self.lgr.debug('beginning unknown host identification')
+                    unknownHosts = self.identifyUnknownHosts(hostField)
+                    self.lgr.info('host identification complete - [ ' + str(len(unknownHosts)) + ' ] unknown hosts identified')
                 else:
-                    self.lgr.info('no logs available for anomaly analysis')
+                    self.lgr.info('no raw logs to perform host anomaly detection on - sleeping...')
 
-                self.lgr.debug('anomaly detection engine sleeping for [ ' + str(sleepTime) + ' ] seconds')
+                # sleep for determined time
+                self.lgr.debug('network anomaly detection engine is sleeping for [ ' + str(sleepTime)
+                               + ' ] seconds before restarting routines')
                 sleep(sleepTime)
-
