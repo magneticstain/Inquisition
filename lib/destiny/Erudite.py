@@ -147,9 +147,9 @@ class Erudite(Destiny):
 
                 # fetch fresh host list from inquisition DB
                 self.lgr.info('fetching list of already known hosts')
-                freshhostStore = self.fetchKnownHostData()
+                freshHostStore = self.fetchKnownHostData()
                 # traverse through list of host records to add raw host_val entries to master host list
-                for hostEntry in freshhostStore:
+                for hostEntry in freshHostStore:
                     self.hostStore.append(hostEntry['host_val'])
 
                 # read through log entries for new hosts
