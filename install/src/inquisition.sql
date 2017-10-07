@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.7.18, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 5.7.19, for Linux (x86_64)
 --
--- Host: localhost    Database: inquisition_DEV
+-- Host: localhost    Database: inquisition
 -- ------------------------------------------------------
--- Server version	5.7.18-0ubuntu0.16.04.1
+-- Server version	5.7.19-0ubuntu0.16.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -25,6 +25,8 @@ DROP TABLE IF EXISTS `FieldTemplateRegex`;
 CREATE TABLE `FieldTemplateRegex` (
   `regex_id` int(11) NOT NULL AUTO_INCREMENT,
   `regex` text NOT NULL,
+  `regex_group` int(11) NOT NULL DEFAULT '0',
+  `regex_match_index` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`regex_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -112,6 +114,7 @@ CREATE TABLE `Fields` (
   `field_name` varchar(40) NOT NULL,
   `updated` datetime DEFAULT NULL,
   `created` datetime DEFAULT NULL,
+  `is_host_field` tinyint(4) NOT NULL DEFAULT '0',
   PRIMARY KEY (`field_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -169,7 +172,7 @@ CREATE TABLE `IOCItemToFieldMapping` (
   PRIMARY KEY (`mapping_id`),
   KEY `fk_field` (`field_id`),
   CONSTRAINT `fk_field` FOREIGN KEY (`field_id`) REFERENCES `Fields` (`field_id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -178,9 +181,65 @@ CREATE TABLE `IOCItemToFieldMapping` (
 
 LOCK TABLES `IOCItemToFieldMapping` WRITE;
 /*!40000 ALTER TABLE `IOCItemToFieldMapping` DISABLE KEYS */;
-INSERT INTO `IOCItemToFieldMapping` VALUES (1,'CreationTime',1),(2,'remoteIP',2),(3,'localPort',14),(4,'remotePort',13);
 /*!40000 ALTER TABLE `IOCItemToFieldMapping` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `KnownHosts`
+--
+
+DROP TABLE IF EXISTS `KnownHosts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `KnownHosts` (
+  `host_id` int(11) NOT NULL AUTO_INCREMENT,
+  `created` datetime NOT NULL,
+  `updated` datetime NOT NULL,
+  `host_val` varchar(65) DEFAULT NULL,
+  `events_per_second` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`host_id`),
+  KEY `hv_field` (`host_val`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `KnownHosts`
+--
+
+LOCK TABLES `KnownHosts` WRITE;
+/*!40000 ALTER TABLE `KnownHosts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `KnownHosts` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger KnownHosts_INSERT before update on KnownHosts for each row set new.updated = now() */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger KnownHosts_UPDATE before update on KnownHosts for each row set new.updated = now() */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `ParserToFieldTemplateMapping`
@@ -225,7 +284,7 @@ CREATE TABLE `Parsers` (
   `updated` datetime DEFAULT NULL,
   `status` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`parser_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -234,7 +293,6 @@ CREATE TABLE `Parsers` (
 
 LOCK TABLES `Parsers` WRITE;
 /*!40000 ALTER TABLE `Parsers` DISABLE KEYS */;
-INSERT INTO `Parsers` VALUES (1,'test','/test/log','2017-05-03 19:22:55','2017-05-03 19:22:55',0);
 /*!40000 ALTER TABLE `Parsers` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -277,4 +335,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-05-03 19:25:29
+-- Dump completed on 2017-10-07 13:02:20
