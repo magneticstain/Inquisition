@@ -62,7 +62,7 @@ class Erudite(Destiny):
 
             # fetch results
             hosts = dbCursor.fetchall()
-            print("H: " + hosts)
+            print("H: " + str(hosts))
 
         return hosts
 
