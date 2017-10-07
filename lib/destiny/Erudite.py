@@ -71,6 +71,8 @@ class Erudite(Destiny):
         :return: str
         """
 
+        hostFieldName = ''
+
         # define sql
         sql = "SELECT " \
               " field_name " \
@@ -86,7 +88,8 @@ class Erudite(Destiny):
 
             # fetch results
             dbResults = dbCursor.fetchone()
-            hostFieldName = dbResults['field_name']
+            if dbResults:
+                hostFieldName = dbResults['field_name']
 
         return hostFieldName
 
@@ -152,18 +155,21 @@ class Erudite(Destiny):
                 # read through log entries for new hosts
                 # get host field
                 hostField = self.getHostFieldName()
-                self.lgr.debug('using [ ' + hostField + ' ] as host-identifying field name')
-
-                # fetch raw logs
-                self.lgr.info('fetching raw logs for anomaly detection')
-                self.logStore = self.fetchLogData(logType='raw')
-                if self.logStore:
-                    # raw logs available; search them for unknown hosts
-                    self.lgr.debug('beginning unknown host identification')
-                    unknownHosts = self.identifyUnknownHosts(hostField)
-                    self.lgr.info('host identification complete - [ ' + str(len(unknownHosts)) + ' ] unknown hosts identified')
+                if not hostField:
+                    self.lgr.warn('no host field specified, not able to perform host-anomaly detection')
                 else:
-                    self.lgr.info('no raw logs to perform host anomaly detection on - sleeping...')
+                    self.lgr.debug('using [ ' + hostField + ' ] as host-identifying field name')
+
+                    # fetch raw logs
+                    self.lgr.info('fetching raw logs for anomaly detection')
+                    self.logStore = self.fetchLogData(logType='raw')
+                    if self.logStore:
+                        # raw logs available; search them for unknown hosts
+                        self.lgr.debug('beginning unknown host identification')
+                        unknownHosts = self.identifyUnknownHosts(hostField)
+                        self.lgr.info('host identification complete - [ ' + str(len(unknownHosts)) + ' ] unknown hosts identified')
+                    else:
+                        self.lgr.info('no raw logs to perform host anomaly detection on - sleeping...')
 
                 # sleep for determined time
                 self.lgr.debug('network anomaly detection engine is sleeping for [ ' + str(sleepTime)
