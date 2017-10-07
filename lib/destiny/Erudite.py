@@ -79,8 +79,7 @@ class Erudite(Destiny):
               "FROM " \
               " Fields " \
               "WHERE " \
-              " is_host_field = 1 " \
-              "LIMIT 1"
+              " is_host_field = 1 "
 
         # execute query
         with self.inquisitionDbHandle.cursor() as dbCursor:
