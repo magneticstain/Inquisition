@@ -49,10 +49,12 @@ class Erudite(Destiny):
         """
 
         # define sql
-        sql = "SELECT " \
-              " host_val " \
-              "FROM " \
-              " KnownHosts"
+        sql = """
+                SELECT 
+                    host_val 
+                FROM 
+                    KnownHosts
+              """
 
         # execute query
         with self.inquisitionDbHandle.cursor() as dbCursor:
@@ -74,12 +76,15 @@ class Erudite(Destiny):
         hostFieldName = ''
 
         # define sql
-        sql = "SELECT " \
-              " field_name " \
-              "FROM " \
-              " Fields " \
-              "WHERE " \
-              " is_host_field = 1 "
+        sql = """
+                SELECT 
+                    field_name 
+                FROM 
+                    Fields 
+                WHERE 
+                    is_host_field = 1
+                LIMIT 1
+            """
 
         # execute query
         with self.inquisitionDbHandle.cursor() as dbCursor:

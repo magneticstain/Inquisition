@@ -94,16 +94,18 @@ class Augur(Inquisit):
         if not iocItemName:
             raise ValueError('invalid IOC item name provided')
 
-        sql = "SELECT " \
-              " field_name " \
-              "FROM" \
-              " IOCItemToFieldMapping IITFM " \
-              "JOIN" \
-              " Fields F " \
-              "USING" \
-              " (field_id) " \
-              "WHERE" \
-              " IITFM.ioc_item_name = '%s'"
+        sql = """
+                SELECT 
+                    field_name 
+                FROM
+                    IOCItemToFieldMapping IITFM 
+                JOIN
+                    Fields F 
+                USING
+                    (field_id) 
+                WHERE
+                    IITFM.ioc_item_name = '%s'
+              """
 
         # execute query
         with self.inquisitionDbHandle.cursor() as dbCursor:

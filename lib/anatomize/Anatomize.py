@@ -67,14 +67,16 @@ class Anatomize(Inquisit):
         parsers = {}
 
         # fetch parsers from DB
-        sql = "SELECT " \
-              " parser_id, " \
-              " parser_name, " \
-              " parser_log " \
-              "FROM " \
-              " Parsers " \
-              "WHERE " \
-              " status = 1"
+        sql = """
+                SELECT 
+                    parser_id, 
+                    parser_name, 
+                    parser_log 
+                FROM 
+                    Parsers 
+                WHERE 
+                    status = 1
+              """
 
         # execute query
         with self.inquisitionDbHandle.cursor() as dbCursor:

@@ -81,7 +81,7 @@ class Parser(Inquisit):
         templates = {}
 
         # fetch templates from DB for relevant parser ID
-        sql = '''
+        sql = """
                 SELECT 
                     FT.template_id as TID, 
                     template_name, 
@@ -108,7 +108,7 @@ class Parser(Inquisit):
                 AND 
                     FT.status = 1
                 ORDER BY TID
-            '''
+            """
 
         # execute query
         with self.inquisitionDbHandle.cursor() as dbCursor:
