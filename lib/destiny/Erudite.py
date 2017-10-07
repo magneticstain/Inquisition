@@ -59,6 +59,7 @@ class Erudite(Destiny):
         # execute query
         with self.inquisitionDbHandle.cursor() as dbCursor:
             dbCursor.execute(sql)
+            self.inquisitionDbHandle.commit()
 
             # fetch results
             hosts = dbCursor.fetchall()
