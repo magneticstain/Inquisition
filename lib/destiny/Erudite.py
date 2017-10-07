@@ -156,7 +156,7 @@ class Erudite(Destiny):
                 for hostEntry in freshHostStore:
                     try:
                         self.hostStore.append(hostEntry['host_val'])
-                    except IndexError as e:
+                    except KeyError as e:
                         self.lgr.warn('host entry found with no host value set (see Issue #47) :: [ MSG: ' + str(e) + ' ]')
 
                 # read through log entries for new hosts
