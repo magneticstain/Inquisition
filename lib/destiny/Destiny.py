@@ -4,7 +4,7 @@
 Destiny.py
 
 APP: Inquisition
-DESC: An intelligent engine used to take Anatomize() data and create new security events based on rules and machine-learning
+DESC: Destiny.py - An intelligent engine used to take Anatomize() data and create new security events based on rules and machine-learning
 CREATION_DATE: 2017-04-08
 
 """
@@ -65,7 +65,11 @@ class Destiny(Inquisit):
 
         # attempt to retrieve data from db
         self.lgr.debug('fetching logs from log db')
-        for logRecordKey in self.logDbHandle.scan_iter(logDbSearchKey):
+        rawLogs = self.logDbHandle.scan_iter(logDbSearchKey)
+
+        # decode from utf-8
+        self.lgr.debug('decoding all log data from log db')
+        for logRecordKey in rawLogs:
             # get log data in key-value form
             logItem = self.logDbHandle.hgetall(logRecordKey)
 

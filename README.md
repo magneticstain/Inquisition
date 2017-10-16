@@ -13,7 +13,7 @@ that you **actually** want to know about.
 
 **Anatomize.py** scans and parses your log files and sticks them in an in-memory log store for further analysis.
 
-**Destiny.py** utilizes machine-learning (TensorFlow) in order to analyze the log store and generate new security events.
+**Destiny** utilizes machine-learning (via the SciKit library) in order to analyze the log store and generate new security events.
 
 **Celestial** provides a front-end web GUI and API for managing your Inquisition install, responding to events, and receiving
 awareness of the security of your environment.

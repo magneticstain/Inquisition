@@ -114,12 +114,13 @@ class Erudite(Destiny):
         # traverse through raw logs
         if self.logStore:
             # raw logs present, start traversal
+            self.lgr.debug('searching log store for any unknown hosts')
             for logIdx in self.logStore:
                 try:
                     logHost = self.logStore[logIdx][hostFieldName]
 
-                    # check if log host is already in host store
-                    if logHost not in self.logStore:
+                    # check if log host is already in host store OR if we've already added it to the unknown hosts list
+                    if logHost not in self.hostStore and logHost not in unknownHosts:
                         # unknown host, add to list
                         unknownHosts.append(logHost)
                 except KeyError:
@@ -127,6 +128,35 @@ class Erudite(Destiny):
                     continue
 
         return unknownHosts
+
+
+    def addUnknownHostData(self, hostData):
+        """
+        Add host value(s) of unknown hosts to Inquisition DB
+
+        :param hostData: host-identification values (hostname/IP/other identifier)
+        :return: void
+        """
+
+        if hostData:
+            # new unknown hosts sent, add them to db
+
+            sql = """
+                    INSERT INTO
+                        KnownHosts
+                        (host_val)
+                    VALUES
+                        (%s)
+            """
+
+            with self.inquisitionDbHandle.cursor() as dbCursor:
+                try:
+                    dbCursor.executemany(sql, hostData)
+                    self.inquisitionDbHandle.commit()
+                    self.lgr.debug('added [ ' + str(len(hostData)) + ' ] new hosts to known hosts table in Inquisition database')
+                except Exception as e:
+                    self.lgr.critical('unable to insert known host into Inquisition database while in baseline mode :: [ ' + str(e) + ' ]')
+                    self.inquisitionDbHandle.rollback()
 
 
     def startAnomalyDetectionEngine(self):
@@ -151,13 +181,13 @@ class Erudite(Destiny):
 
                 # fetch fresh host list from inquisition DB
                 self.lgr.info('fetching list of already known hosts')
-                freshHostStore = self.fetchKnownHostData()
+                knownHostStore = self.fetchKnownHostData()
                 # traverse through list of host records to add raw host_val entries to master host list
-                for hostEntry in freshHostStore:
+                for hostEntry in knownHostStore:
                     try:
                         self.hostStore.append(hostEntry['host_val'])
                     except KeyError as e:
-                        self.lgr.warn('host entry found with no host value set (see Issue #47) :: [ MSG: ' + str(e) + ' ]')
+                        self.lgr.warn('host entry found with no host value set (see Issue #47 on GitHub) :: [ MSG: ' + str(e) + ' ]')
 
                 # read through log entries for new hosts
                 # get host field
@@ -169,16 +199,28 @@ class Erudite(Destiny):
 
                     # fetch raw logs
                     self.lgr.info('fetching raw logs for anomaly detection')
-                    self.logStore = self.fetchLogData(logType='raw')
+
+                    # get baseline logs if in baseline mode, raw if not
+                    logType = 'raw'
+                    if self.cfg.getboolean('learning', 'enableBaselineMode'):
+                        logType = 'baseline'
+                    self.logStore = self.fetchLogData(logType=logType)
+
                     if self.logStore:
                         # raw logs available; search them for unknown hosts
                         self.lgr.debug('beginning unknown host identification')
                         unknownHosts = self.identifyUnknownHosts(hostField)
                         self.lgr.info('host identification complete - [ ' + str(len(unknownHosts)) + ' ] unknown hosts identified')
+
+                        # preserve hosts if in baseline mode
+                        if self.cfg.getboolean('learning', 'enableBaselineMode'):
+                            # in baseline mode, add unknown hosts
+                            self.lgr.debug('in baseline mode - unknown hosts now identified as known and added to database')
+                            self.addUnknownHostData(unknownHosts)
                     else:
                         self.lgr.info('no raw logs to perform host anomaly detection on - sleeping...')
 
                 # sleep for determined time
-                self.lgr.debug('network anomaly detection engine is sleeping for [ ' + str(sleepTime)
+                self.lgr.debug('anomaly detection engine is sleeping for [ ' + str(sleepTime)
                                + ' ] seconds before restarting routines')
                 sleep(sleepTime)

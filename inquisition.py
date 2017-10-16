@@ -153,10 +153,11 @@ def main():
         # begin fetching OSINT data for threat detection engine
         augur.fetchIntelData()
 
+        # start log anomaly engine (Erudite)
+        erudite.startAnomalyDetectionEngine()
+
         if not cfg.getboolean('learning', 'enableBaselineMode'):
-            # not running in baseline mode; start detection engines
-            # log anomaly engine (Erudite)
-            erudite.startAnomalyDetectionEngine()
+            # not running in baseline mode; start network threat detection engine
 
             # network threat engine (Sage)
             sage.startNetworkThreatEngine()
