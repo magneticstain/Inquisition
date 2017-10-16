@@ -240,10 +240,30 @@ class ParserTestCase(unittest.TestCase):
         except ValueError:
             self.assertTrue(True)
 
+    def test_parseLog_baselineMode(self):
+        # try running parse log while in baseline mode
+
+        # set baseline mode to ON
+        self.parser.baselineMode = True
+
+        # attempt to parse log
+        self.assertTrue(self.parser.parseLog(rawLog='raw log'))
+
     def test_processLog(self):
         self.parser.resetParserStats(statType='total_logs_processed')
 
         self.assertTrue(self.parser.processLog('raw log'))
+
+    def test_pollLogFile(self):
+        try:
+            # set log file
+            self.parser.logFile = 'build/src/sample_logs/bluecoat.log'
+
+            self.parser.pollLogFile()
+
+            self.assertTrue(True)
+        except Exception:
+            self.assertTrue(False)
 
     def test_pollLogFile_useHazyStateTracking(self):
         try:

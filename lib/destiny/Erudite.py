@@ -14,6 +14,7 @@ from os import fork
 from time import sleep
 
 # | Third-Party
+from pymysql import err
 
 # | Custom
 from lib.destiny.Destiny import Destiny
@@ -154,8 +155,8 @@ class Erudite(Destiny):
                     dbCursor.executemany(sql, hostData)
                     self.inquisitionDbHandle.commit()
                     self.lgr.debug('added [ ' + str(len(hostData)) + ' ] new hosts to known hosts table in Inquisition database')
-                except Exception as e:
-                    self.lgr.critical('unable to insert known host into Inquisition database while in baseline mode :: [ ' + str(e) + ' ]')
+                except err as e:
+                    self.lgr.critical('database error when inserting known host into Inquisition database while in baseline mode :: [ ' + str(e) + ' ]')
                     self.inquisitionDbHandle.rollback()
 
 
