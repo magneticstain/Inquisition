@@ -18,6 +18,7 @@ from sklearn import svm
 
 # | Custom
 from lib.destiny.Destiny import Destiny
+from lib.revelation.Revelation import Revelation
 
 # METADATA
 __author__ = 'Joshua Carlson-Purcell'
@@ -40,10 +41,14 @@ class Sage(Destiny):
     baselineLogStore = {}
     logStore = {}
     networkThreatClassifier = None
+    alertNode = None
 
 
     def __init__(self, cfg, sentryClient=None):
         Destiny.__init__(self, cfg, lgrName=__name__, sentryClient=sentryClient)
+
+        # create revalation instance
+        self.alertNode = Revelation(cfg, sentryClient=sentryClient)
 
 
     def initClassifier(self):

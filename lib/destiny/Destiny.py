@@ -13,7 +13,6 @@ CREATION_DATE: 2017-04-08
 # | Native
 
 # | Third-Party
-import numpy as np
 from sklearn import feature_extraction,preprocessing
 
 # | Custom

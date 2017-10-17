@@ -11,13 +11,14 @@ CREATION_DATE: 2017-09-02
 # MODULES
 # | Native
 from os import fork
-from time import sleep
+from time import sleep,time
 
 # | Third-Party
 from pymysql import err
 
 # | Custom
 from lib.destiny.Destiny import Destiny
+from lib.revelation.Revelation import Revelation
 
 # METADATA
 __author__ = 'Joshua Carlson-Purcell'
@@ -36,10 +37,14 @@ class Erudite(Destiny):
 
     hostStore = []
     logStore = {}
+    alertNode = None
 
 
     def __init__(self, cfg, sentryClient=None):
         Destiny.__init__(self, cfg, lgrName=__name__, sentryClient=sentryClient)
+
+        # create revalation instance
+        self.alertNode = Revelation(cfg, sentryClient=sentryClient)
 
 
     def fetchKnownHostData(self):
@@ -218,6 +223,9 @@ class Erudite(Destiny):
                             # in baseline mode, add unknown hosts
                             self.lgr.debug('in baseline mode - unknown hosts now identified as known and added to database')
                             self.addUnknownHostData(unknownHosts)
+                        else:
+                            # not in baseline mode, generate alert
+                            self.alertNode.addAlert({'place': 'holder'}, timestamp=int(time()), alertType=0, status=0)
                     else:
                         self.lgr.info('no raw logs to perform host anomaly detection on - sleeping...')
 
