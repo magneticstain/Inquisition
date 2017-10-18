@@ -89,13 +89,8 @@ class Template:
         # try regex matching
         regexMatches = self.compiledRegex.findall(log)
 
-        if isinstance(regexMatches, list):
-            # multiple matches found, return specified one
-            # get specified match based on idx num
-            regexMatch = regexMatches[self.regexMatchIdx]
-        else:
-            # the matches found consist of only one match - set as matched value
-            regexMatch = regexMatches
+        # get specified match based on idx num
+        regexMatch = regexMatches[self.regexMatchIdx]
 
         if regexMatch:
             # match found, see if we need to specify by group
@@ -105,6 +100,9 @@ class Template:
             else:
                 # only one group found, use as match value
                 matchedString = regexMatch
+
+            # strip surrounding whitespace
+            matchedString = matchedString.strip(" \t\n\r")
 
         return matchedString
 
@@ -116,5 +114,6 @@ class Template:
         """
 
         return '[ TID: ' + str(self.templateID) + ' // NAME: ' + self.templateName + ' // FIELD: ' + self.field \
-               + ' // REGEX: {{ ' + self.rawRegex + ' }} || { ' + str(self.regexGrp) + ' } ]'
+               + ' // REGEX: {{ ' + self.rawRegex + ' }} // GRP: { ' + str(self.regexGrp) + ' } ||  MATCH_IDX: { ' \
+               + str(self.regexMatchIdx) + ' } ]'
 
