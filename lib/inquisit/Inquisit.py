@@ -64,12 +64,9 @@ class Inquisit:
                                                                                 cfg['mysql_database']['db_host'],
                                                                                 int(cfg['mysql_database']['db_port']))
 
-            # set autocommit to true by default since the application is read-heavy and we run the risk of running into
-            # consistent read || https://dev.mysql.com/doc/refman/5.7/en/glossary.html#glos_consistent_read
-            # self.inquisitionDbHandle.autocommit(True)
-
             self.lgr.debug('database connection established for main inquisition database :: [ '
                            + cfg['mysql_database']['db_host'] + ':' + cfg['mysql_database']['db_port'] + ' ]')
+
             self.lgr.debug('all database connections established [ SUCCESSFULLY ]')
         except pymysql.OperationalError as e:
             self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')

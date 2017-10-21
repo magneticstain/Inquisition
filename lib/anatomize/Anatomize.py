@@ -34,7 +34,7 @@ __status__ = 'Development'
 
 class Anatomize(Inquisit):
     """
-    Anatomize.py is a class used for reading in and parsing log files based on given field templates
+    A class used for reading in and parsing log files based on given field templates
     """
 
     parserStore = {}

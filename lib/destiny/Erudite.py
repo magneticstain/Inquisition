@@ -32,7 +32,7 @@ __status__ = 'Development'
 
 class Erudite(Destiny):
     """
-    An elegant and low-friction Log anomaly detection engine
+    An elegant and low-friction log anomaly detection engine
     """
 
     hostStore = []
@@ -165,6 +165,53 @@ class Erudite(Destiny):
                     self.inquisitionDbHandle.rollback()
 
 
+    def performUnknownHostAnalysis(self):
+        """
+        Run checks for unknown hosts that are generating logs
+
+        :return: void
+        """
+
+        # read in list of already known hosts
+        # clear current master host list
+        self.hostStore = []
+
+        # fetch fresh host list from inquisition DB
+        self.lgr.info('fetching list of already known hosts')
+        knownHostStore = self.fetchKnownHostData()
+        # traverse through list of host records to add raw host_val entries to master host list
+        for hostEntry in knownHostStore:
+            try:
+                self.hostStore.append(hostEntry['host_val'])
+            except KeyError as e:
+                self.lgr.warn(
+                    'host entry found with no host value set (see Issue #47 on GitHub) :: [ MSG: ' + str(e) + ' ]')
+
+        # read through log entries for new hosts
+        # get host field
+        hostField = self.getHostFieldName()
+        if not hostField:
+            self.lgr.warn('no host field specified, not able to perform host-anomaly detection')
+        else:
+            self.lgr.debug('using [ ' + hostField + ' ] as host-identifying field name')
+
+            self.lgr.debug('beginning unknown host identification')
+            unknownHosts = self.identifyUnknownHosts(hostField)
+            self.lgr.info(
+                'host identification complete - [ ' + str(len(unknownHosts)) + ' ] unknown hosts identified')
+
+            # check if any unknown hosts were found
+            if 0 < len(unknownHosts):
+                # preserve hosts if in baseline mode
+                if self.cfg.getboolean('learning', 'enableBaselineMode'):
+                    # in baseline mode, add unknown hosts
+                    self.lgr.debug('in baseline mode - unknown hosts now identified as known and added to database')
+                    self.addUnknownHostData(unknownHosts)
+                else:
+                    # not in baseline mode, generate alert
+                    self.alertNode.addAlert({'place': 'holder'}, timestamp=int(time()), alertType=0, status=0)
+
+
     def startAnomalyDetectionEngine(self):
         """
         Starts anomaly detection engine
@@ -181,53 +228,21 @@ class Erudite(Destiny):
             sleepTime = int(self.cfg['learning']['anomalyDetectionSleepTime'])
 
             while True:
-                # read in list of already known hosts
-                # clear current master host list
-                self.hostStore = []
+                # fetch raw logs
+                self.lgr.info('fetching raw logs for anomaly detection')
 
-                # fetch fresh host list from inquisition DB
-                self.lgr.info('fetching list of already known hosts')
-                knownHostStore = self.fetchKnownHostData()
-                # traverse through list of host records to add raw host_val entries to master host list
-                for hostEntry in knownHostStore:
-                    try:
-                        self.hostStore.append(hostEntry['host_val'])
-                    except KeyError as e:
-                        self.lgr.warn('host entry found with no host value set (see Issue #47 on GitHub) :: [ MSG: ' + str(e) + ' ]')
+                # get baseline logs if in baseline mode, raw if not
+                logType = 'raw'
+                if self.cfg.getboolean('learning', 'enableBaselineMode'):
+                    logType = 'baseline'
+                self.logStore = self.fetchLogData(logType=logType)
 
-                # read through log entries for new hosts
-                # get host field
-                hostField = self.getHostFieldName()
-                if not hostField:
-                    self.lgr.warn('no host field specified, not able to perform host-anomaly detection')
+                if self.logStore:
+                    # raw logs available
+                    # start unknown host analysis
+                    self.performUnknownHostAnalysis()
                 else:
-                    self.lgr.debug('using [ ' + hostField + ' ] as host-identifying field name')
-
-                    # fetch raw logs
-                    self.lgr.info('fetching raw logs for anomaly detection')
-
-                    # get baseline logs if in baseline mode, raw if not
-                    logType = 'raw'
-                    if self.cfg.getboolean('learning', 'enableBaselineMode'):
-                        logType = 'baseline'
-                    self.logStore = self.fetchLogData(logType=logType)
-
-                    if self.logStore:
-                        # raw logs available; search them for unknown hosts
-                        self.lgr.debug('beginning unknown host identification')
-                        unknownHosts = self.identifyUnknownHosts(hostField)
-                        self.lgr.info('host identification complete - [ ' + str(len(unknownHosts)) + ' ] unknown hosts identified')
-
-                        # preserve hosts if in baseline mode
-                        if self.cfg.getboolean('learning', 'enableBaselineMode'):
-                            # in baseline mode, add unknown hosts
-                            self.lgr.debug('in baseline mode - unknown hosts now identified as known and added to database')
-                            self.addUnknownHostData(unknownHosts)
-                        else:
-                            # not in baseline mode, generate alert
-                            self.alertNode.addAlert({'place': 'holder'}, timestamp=int(time()), alertType=0, status=0)
-                    else:
-                        self.lgr.info('no raw logs to perform host anomaly detection on - sleeping...')
+                    self.lgr.info('no raw logs to perform host anomaly detection on - sleeping...')
 
                 # sleep for determined time
                 self.lgr.debug('anomaly detection engine is sleeping for [ ' + str(sleepTime)
