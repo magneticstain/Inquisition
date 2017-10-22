@@ -105,6 +105,30 @@ DELIMITER ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
+-- Table structure for table `FieldTypes`
+--
+
+DROP TABLE IF EXISTS `FieldTypes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `FieldTypes` (
+  `type_id` int(11) NOT NULL AUTO_INCREMENT,
+  `type_name` varchar(35) NOT NULL,
+  PRIMARY KEY (`type_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `FieldTypes`
+--
+
+LOCK TABLES `FieldTypes` WRITE;
+/*!40000 ALTER TABLE `FieldTypes` DISABLE KEYS */;
+INSERT INTO `FieldTypes` VALUES (1,'log_source'),(2,'traffic_source'),(3,'traffic_destination');
+/*!40000 ALTER TABLE `FieldTypes` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `Fields`
 --
 
@@ -116,7 +140,7 @@ CREATE TABLE `Fields` (
   `field_name` varchar(40) NOT NULL,
   `updated` datetime DEFAULT NULL,
   `created` datetime DEFAULT NULL,
-  `is_host_field` tinyint(4) NOT NULL DEFAULT '0',
+  `field_type` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`field_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
