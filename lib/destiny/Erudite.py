@@ -12,6 +12,7 @@ CREATION_DATE: 2017-09-02
 # | Native
 from os import fork
 from time import sleep,time
+from statistics import stdev
 
 # | Third-Party
 from pymysql import err
@@ -37,8 +38,10 @@ class Erudite(Destiny):
 
     hostStore = []
     logStore = {}
+    fieldTypes = {}
     nodeCounts = {}
     nodeOPSResults = {}
+    prevNodeOPSResults = {}
     alertNode = None
     runStartTime = 0
     runEndTime = 0
@@ -218,9 +221,39 @@ class Erudite(Destiny):
                     self.alertNode.addAlert({'place': 'holder'}, timestamp=int(time()), alertType=0, status=0)
 
 
+    def fetchFieldTypes(self):
+        """
+        Read in field types and their IDs to class var from DB
+
+        :return: void
+        """
+
+        # define sql
+        sql = """
+                SELECT 
+                    type_id,
+                    type_name 
+                FROM 
+                    FieldTypes
+                WHERE
+                    type_id > 1
+            """
+
+        # execute query
+        with self.inquisitionDbHandle.cursor() as dbCursor:
+            dbCursor.execute(sql)
+
+            # fetch results
+            dbResults = dbCursor.fetchall()
+            if dbResults:
+                # parse results
+                for result in dbResults:
+                    self.fieldTypes[result['type_id']] = result['type_name']
+
+
     def calculateNodeOccurrenceCounts(self, srcNodeFieldName, dstNodeFieldName):
         """
-        Calculates the total number of occurrences we see each individual node in the ra3E log store
+        Calculates the total number of occurrences we see each individual node in the raw log store
 
         :param srcNodeFieldName: field name to use for identifying source field val
         :param dstNodeFieldName: field name to use for identifying destination field val
@@ -302,13 +335,14 @@ class Erudite(Destiny):
             occPerSec = self.calculateOPSForNode(self.nodeCounts[nodeSetType][node])
 
             # add OPS to result set
-            self.nodeOPSResults[node] = {
-                'type': nodeSetType,
+            self.nodeOPSResults[nodeSetType][node] = {
                 'ops': occPerSec
             }
 
-            self.lgr.debug(
-                'calculated occurrences of source node [ ' + str(node) + ' ] to be [ ' + str(occPerSec) + ' / sec ]')
+            if self.cfg.getboolean('logging', 'verbose'):
+                self.lgr.debug(
+                    'calculated occurrences of node [ ' + str(node) + ' // TYPE: ' + nodeSetType + ' ] to be [ '
+                    + str(occPerSec) + ' / sec ]')
 
 
     def updateNodeOPSRecordInDB(self, nodeVal, fieldType, ops):
@@ -343,9 +377,9 @@ class Erudite(Destiny):
         # convert field type to field ID
         fieldType = fieldType.lower()
         if fieldType == 'src':
-            fieldTypeID = 1
-        else:
             fieldTypeID = 2
+        else:
+            fieldTypeID = 3
 
         # try inserting/updating in db
         with self.inquisitionDbHandle.cursor() as dbCursor:
@@ -354,8 +388,9 @@ class Erudite(Destiny):
             try:
                 dbCursor.execute(sql, (nodeVal, fieldTypeID, ops))
                 self.inquisitionDbHandle.commit()
-                self.lgr.debug(
-                    'successfully synced node ' + nodeString + ' to traffic node tracking table in Inquisition database')
+                if self.cfg.getboolean('logging', 'verbose'):
+                    self.lgr.debug(
+                        'successfully synced node ' + nodeString + ' to traffic node tracking table in Inquisition database')
 
                 return True
             except err as e:
@@ -377,14 +412,112 @@ class Erudite(Destiny):
         # check if OPS results are present
         if self.nodeOPSResults:
             # traverse results and update each in db
-            self.lgr.debug('beginning update of taffic node OPS results in DB')
-            for node in self.nodeOPSResults:
-                # send to db
-                if not self.updateNodeOPSRecordInDB(nodeVal=node, fieldType=self.nodeOPSResults[node]['type'],
-                                                    ops=self.nodeOPSResults[node]['ops']):
-                    self.lgr.critical('unable to sync node OPS data to inquisition DB :: [ NODE: ' + str(node)
-                                      + ' // TYPE ID: ' + str(self.nodeOPSResults[node]['type'])
-                                      + ' // OPS: ' + str(self.nodeOPSResults[node]['ops']) + ' ]')
+            self.lgr.debug('beginning update of traffic node OPS results in DB')
+            for nodeType in self.nodeOPSResults:
+                for node in self.nodeOPSResults[nodeType]:
+                    # send to db
+                    if not self.updateNodeOPSRecordInDB(nodeVal=node, fieldType=nodeType,
+                                                        ops=self.nodeOPSResults[nodeType][node]['ops']):
+                        self.lgr.critical('unable to sync node OPS data to inquisition DB :: [ NODE: ' + str(node)
+                                          + ' // TYPE ID: ' + str(nodeType)
+                                          + ' // OPS: ' + str(self.nodeOPSResults[nodeType][node]['ops']) + ' ]')
+
+
+    def fetchNodeOPSRecordInDB(self):
+        """
+        Fetch all node OPS results that were previously collected from the inquisition DB
+
+        :return: void
+        """
+
+
+        # define sql
+        sql = """
+                SELECT 
+                    node_val,
+                    field_type_id,
+                    occ_per_sec 
+                FROM 
+                    TrafficNodeStats
+            """
+
+        # execute query
+        with self.inquisitionDbHandle.cursor() as dbCursor:
+            dbCursor.execute(sql)
+
+            # fetch results
+            dbResults = dbCursor.fetchall()
+            if dbResults:
+                # refactor results to match current result set
+                for result in dbResults:
+                    # translate field type ID to field type key
+                    if result['field_type_id'] == 2:
+                        fieldType = 'src'
+                    else:
+                        fieldType = 'dst'
+
+                    self.prevNodeOPSResults[fieldType][result['node_val']] = {
+                        'ops': result['occ_per_sec']
+                    }
+
+
+    def determineOPSStdDevSignificance(self, node, nodeType, prevNodeTrafficResult, currentNodeTrafficResult):
+        """
+        Calculates the standard deviation of prev and current node traffic results and determine if it's significant
+
+        :param node: node value that we're making calculations on
+        :param nodeType: type of node we're' performing calc on
+        :param prevNodeTrafficResult: the previous OPS result calculated from the last run
+        :param currentNodeTrafficResult: the OPS results for node calculated from current run
+        :return: bool
+        """
+
+        if prevNodeTrafficResult < 0 or currentNodeTrafficResult < 0:
+            raise ValueError('invalid previous or current node traffic results provided')
+
+        # check if std dev was set
+        try:
+            maxStdDev = self.cfg.getfloat('alerting', 'maxTrafficNodeStdDev')
+        except KeyError:
+            # config not set, use default
+            maxStdDev = 1.0
+
+        # calculate std deviation
+        standardDeviation = stdev([prevNodeTrafficResult, currentNodeTrafficResult])
+        if self.cfg.getboolean('logging', 'verbose'):
+            self.lgr.debug('calculated std dev for [ NODE: ' + str(node) + ' // TYPE ID: ' + str(nodeType) + ' ] as [ '
+                           + str(standardDeviation) + ' ] w/ max std dev set to [ ' + str(maxStdDev) + ' ]')
+
+        if maxStdDev < standardDeviation:
+            return True
+
+        return False
+
+
+    def analyzeOPSResultsForAnomalies(self):
+        """
+        Performs analysis on OPS results by comparing previous OPS results with the results from the latest run
+
+        :return: void
+        """
+
+        # traverse current batch of nodes to compare with previous batch
+        for nodeType in self.nodeOPSResults:
+            for node in self.nodeOPSResults[nodeType]:
+                # check if node was found in prev results and is the same type (nodes can have diff src and dst results)
+                if node in self.prevNodeOPSResults[nodeType]:
+                    if self.cfg.getboolean('logging', 'verbose'):
+                        self.lgr.debug('found previous records for node [ ' + node + ' // TYPE: ' + nodeType + ' ]')
+
+                    # node was previously found, compare values by checking std deviation
+                    prevOPSResult = self.prevNodeOPSResults[nodeType][node]['ops']
+                    currentOPSResult = self.nodeOPSResults[nodeType][node]['ops']
+
+                    if self.determineOPSStdDevSignificance(node=node, nodeType=nodeType,
+                                                           prevNodeTrafficResult=prevOPSResult,
+                                                           currentNodeTrafficResult=currentOPSResult):
+                        # raise anomaly alert
+                        self.alertNode.addAlert({'place': 'holder'}, timestamp=int(time()), alertType=0, status=0)
 
 
     def performTrafficNodeAnalysis(self):
@@ -394,7 +527,9 @@ class Erudite(Destiny):
         :return: void
         """
 
-        # get source and destination field names
+        self.lgr.info('starting traffic node analysis')
+
+        # get field names associated with each field type
         srcNodeFieldName = self.getFieldNameFromType(typeID=2)
         dstNodeFieldName = self.getFieldNameFromType(typeID=3)
         self.lgr.debug('using [ ' + str(srcNodeFieldName) + ' ] field as source traffic node and [ '
@@ -406,21 +541,41 @@ class Erudite(Destiny):
             'src': {},
             'dst': {}
         }
+        self.nodeOPSResults = {
+            'src': {},
+            'dst': {}
+        }
+        self.prevNodeOPSResults = {
+            'src': {},
+            'dst': {}
+        }
 
         # check for raw logs
         if self.logStore:
             # raw logs present, initialize OCC calculations for all indiv. nodes
             self.lgr.debug('searching log store for source and destination traffic nodes')
             self.calculateNodeOccurrenceCounts(srcNodeFieldName=srcNodeFieldName, dstNodeFieldName=dstNodeFieldName)
+            # print("NC: " + str(self.nodeCounts))
 
             # take previously calculated OCCs and calculate OPS of each node set type
+            self.lgr.info('calculating OPS for source and destination node sets')
             # src
             self.calculateOPSForNodeSet('src')
             # dst
             self.calculateOPSForNodeSet('dst')
 
+            # read in prev OPS results in db
+            self.fetchNodeOPSRecordInDB()
+
+            # run anomaly analysis
+            self.lgr.info('performing anomaly analysis on OPS results')
+            self.analyzeOPSResultsForAnomalies()
+
+            # print('CURR: ' + str(self.nodeOPSResults))
+            # print('PREV: ' + str(self.prevNodeOPSResults))
+
             # update database with OPS results
-            self.lgr.info('syncing traffic node stats to inquisition DB')
+            self.lgr.info('syncing new traffic node stats to inquisition DB')
             self.syncOPSResultsToDB()
 
             self.lgr.info('completed traffic node analysis')
