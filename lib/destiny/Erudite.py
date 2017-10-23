@@ -38,7 +38,10 @@ class Erudite(Destiny):
     hostStore = []
     logStore = {}
     nodeCounts = {}
+    nodeOPSResults = {}
     alertNode = None
+    runStartTime = 0
+    runEndTime = 0
 
 
     def __init__(self, cfg, sentryClient=None):
@@ -215,48 +218,185 @@ class Erudite(Destiny):
                     self.alertNode.addAlert({'place': 'holder'}, timestamp=int(time()), alertType=0, status=0)
 
 
-    def calculateOccurrencesOfNodePerSecond(self, occurrenceCount, startTime, endTime):
+    def calculateNodeOccurrenceCounts(self, srcNodeFieldName, dstNodeFieldName):
         """
-        Calculates occurrences per second by comparing occurrence count with elapsed time
+        Calculates the total number of occurrences we see each individual node in the ra3E log store
+
+        :param srcNodeFieldName: field name to use for identifying source field val
+        :param dstNodeFieldName: field name to use for identifying destination field val
+        :return: void
+        """
+
+        for logIdx in self.logStore:
+            # see if source field name is present
+            try:
+                srcNodeFieldVal = self.logStore[logIdx][srcNodeFieldName]
+
+                # update log counts for val
+                if srcNodeFieldVal in self.nodeCounts['src']:
+                    # previous entries already found, increase count
+                    self.nodeCounts['src'][srcNodeFieldVal] += 1
+                else:
+                    # first occurance found, set to 1
+                    self.nodeCounts['src'][srcNodeFieldVal] = 1
+            except KeyError:
+                # log doesn't have anything set for src field, continue on
+                pass
+
+            # see if destination field name is present
+            try:
+                dstNodeFieldVal = self.logStore[logIdx][dstNodeFieldName]
+
+                # update log counts for val
+                if dstNodeFieldVal in self.nodeCounts['dst']:
+                    # previous entries already found, increase count
+                    self.nodeCounts['dst'][dstNodeFieldVal] += 1
+                else:
+                    # first occurrence found, set to 1
+                    self.nodeCounts['dst'][dstNodeFieldVal] = 1
+            except KeyError:
+                # log doesn't have anything set for dst field, continue onto next log
+                pass
+
+
+    def calculateOPSForNode(self, occurrenceCount):
+        """
+        Calculates occurrences per second for node with given OCC by comparing OCC with elapsed time
 
         :param occurrenceCount: number of occurrences we saw node value in given timeframe
-        :param startTime: start of run
-        :param endTime: end of run
         :return: float
         """
-
-        if startTime < 1 or endTime < 1:
-            raise ValueError('invalid start or end time provided :: [ START: { ' + str(startTime) + ' } // END: { ' + str(endTime) + ' } ]')
 
         if occurrenceCount <= 0:
             # no occurrences seen, we can just return 0 w/o doing anything else
             return 0
 
-        # calculate elapsed time in seconds
-        elapsedTime = float(endTime) - float(startTime)
+        if self.runStartTime < 1 or self.runEndTime < 1:
+            raise ValueError('invalid start or end time provided :: [ START: { ' + str(self.runStartTime) + ' } // END: { ' + str(self.runEndTime) + ' } ]')
+
+        # calculate elapsed time in seconds and validate it
+        elapsedTime = float(self.runEndTime) - float(self.runStartTime)
         if elapsedTime <= 0:
             raise ValueError('end time is the same or before start time, could not calculate occurrences per second for node')
 
-        # calcaulte occ/sec
+        # calculate occ/sec
         occurrencesPerSec = float(occurrenceCount / elapsedTime)
 
         return occurrencesPerSec
 
 
-    def performTrafficNodeAnalysis(self, startTime, endTime):
+    def calculateOPSForNodeSet(self, nodeSetType):
+        """
+        Calculate OPS for all nodes in given set type
+
+        :param nodeSetType: which set of nodes to perform calculations on (src|dst)
+        :return: void
+        """
+
+        # validate node set type
+        nodeSetType = nodeSetType.lower()
+        if nodeSetType != 'src' and nodeSetType != 'dst':
+            raise ValueError('invalid node set type provided')
+
+        for node in self.nodeCounts[nodeSetType]:
+            occPerSec = self.calculateOPSForNode(self.nodeCounts[nodeSetType][node])
+
+            # add OPS to result set
+            self.nodeOPSResults[node] = {
+                'type': nodeSetType,
+                'ops': occPerSec
+            }
+
+            self.lgr.debug(
+                'calculated occurrences of source node [ ' + str(node) + ' ] to be [ ' + str(occPerSec) + ' / sec ]')
+
+
+    def updateNodeOPSRecordInDB(self, nodeVal, fieldType, ops):
+        """
+        Update record with given node value and field type with OPS val
+
+        :param nodeVal: node value of record to update, e.g. IP or hostname
+        :param fieldType: ID of field type this val came from; src = 1, dst = 2
+        :param ops: occurrences per second that we're seeing given node val
+        :return: bool
+        """
+
+        # set sql
+        sql = """
+                INSERT INTO 
+                    TrafficNodeStats 
+                    (
+                        node_val, 
+                        field_type_id, 
+                        occ_per_sec
+                    ) 
+                VALUES 
+                    (
+                        %s, 
+                        %s, 
+                        %s
+                    ) 
+                ON DUPLICATE KEY UPDATE  
+                    occ_per_sec=VALUES(occ_per_sec)
+        """
+
+        # convert field type to field ID
+        fieldType = fieldType.lower()
+        if fieldType == 'src':
+            fieldTypeID = 1
+        else:
+            fieldTypeID = 2
+
+        # try inserting/updating in db
+        with self.inquisitionDbHandle.cursor() as dbCursor:
+            nodeString = '[ ' + str(nodeVal) + ' // TYPE ID: ' + str(fieldTypeID) + ' ]'
+
+            try:
+                dbCursor.execute(sql, (nodeVal, fieldTypeID, ops))
+                self.inquisitionDbHandle.commit()
+                self.lgr.debug(
+                    'successfully synced node ' + nodeString + ' to traffic node tracking table in Inquisition database')
+
+                return True
+            except err as e:
+                self.lgr.critical(
+                    'database error when syncing data for ' + nodeString + ' :: [ ' + str(
+                        e) + ' ]')
+                self.inquisitionDbHandle.rollback()
+
+                return False
+
+
+    def syncOPSResultsToDB(self):
+        """
+        Traverse through set of OPS results for each node and update associated entry in db with value
+
+        :return:
+        """
+
+        # check if OPS results are present
+        if self.nodeOPSResults:
+            # traverse results and update each in db
+            self.lgr.debug('beginning update of taffic node OPS results in DB')
+            for node in self.nodeOPSResults:
+                # send to db
+                if not self.updateNodeOPSRecordInDB(nodeVal=node, fieldType=self.nodeOPSResults[node]['type'],
+                                                    ops=self.nodeOPSResults[node]['ops']):
+                    self.lgr.critical('unable to sync node OPS data to inquisition DB :: [ NODE: ' + str(node)
+                                      + ' // TYPE ID: ' + str(self.nodeOPSResults[node]['type'])
+                                      + ' // OPS: ' + str(self.nodeOPSResults[node]['ops']) + ' ]')
+
+
+    def performTrafficNodeAnalysis(self):
         """
         Perform analysis on network traffic related nodes, e.g. source and destination IPs/hostnames
 
-        :param startTime: time - in epoch format - that the last iteration of Erudite started; used for calculating
-                            approx. occurrences per second we're seeing for nodes
-        :param endTime: epoch timestamp for after logs were fetched from
         :return: void
         """
 
         # get source and destination field names
         srcNodeFieldName = self.getFieldNameFromType(typeID=2)
         dstNodeFieldName = self.getFieldNameFromType(typeID=3)
-
         self.lgr.debug('using [ ' + str(srcNodeFieldName) + ' ] field as source traffic node and [ '
                        + str(dstNodeFieldName) + ' ] field as destination traffic node')
 
@@ -267,48 +407,25 @@ class Erudite(Destiny):
             'dst': {}
         }
 
-        # traverse through raw logs
+        # check for raw logs
         if self.logStore:
-            # raw logs present, start traversal
+            # raw logs present, initialize OCC calculations for all indiv. nodes
             self.lgr.debug('searching log store for source and destination traffic nodes')
-            for logIdx in self.logStore:
-                # see if source field name is present
-                try:
-                    srcNodeFieldVal = self.logStore[logIdx][srcNodeFieldName]
+            self.calculateNodeOccurrenceCounts(srcNodeFieldName=srcNodeFieldName, dstNodeFieldName=dstNodeFieldName)
 
-                    # update log counts for val
-                    if srcNodeFieldVal in self.nodeCounts['src']:
-                        # previous entries already found, increase count
-                        self.nodeCounts['src'][srcNodeFieldVal] += 1
-                    else:
-                        # first occurance found, set to 1
-                        self.nodeCounts['src'][srcNodeFieldVal] = 1
-                except KeyError:
-                    # log doesn't have anything set for src field, continue on
-                    pass
-
-                # see if destination field name is present
-                try:
-                    dstNodeFieldVal = self.logStore[logIdx][dstNodeFieldName]
-
-                    # update log counts for val
-                    if dstNodeFieldVal in self.nodeCounts['dst']:
-                        # previous entries already found, increase count
-                        self.nodeCounts['dst'][dstNodeFieldVal] += 1
-                    else:
-                        # first occurance found, set to 1
-                        self.nodeCounts['dst'][dstNodeFieldVal] = 1
-                except KeyError:
-                    # log doesn't have anything set for dst field, continue onto next log
-                    pass
-
-            # get occurrences per second of each node
+            # take previously calculated OCCs and calculate OPS of each node set type
             # src
-            for node in self.nodeCounts['src']:
-                occPerSec = self.calculateOccurrencesOfNodePerSecond(self.nodeCounts['src'][node], startTime, endTime)
-                self.lgr.debug('calculated occurrences of node [ ' + str(node) + ' ] to be [ ' + str(occPerSec) + ' / sec ]')
+            self.calculateOPSForNodeSet('src')
+            # dst
+            self.calculateOPSForNodeSet('dst')
+
+            # update database with OPS results
+            self.lgr.info('syncing traffic node stats to inquisition DB')
+            self.syncOPSResultsToDB()
 
             self.lgr.info('completed traffic node analysis')
+        else:
+            self.lgr.info('no raw logs available, skipping traffic node analysis')
 
 
     def startAnomalyDetectionEngine(self):
@@ -319,8 +436,7 @@ class Erudite(Destiny):
         """
 
         # set initial start time and initial run flag for use with traffic node analysis
-        prevStartTime = time()
-        initialRun = True
+        self.runStartTime = time()
 
         # fork process before beginning analysis
         self.lgr.debug('forking off host-anomaly detection engine to child process')
@@ -341,13 +457,13 @@ class Erudite(Destiny):
                     logType = 'baseline'
 
                 # record end time before fetching logs
-                endTime = time()
+                self.runEndTime = time()
 
                 # fetch logs
                 self.logStore = self.fetchLogData(logType=logType)
 
-                # set new start time
-                startTime = time()
+                # set cached start time as right after logs are read in so none are missed (we use this later)
+                cachedStartTime = time()
 
                 if self.logStore:
                     # raw logs available
@@ -355,10 +471,10 @@ class Erudite(Destiny):
                     self.performUnknownHostAnalysis()
 
                     # start traffic node analysis
-                    self.performTrafficNodeAnalysis(startTime=prevStartTime, endTime=endTime)
+                    self.performTrafficNodeAnalysis()
 
-                    # set previous start time as current start time now that analysis is done
-                    prevStartTime = startTime
+                    # set cached start time as current start time now that analysis is done and we don't need the old time
+                    self.runStartTime = cachedStartTime
                 else:
                     self.lgr.info('no raw logs to perform host anomaly detection on - sleeping...')
 
