@@ -35,17 +35,25 @@ class Alert():
     STATUS: status of the alert: 0 = NEW, 1 = ACKNOWLEDGED, 2 = RESOLVED
     """
 
+    alertID = 0
     timestamp = 0
     alertType = 0
     status = 0
-    logData = {}
+    host = '127.0.0.1'
+    srcNode = '0.0.0.0'
+    dstNode = '0.0.0.0'
+    alertDetails = ''
 
-    def __init__(self, logData, timestamp=0, alertType=0, status=0):
+    def __init__(self, alertID=0, timestamp=0, alertType=0, status=0, host='127.0.0.1', srcNode='0.0.0.0', dstNode='0.0.0.0', alertDetails=''):
         # set metadata
+        self.alertID = alertID
         self.timestamp = timestamp
         self.alertType = alertType
         self.status = status
-        self.logData = logData
+        self.host = host
+        self.srcNode = srcNode
+        self.dstNode = dstNode
+        self.alertDetails = alertDetails
 
 
     def __str__(self):
@@ -55,5 +63,8 @@ class Alert():
         :return: str
         """
 
-        return '[ TIMESTAMP: ' + str(self.timestamp) + ' // TYPE: ' + str(self.alertType) + ' // STATUS: ' + str(self.status) + ' // LOG DATA: { ' + str(self.logData) + ' }]'
+        return '[ ID: ' + str(self.alertID) + ' // TIMESTAMP: ' + str(self.timestamp) \
+               + ' // TYPE: ' + str(self.alertType) + ' // STATUS: ' + str(self.status) \
+               + ' // HOST: ' + str(self.host) + ' // SRC: ' + str(self.srcNode) + ' // DST: ' + str(self.dstNode) \
+               + ' // ALERT DETAILS: { ' + str(self.alertDetails) + ' } ]'
 

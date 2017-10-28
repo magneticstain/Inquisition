@@ -218,7 +218,7 @@ class Erudite(Destiny):
                     self.addUnknownHostData(unknownHosts)
                 else:
                     # not in baseline mode, generate alert
-                    self.alertNode.addAlert({'place': 'holder'}, timestamp=int(time()), alertType=0, status=0)
+                    self.alertNode.addAlert(timestamp=int(time()), alertType=0, alertDetails='Host anomaly detected!')
 
 
     def fetchFieldTypes(self):
@@ -466,7 +466,7 @@ class Erudite(Destiny):
         Calculates the standard deviation of prev and current node traffic results and determine if it's significant
 
         :param node: node value that we're making calculations on
-        :param nodeType: type of node we're' performing calc on
+        :param nodeType: type of node we're performing calc on
         :param prevNodeTrafficResult: the previous OPS result calculated from the last run
         :param currentNodeTrafficResult: the OPS results for node calculated from current run
         :return: bool
@@ -517,7 +517,21 @@ class Erudite(Destiny):
                                                            prevNodeTrafficResult=prevOPSResult,
                                                            currentNodeTrafficResult=currentOPSResult):
                         # raise anomaly alert
-                        self.alertNode.addAlert({'place': 'holder'}, timestamp=int(time()), alertType=0, status=0)
+                        # set default src and dst node, then set correct one to node val depending on node type
+                        srcNode = '0.0.0.0'
+                        dstNode = '0.0.0.0'
+                        if nodeType == 'src':
+                            srcNode = node
+                        else:
+                            dstNode = node
+
+                        # set alert details
+                        alertDetails = 'detected significant change in OPS for traffic node :: [ ' + str(prevOPSResult) \
+                                       + ' -> ' + str(currentOPSResult) + ' ]'
+
+                        # nodes set, add alert
+                        self.alertNode.addAlert(timestamp=int(time()), alertType=1, srcNode=srcNode, dstNode=dstNode,
+                                                alertDetails=alertDetails)
 
 
     def performTrafficNodeAnalysis(self):
