@@ -173,7 +173,7 @@ class Destiny(Inquisit):
                 try:
                     targets.append(logData[logIdx][targetFieldName])
                 except KeyError:
-                    self.lgr.warn('no value found for target field for given log, discarding log entry')
+                    self.lgr.warning('no value found for target field for given log, discarding log entry')
                     continue
 
             # iterate through each unique field name to see if value is set (== null if it isn't) and place into list

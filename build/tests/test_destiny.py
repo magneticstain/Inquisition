@@ -12,7 +12,7 @@ CREATION_DATE: 2017-11-04
 # MODULES
 # | Native
 import configparser
-import redis
+import logging
 import unittest
 
 # | Third-Party
@@ -30,7 +30,7 @@ __email__ = 'jcarlson@carlso.net'
 __status__ = 'Development'
 
 
-class AnatomizeTestCase(unittest.TestCase):
+class DestinyTestCase(unittest.TestCase):
     def setUp(self):
         # generate config
         cfg = configparser.ConfigParser()
@@ -39,7 +39,9 @@ class AnatomizeTestCase(unittest.TestCase):
         self.destiny = Destiny(cfg=cfg, lgrName=__name__)
 
         # generate test log entries
-        logData = { 'field1': 'value', 'field2': 1 }
+        logData = {'field1': 'value', 'field2': 1}
+        baselineLogData = { 'field1': 'value', 'field2': 1, 'threat': 0 }
+        intelLogData = { 'field1': 'value', 'field2': 1, 'threat': 1 }
         self.destiny.logDbHandle.hmset('log:non_existent_parser:1234', logData)
         self.destiny.logDbHandle.hmset('baseline:log:non_existent_parser:1234', logData)
         self.destiny.logDbHandle.hmset('intel:non_existent_intel:1234', logData)
@@ -60,11 +62,28 @@ class AnatomizeTestCase(unittest.TestCase):
         logSet = self.destiny.fetchLogData(logType='intel')
         self.assertGreater(len(logSet), 0)
 
+    def test_fetchLogData_invalidLogType(self):
+        try:
+            logSet = self.destiny.fetchLogData(logType='invalid')
+        except ValueError:
+            self.assertTrue(True)
+
     def test_getUniqueLogDataFields(self):
         logSet = self.destiny.fetchLogData()
         uniqueFields = self.destiny.getUniqueLogDataFields(logSet)
 
         self.assertGreater(len(uniqueFields), 0)
+
+    def test_initializeLogData(self):
+        logSet = self.destiny.fetchLogData('baseline')
+        uniqueFields = self.destiny.getUniqueLogDataFields(logSet)
+        encTrainingData, targetData = self.destiny.initializeLogData(logData=logSet, uniqueFields=uniqueFields,
+                                                             dataUsage='training', targetFieldName='threat')
+        encTestingData = self.destiny.initializeLogData(logData=logSet, uniqueFields=uniqueFields, dataUsage='testing')
+
+        self.assertIsNotNone(encTrainingData)
+        self.assertGreater(len(targetData), 0)
+        self.assertIsNotNone(encTestingData)
 
     def tearDown(self):
         # remove test log entries
