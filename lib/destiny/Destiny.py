@@ -83,7 +83,7 @@ class Destiny(Inquisit):
 
     def getUniqueLogDataFields(self, logData):
         """
-        Returns unqiue list of field names from log data for future use as learning model features
+        Returns unique list of field names from log data for future use as learning model features
 
         :param logData: dataset of logs to derive list of log fields from
         :return: list
@@ -189,9 +189,6 @@ class Destiny(Inquisit):
 
             # append log entry to master dataset
             data.append(logEntry)
-
-        # print(data)
-        # print(targets)
 
         # transform data and targets (if appl.) for use w/ model; and set as DF
         self.lgr.info('vectorizing log data')

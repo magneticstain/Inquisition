@@ -1,0 +1,76 @@
+#!/usr/bin/python3
+
+"""
+test_destiny.py
+
+APP: Inquisition
+DESC: Unit test for Destiny library
+CREATION_DATE: 2017-11-04
+
+"""
+
+# MODULES
+# | Native
+import configparser
+import redis
+import unittest
+
+# | Third-Party
+
+# | Custom
+from lib.destiny.Destiny import Destiny
+
+# METADATA
+__author__ = 'Joshua Carlson-Purcell'
+__copyright__ = 'Copyright 2017, CarlsoNet'
+__license__ = 'MIT'
+__version__ = '1.0.0-alpha'
+__maintainer__ = 'Joshua Carlson-Purcell'
+__email__ = 'jcarlson@carlso.net'
+__status__ = 'Development'
+
+
+class AnatomizeTestCase(unittest.TestCase):
+    def setUp(self):
+        # generate config
+        cfg = configparser.ConfigParser()
+        cfg.read('build/tests/unit_tests_GOOD.cfg')
+
+        self.destiny = Destiny(cfg=cfg, lgrName=__name__)
+
+        # generate test log entries
+        logData = { 'field1': 'value', 'field2': 1 }
+        self.destiny.logDbHandle.hmset('log:non_existent_parser:1234', logData)
+        self.destiny.logDbHandle.hmset('baseline:log:non_existent_parser:1234', logData)
+        self.destiny.logDbHandle.hmset('intel:non_existent_intel:1234', logData)
+
+    def test_fetchLogData_default(self):
+        logSet = self.destiny.fetchLogData()
+        self.assertGreater(len(logSet), 0)
+
+    def test_fetchLogData_raw(self):
+        logSet = self.destiny.fetchLogData(logType='raw')
+        self.assertGreater(len(logSet), 0)
+
+    def test_fetchLogData_baseline(self):
+        logSet = self.destiny.fetchLogData(logType='baseline')
+        self.assertGreater(len(logSet), 0)
+
+    def test_fetchLogData_intel(self):
+        logSet = self.destiny.fetchLogData(logType='intel')
+        self.assertGreater(len(logSet), 0)
+
+    def test_getUniqueLogDataFields(self):
+        logSet = self.destiny.fetchLogData()
+        uniqueFields = self.destiny.getUniqueLogDataFields(logSet)
+
+        self.assertGreater(len(uniqueFields), 0)
+
+    def tearDown(self):
+        # remove test log entries
+        self.destiny.logDbHandle.delete('log:non_existent_parser:1234')
+        self.destiny.logDbHandle.delete('baseline:log:non_existent_parser:1234')
+        self.destiny.logDbHandle.delete('intel:non_existent_intel:1234')
+
+if __name__ == '__main__':
+    unittest.main()

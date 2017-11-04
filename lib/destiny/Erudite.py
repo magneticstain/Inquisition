@@ -585,9 +585,6 @@ class Erudite(Destiny):
             self.lgr.info('performing anomaly analysis on OPS results')
             self.analyzeOPSResultsForAnomalies()
 
-            # print('CURR: ' + str(self.nodeOPSResults))
-            # print('PREV: ' + str(self.prevNodeOPSResults))
-
             # update database with OPS results
             self.lgr.info('syncing new traffic node stats to inquisition DB')
             self.syncOPSResultsToDB()
