@@ -115,6 +115,8 @@ class Destiny(Inquisit):
         #     self.lgr.debug('no log data provided for vectorization')
         #     return None
 
+        encData = None
+
         # check if we have target data or not and set vectorizer as such
         if isTargetData:
             # target data, use label encoder
@@ -137,7 +139,10 @@ class Destiny(Inquisit):
                 encData = self.featureVectorizer.fit_transform(data)
             else:
                 # using testing data, which means we're not using target data
-                encData = self.featureVectorizer.transform(data)
+                try:
+                    encData = self.featureVectorizer.transform(data)
+                except AttributeError as e:
+                    self.lgr.critical('unable to transform testing data using pre-trained model :: [ ' + str(e) + ' ]')
 
             return encData
 

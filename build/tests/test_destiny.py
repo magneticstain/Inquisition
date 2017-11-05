@@ -43,8 +43,8 @@ class DestinyTestCase(unittest.TestCase):
         baselineLogData = { 'field1': 'value', 'field2': 1, 'threat': 0 }
         intelLogData = { 'field1': 'value', 'field2': 1, 'threat': 1 }
         self.destiny.logDbHandle.hmset('log:non_existent_parser:1234', logData)
-        self.destiny.logDbHandle.hmset('baseline:log:non_existent_parser:1234', logData)
-        self.destiny.logDbHandle.hmset('intel:non_existent_intel:1234', logData)
+        self.destiny.logDbHandle.hmset('baseline:log:non_existent_parser:1234', baselineLogData)
+        self.destiny.logDbHandle.hmset('intel:non_existent_intel:1234', intelLogData)
 
     def test_fetchLogData_default(self):
         logSet = self.destiny.fetchLogData()
