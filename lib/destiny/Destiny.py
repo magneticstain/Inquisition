@@ -105,14 +105,15 @@ class Destiny(Inquisit):
         """
         Encode log data using vectorizer
 
-        :param logData: pre-formatted log data for vectorization
+        :param data: pre-formatted log data for vectorization
         :param isTargetData: bool specifying if we're dealing with target data as it currently uses a different encoder
         :param shouldFit: bool for flagging whether we should fit the data of just transform it (used w/ testing data)
         :return: numpy array
         """
 
-        if not data:
-            raise ValueError('no log data provided for vectorization')
+        # if not data:
+        #     self.lgr.debug('no log data provided for vectorization')
+        #     return None
 
         # check if we have target data or not and set vectorizer as such
         if isTargetData:
@@ -151,17 +152,30 @@ class Destiny(Inquisit):
         :return: dataframes
         """
 
+        possibleDataUsages = ['training', 'testing']
         data = []
         targets = []
 
+        # normalize dataUsage choice and target field name
+        dataUsage = str(dataUsage).lower()
+
+        # verify incoming params
         if not logData:
             raise ValueError('no log data provided for initialization')
+        if not uniqueFields:
+            raise ValueError('no unique fields provided')
+        if dataUsage not in possibleDataUsages:
+            raise ValueError('invalid data usage option used')
         if dataUsage != 'testing' and not targetFieldName:
             raise ValueError('no target field name provided for initialization')
 
         # remove target field from unique field list
         if dataUsage != 'testing':
-            uniqueFields.remove(targetFieldName)
+            try:
+                uniqueFields.remove(targetFieldName)
+            except ValueError as e:
+                self.lgr.error('could not remove target field from list of unique fields; unable to safely continue ' +
+                               'log initialization :: [ ' + str(e) + ' ]')
 
         # format log data as data frames for use as model data
         self.lgr.debug('initializing log data matrix')
@@ -192,22 +206,27 @@ class Destiny(Inquisit):
 
         # transform data and targets (if appl.) for use w/ model; and set as DF
         self.lgr.info('vectorizing log data')
+        encData = None
+        encTargets = None
         if dataUsage == 'testing':
             # initializing testing data; we won't have any target data and will need to specify to not fit the data when
             # encoding it (only transforming)
 
             # data
-            encData = self.encodeLogData(data, shouldFit=False)
-            # encData = self.encodeLogData(data, shouldFit=True)
+            if data:
+                encData = self.encodeLogData(data, shouldFit=False)
+
             return encData
         else:
             # working with training data; we'll have targets and WILL need to fit the data
 
             # data
-            encData = self.encodeLogData(data)
+            if data:
+                encData = self.encodeLogData(data)
 
             # targets
-            encTargets = self.encodeLogData(targets, True)
+            if targets:
+                encTargets = self.encodeLogData(targets, True)
 
             return encData, encTargets
 
