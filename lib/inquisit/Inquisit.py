@@ -4,7 +4,7 @@
 Inquisit.py
 
 APP: Inquisition
-DESC: 
+DESC: Parent class containing general functions such as logging and db connectivity
 CREATION_DATE: 2017-05-12
 
 """
@@ -26,7 +26,7 @@ __license__ = 'MIT'
 __version__ = '1.0.0-alpha'
 __maintainer__ = 'Joshua Carlson-Purcell'
 __email__ = 'jcarlson@carlso.net'
-__status__ = 'Development|Staging|Production'
+__status__ = 'Development'
 
 
 class Inquisit:

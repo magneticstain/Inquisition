@@ -114,8 +114,6 @@ class Anatomize(Inquisit):
         except KeyError:
             # test run not defined, set to default of FALSE
             self.lgr.warning('test run flag not set, defaulting to [ FALSE ]')
-            if Inquisit.sentryClient:
-                Inquisit.sentryClient.captureException()
 
             testRun = False
 
@@ -133,10 +131,9 @@ class Anatomize(Inquisit):
             if newParserPID == 0:
                 # in child process, start parsing
                 numRuns = 0
+                numRunsBetweenStats = int(self.cfg['parsing']['numSleepsBetweenStats'])
+                sleepTime = int(self.cfg['parsing']['sleepTime'])
                 while True:
-                    sleepTime = int(self.cfg['parsing']['sleepTime'])
-                    numRunsBetweenStats = int(self.cfg['parsing']['numSleepsBetweenStats'])
-
                     # poll for new logs
                     self.parserStore[parserId].pollLogFile(testRun, useHazyStateTracking=hazyStateTrackingStatus,
                                                            numLogsBetweenTrackingUpdate=numLogsBetweenTrackingUpdate)

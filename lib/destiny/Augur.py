@@ -77,7 +77,7 @@ class Augur(Inquisit):
             xml = resp.data.decode('utf-8')
 
             # parse xml and return
-            # good example of parsing using BS lib: https://stackoverflow.com/a/4093940
+            # good example of parsing using BSoup lib: https://stackoverflow.com/a/4093940
             bs = BSoup(xml, 'xml')
             return bs
         else:
@@ -118,39 +118,6 @@ class Augur(Inquisit):
             else:
                 return ''
 
-    def saveIntelData(self, intelData):
-        """
-        Insert intel into log db and master ioc dataset
-
-        :param intelData: data to insert as intel data record
-        :return: bool
-        """
-
-        if not intelData:
-            raise ValueError('no intel data provided to save')
-
-        numIocItems = 0
-        numNewIocItems = 0
-
-        # traverse through intel data and save each record if it doesn't already exist
-        for iocDatasetName in intelData:
-            # save each IOC item in dataset
-            for iocRemoteId in intelData[iocDatasetName]:
-                numIocItems += 1
-
-                # generate key
-                key = 'intel:' + iocDatasetName + ':' + iocRemoteId
-
-                # check if key already exists
-                if not self.logDbHandle.exists(key):
-                    numNewIocItems += 1
-
-                    # IOC item hasn't been added yet; insert into db
-                    self.logDbHandle.hmset(key, intelData[iocDatasetName][iocRemoteId])
-
-        self.lgr.info('saved [ ' + str(numNewIocItems) + ' ] new intel data records out of [ ' + str(numIocItems)
-                      + ' ] sent')
-
     def parseIntelXML(self, rawXml):
         """
         Parse given XML into IOC items
@@ -179,6 +146,7 @@ class Augur(Inquisit):
                 iocItemName = iocItem.Context.get('search').split('/')[1]
 
                 # map ioc item name to log field name
+                # NOTE: we do this in order to normalize data for use with the rest of the Destiny sub-modules
                 if iocItemName:
                     fieldName = self.mapIOCItemNameToFieldName(iocItemName)
                     if not fieldName:
@@ -196,6 +164,39 @@ class Augur(Inquisit):
         self.lgr.debug('parsed [ ' + str(len(iocData)) + ' ] IOC items from XML')
 
         return iocData
+
+    def saveIntelData(self, intelData):
+        """
+        Insert intel into log db and master ioc dataset
+
+        :param intelData: data to insert as intel data record
+        :return: bool
+        """
+
+        if not intelData:
+            raise ValueError('no intel data provided to save')
+
+        numIocItems = 0
+        numNewIocItems = 0
+
+        # traverse through intel data and save each record if it doesn't already exist
+        for iocDatasetName in intelData:
+            # save each IOC item in dataset
+            for iocRemoteId in intelData[iocDatasetName]:
+                numIocItems += 1
+
+                # generate log DB key
+                key = 'intel:' + iocDatasetName + ':' + iocRemoteId
+
+                # check if key already exists
+                if not self.logDbHandle.exists(key):
+                    numNewIocItems += 1
+
+                    # IOC item hasn't been added yet; insert into db
+                    self.logDbHandle.hmset(key, intelData[iocDatasetName][iocRemoteId])
+
+        self.lgr.info('saved [ ' + str(numNewIocItems) + ' ] new intel data records out of [ ' + str(numIocItems)
+                      + ' ] sent')
 
     def fetchIntelData(self):
         """

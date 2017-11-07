@@ -53,7 +53,6 @@ class Erudite(Destiny):
         # create revalation instance
         self.alertNode = Revelation(cfg, sentryClient=sentryClient)
 
-
     def fetchKnownHostData(self):
         """
         Fetches known host records from inquisition DB and inserts them into the local host store
@@ -77,7 +76,6 @@ class Erudite(Destiny):
             hosts = dbCursor.fetchall()
 
         return hosts
-
 
     def getFieldNameFromType(self, typeID):
         """
@@ -112,7 +110,6 @@ class Erudite(Destiny):
 
         return hostFieldName
 
-
     def identifyUnknownHosts(self, hostFieldName):
         """
         Searches raw logs for hosts not in host store
@@ -144,7 +141,6 @@ class Erudite(Destiny):
 
         return unknownHosts
 
-
     def addUnknownHostData(self, hostData):
         """
         Add host value(s) of unknown hosts to Inquisition DB
@@ -172,7 +168,6 @@ class Erudite(Destiny):
                 except err as e:
                     self.lgr.critical('database error when inserting known host into Inquisition database while in baseline mode :: [ ' + str(e) + ' ]')
                     self.inquisitionDbHandle.rollback()
-
 
     def performUnknownHostAnalysis(self):
         """
@@ -220,7 +215,6 @@ class Erudite(Destiny):
                     # not in baseline mode, generate alert
                     self.alertNode.addAlert(timestamp=int(time()), alertType=0, alertDetails='Host anomaly detected!')
 
-
     def fetchFieldTypes(self):
         """
         Read in field types and their IDs to class var from DB
@@ -249,7 +243,6 @@ class Erudite(Destiny):
                 # parse results
                 for result in dbResults:
                     self.fieldTypes[result['type_id']] = result['type_name']
-
 
     def calculateNodeOccurrenceCounts(self, srcNodeFieldName, dstNodeFieldName):
         """
@@ -291,7 +284,6 @@ class Erudite(Destiny):
                 # log doesn't have anything set for dst field, continue onto next log
                 pass
 
-
     def calculateOPSForNode(self, occurrenceCount):
         """
         Calculates occurrences per second for node with given OCC by comparing OCC with elapsed time
@@ -316,7 +308,6 @@ class Erudite(Destiny):
         occurrencesPerSec = float(occurrenceCount / elapsedTime)
 
         return occurrencesPerSec
-
 
     def calculateOPSForNodeSet(self, nodeSetType):
         """
@@ -343,7 +334,6 @@ class Erudite(Destiny):
                 self.lgr.debug(
                     'calculated occurrences of node [ ' + str(node) + ' // TYPE: ' + nodeSetType + ' ] to be [ '
                     + str(occPerSec) + ' / sec ]')
-
 
     def updateNodeOPSRecordInDB(self, nodeVal, fieldType, ops):
         """
@@ -401,7 +391,6 @@ class Erudite(Destiny):
 
                 return False
 
-
     def syncOPSResultsToDB(self):
         """
         Traverse through set of OPS results for each node and update associated entry in db with value
@@ -421,7 +410,6 @@ class Erudite(Destiny):
                         self.lgr.critical('unable to sync node OPS data to inquisition DB :: [ NODE: ' + str(node)
                                           + ' // TYPE ID: ' + str(nodeType)
                                           + ' // OPS: ' + str(self.nodeOPSResults[nodeType][node]['ops']) + ' ]')
-
 
     def fetchNodeOPSRecordInDB(self):
         """
@@ -460,7 +448,6 @@ class Erudite(Destiny):
                         'ops': result['occ_per_sec']
                     }
 
-
     def determineOPSStdDevSignificance(self, node, nodeType, prevNodeTrafficResult, currentNodeTrafficResult):
         """
         Calculates the standard deviation of prev and current node traffic results and determine if it's significant
@@ -492,7 +479,6 @@ class Erudite(Destiny):
             return True
 
         return False
-
 
     def analyzeOPSResultsForAnomalies(self):
         """
@@ -532,7 +518,6 @@ class Erudite(Destiny):
                         # nodes set, add alert
                         self.alertNode.addAlert(timestamp=int(time()), alertType=1, srcNode=srcNode, dstNode=dstNode,
                                                 alertDetails=alertDetails)
-
 
     def performTrafficNodeAnalysis(self):
         """
@@ -593,7 +578,6 @@ class Erudite(Destiny):
         else:
             self.lgr.info('no raw logs available, skipping traffic node analysis')
 
-
     def startAnomalyDetectionEngine(self):
         """
         Starts anomaly detection engine
@@ -648,3 +632,4 @@ class Erudite(Destiny):
                 self.lgr.debug('anomaly detection engine is sleeping for [ ' + str(sleepTime)
                                + ' ] seconds before restarting routines')
                 sleep(sleepTime)
+

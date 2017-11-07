@@ -158,7 +158,6 @@ def main():
 
         if not cfg.getboolean('learning', 'enableBaselineMode'):
             # not running in baseline mode; start network threat detection engine
-
             # network threat engine (Sage)
             sage.startNetworkThreatEngine()
     else:

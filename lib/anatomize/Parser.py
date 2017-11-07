@@ -48,9 +48,8 @@ class Parser(Inquisit):
     metricsMode = False
     baselineMode = False
 
-    def __init__(self, cfg, logTTL=30, maxLogsToProcess=0, parserID=0,
-                 parserName='Syslog', logFile='/var/log/syslog', keepPersistentStats=True, metricsMode=False
-                 , baselineMode=False, sentryClient=None):
+    def __init__(self, cfg, logTTL=30, maxLogsToProcess=0, parserID=0, parserName='Syslog', logFile='/var/log/syslog',
+                 keepPersistentStats=True, metricsMode=False, baselineMode=False, sentryClient=None):
         Inquisit.__init__(self, cfg, lgrName=__name__, sentryClient=sentryClient)
 
         self.parserID = parserID
@@ -65,7 +64,7 @@ class Parser(Inquisit):
         # initialize offset file
         self.offsetFile = '/opt/inquisition/tmp/' + str(self.parserID) + '_' + self.parserName + '.offset'
 
-        # load templates from template store
+        # load templates into template store
         self.templateStore = self.fetchTemplates()
         self.lgr.info('loaded [ ' + str(len(self.templateStore)) + ' ] templates for ' + self.__str__())
 
@@ -177,7 +176,7 @@ class Parser(Inquisit):
 
     def avgStat(self, statKey, initialVal, newVal, numValsInSet, storeInDb=True, strict=False):
         """
-        Find the average of two values: initial, established average along with the new value to be incl. w/ initial avg
+        Find the rolling average of given statistic
 
         :param statKey: stat to average
         :param initialVal: initial average value
@@ -185,7 +184,7 @@ class Parser(Inquisit):
         :param numValsInSet: total number of values currently in set, !! NOT including the new value !!
                                 that's added here when calculating the avg
         :param storeInDb: flag noting whether to store/update this statistic in the log db (default: T)
-        :param strict: if set to true, only fine stat avg if stat key exists; if not, IndexError is raised
+        :param strict: if set to true, only find stat avg if stat key exists; if not, IndexError is raised
         :return: void
         """
 
@@ -197,18 +196,13 @@ class Parser(Inquisit):
                 raise IndexError('stat key not found and strict mode is [ ON ]')
 
         # check num values in set
-        if numValsInSet < 0:
+        if numValsInSet <= 0:
             # invalid num vals in set
             raise ValueError('invalid value provided for number of values in set when calculating stat avg :: [ '
                              + str(numValsInSet) + ' ]')
 
         # find average
-        if initialVal == 0:
-            # first or reset value, set as initial val
-            avgVal = newVal
-        else:
-            # incorporate newVal by calculating moving avg
-            avgVal = initialVal + (newVal - initialVal) / (numValsInSet + 1)
+        avgVal = initialVal + (newVal - initialVal) / (numValsInSet + 1)
 
         # update in-memory val of stat
         self.stats[statKey] = avgVal
@@ -249,7 +243,7 @@ class Parser(Inquisit):
         if storeInDb:
             self.updateStatInLogDB(statKey, incrAmt=amt, strict=strict)
 
-    def resetParserStats(self, statType=None, statData=0, updateLogDb=True):
+    def resetParserStats(self, statType=None, statData=None, updateLogDb=True):
         """
         Reset all or specific stat(s)
         
@@ -436,12 +430,18 @@ class Parser(Inquisit):
             self.lgr.info('will NOT PROCESS log, max number of logs to process has been reached; exiting w/ SUCCESS')
             exit(0)
 
-        self.lgr.debug('processing log [[[ ' + rawLog + ' ]]] using ' + self.__str__())
+        # check if we should print the raw log in our log messages
+        if self.cfg.getboolean('logging', 'printMatchValues'):
+            rawLogValueForLogs = '<REDACTED BY CONFIG>'
+        else:
+            rawLogValueForLogs = rawLog
+
+        self.lgr.debug('processing log [[[ ' + rawLogValueForLogs + ' ]]] using ' + self.__str__())
 
         # remove prepended and trailing newlines/whitespace/etc
         rawLog.strip(" \r\n\t")
 
-        self.lgr.debug('POST-PROCESSED LOG [[[ ' + rawLog + ' ]]] using ' + self.__str__())
+        self.lgr.debug('POST-PROCESSED LOG [[[ ' + rawLogValueForLogs + ' ]]] using ' + self.__str__())
 
         # get memory size of log - in bytes - and add to avg
         memSizeOfLog = getsizeof(rawLog)
@@ -489,10 +489,9 @@ class Parser(Inquisit):
                 self.lgr.info('max number of logs to process has been reached, exiting w/ SUCCESS')
                 exit(0)
         except KeyError:
-            # this means we haven't read any logs yet; we can just proceed
+            # this means we haven't read any logs and haven't set the TLP stat yet; we can just proceed
             pass
 
-        # fetch new log(s)
         # reset run stats
         runStats = {
                     'num_logs': 0,
@@ -501,15 +500,15 @@ class Parser(Inquisit):
         }
         self.resetParserStats('last_run', runStats, False)
 
-        # check if hazy state tracking is enabled and set paranoia setting accordingly
+        # check if hazy state tracking is enabled and set paranoia setting (a setting local to Pygtail) accordingly
         if useHazyStateTracking:
             paranoidMode = False
-            self.lgr.debug('enabling hazy state tracking for this run')
+            self.lgr.debug('enabling hazy state tracking for this run, setting paranoid mode to true')
         else:
             paranoidMode = True
-
         # NOTE: paranoid denotes updating the offset file after every log is read; statefullness is important ^_^
-        # begin polling
+
+        # begin polling w/ Pygtail
         try:
             for log in Pygtail(self.logFile, offset_file=self.offsetFile, paranoid=paranoidMode,
                                every_n=numLogsBetweenTrackingUpdate):
@@ -518,7 +517,7 @@ class Parser(Inquisit):
                 # try to process the log
                 if self.processLog(log):
                     # log parsed successfully :D
-                    self.lgr.debug('log successfully processed :: ' + self.__str__())
+                    self.lgr.debug('log processed SUCCESSFULLY :: ' + self.__str__())
 
                     # break after parsing a single log if running a test run
                     if isTestRun:
@@ -543,7 +542,7 @@ class Parser(Inquisit):
                              logProcessingTime.microseconds, self.stats['total_logs_processed'])
 
                 # incr stat for total log during current run
-                # NOTE: last_run stats aren't currently stored in the db; see issue #20
+                # NOTE: last_run stats aren't currently stored in the db for performance reasons; see issue #20
                 self.stats['last_run']['num_logs'] += 1
         except PermissionError as e:
             self.lgr.error('permission denied when trying to access target log file :: ' + self.__str__()

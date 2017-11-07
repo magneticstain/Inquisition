@@ -30,7 +30,6 @@ __email__ = 'jcarlson@carlso.net'
 __status__ = 'Development'
 
 
-
 class Sage(Destiny):
     """
     Sage engine for detecting network threats from known threat data
@@ -50,7 +49,6 @@ class Sage(Destiny):
         # create revalation instance
         self.alertNode = Revelation(cfg, sentryClient=sentryClient)
 
-
     def initClassifier(self):
         """
         Initialize classifier model for network threat detection
@@ -59,7 +57,6 @@ class Sage(Destiny):
         """
 
         self.networkThreatClassifier = svm.SVC()
-
 
     def gatherAllData(self):
         """
@@ -79,7 +76,6 @@ class Sage(Destiny):
         # we need to do this now in order to get the full list of unique fields
         self.lgr.debug('fetching testing (raw log) data')
         self.logStore = self.fetchLogData('raw')
-
 
     def startNetworkThreatEngine(self):
         """

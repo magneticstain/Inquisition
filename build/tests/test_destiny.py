@@ -120,8 +120,22 @@ class DestinyTestCase(unittest.TestCase):
     def test_initializeLogData_invalidTargetFieldName(self):
         logSet = self.destiny.fetchLogData('baseline')
         uniqueFields = self.destiny.getUniqueLogDataFields(logSet)
-        encTrainingData, targetData = self.destiny.initializeLogData(logData=logSet, uniqueFields=uniqueFields,
+
+        try:
+            encTrainingData, targetData = self.destiny.initializeLogData(logData=logSet, uniqueFields=uniqueFields,
                                                              dataUsage='training', targetFieldName='invalidTFN')
+        except ValueError:
+            self.assertTrue(True)
+
+    def test_initializeLogData_sendTrainingDataWithoutTFN(self):
+        logSet = self.destiny.fetchLogData('baseline')
+        uniqueFields = self.destiny.getUniqueLogDataFields(logSet)
+
+        try:
+            encTrainingData, targetData = self.destiny.initializeLogData(logData=logSet, uniqueFields=uniqueFields,
+                                                                         dataUsage='training')
+        except RuntimeError:
+            self.assertTrue(True)
 
     def tearDown(self):
         # remove test log entries

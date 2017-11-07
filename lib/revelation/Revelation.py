@@ -28,7 +28,6 @@ __email__ = 'jcarlson@carlso.net'
 __status__ = 'Development'
 
 
-
 class Revelation(Inquisit):
     """
     Alert framework for use with analysis engines
@@ -38,7 +37,6 @@ class Revelation(Inquisit):
 
     def __init__(self, cfg, sentryClient=None):
         Inquisit.__init__(self, cfg, lgrName=__name__, sentryClient=sentryClient)
-
 
     def addAlertToDB(self, alert):
         """
@@ -86,7 +84,6 @@ class Revelation(Inquisit):
                 self.inquisitionDbHandle.rollback()
 
                 return False
-
 
     def addAlert(self, timestamp=0, alertType=0, status=0, host='127.0.0.1', srcNode='0.0.0.0', dstNode='0.0.0.0', alertDetails=''):
         """

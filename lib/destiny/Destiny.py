@@ -111,10 +111,6 @@ class Destiny(Inquisit):
         :return: numpy array
         """
 
-        # if not data:
-        #     self.lgr.debug('no log data provided for vectorization')
-        #     return None
-
         encData = None
 
         # check if we have target data or not and set vectorizer as such
@@ -172,15 +168,14 @@ class Destiny(Inquisit):
         if dataUsage not in possibleDataUsages:
             raise ValueError('invalid data usage option used')
         if dataUsage != 'testing' and not targetFieldName:
-            raise ValueError('no target field name provided for initialization')
+            raise RuntimeError('no target field name provided for initialization of training data')
 
         # remove target field from unique field list
         if dataUsage != 'testing':
             try:
                 uniqueFields.remove(targetFieldName)
             except ValueError as e:
-                self.lgr.error('could not remove target field from list of unique fields; unable to safely continue ' +
-                               'log initialization :: [ ' + str(e) + ' ]')
+                self.lgr.error('could not remove target field from list of unique fields :: [ ' + str(e) + ' ]')
 
         # format log data as data frames for use as model data
         self.lgr.debug('initializing log data matrix')
@@ -203,7 +198,7 @@ class Destiny(Inquisit):
                 try:
                     logEntry[field] = logData[logIdx][field]
                 except KeyError:
-                    # value not found for this log; set as 0
+                    # value not found for this log; set as '0' (needs to be string for data encoding to work correctly)
                     logEntry[field] = '0'
 
             # append log entry to master dataset
