@@ -196,7 +196,7 @@ class Parser(Inquisit):
                 raise IndexError('stat key not found and strict mode is [ ON ]')
 
         # check num values in set
-        if numValsInSet <= 0:
+        if numValsInSet < 0:
             # invalid num vals in set
             raise ValueError('invalid value provided for number of values in set when calculating stat avg :: [ '
                              + str(numValsInSet) + ' ]')
