@@ -35,13 +35,11 @@ class Sage(Destiny):
     Sage engine for detecting network threats from known threat data
     """
 
-
     intelLogStore = {}
     baselineLogStore = {}
     logStore = {}
     networkThreatClassifier = None
     alertNode = None
-
 
     def __init__(self, cfg, sentryClient=None):
         Destiny.__init__(self, cfg, lgrName=__name__, sentryClient=sentryClient)

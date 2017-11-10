@@ -55,7 +55,6 @@ class Alert():
         self.dstNode = dstNode
         self.alertDetails = alertDetails
 
-
     def __str__(self):
         """
         toString function for printing alert info
