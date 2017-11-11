@@ -11,7 +11,6 @@ CREATION_DATE: 2017-04-07
 
 # MODULES
 # | Native
-from os import path
 import argparse
 import configparser
 from os import path
