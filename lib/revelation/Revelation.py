@@ -40,7 +40,7 @@ class Revelation(Inquisit):
 
     def addAlertToDB(self, alert):
         """
-        Sync alert with given data to entry in Inquisition DB
+        Add alert with given data to entry in Inquisition DB
 
         :param alert: alert object who's data we're adding to the db
         :return: bool
@@ -78,16 +78,16 @@ class Revelation(Inquisit):
 
                 return True
             except err as e:
+                self.inquisitionDbHandle.rollback()
                 self.lgr.critical(
                     'database error when adding new alert ' + str(alert) + ' :: [ ' + str(
                         e) + ' ]')
-                self.inquisitionDbHandle.rollback()
 
                 return False
 
     def addAlert(self, timestamp=0, alertType=0, status=0, host='127.0.0.1', srcNode='0.0.0.0', dstNode='0.0.0.0', alertDetails=''):
         """
-        Generate an alert with given parameters
+        Generate an alert with given parameters and make it persistent
 \
         :param timestamp: timestamp that alert was generated, in epoch time
         :param alertType: type of alert: 0 = host anomaly, 1 = traffic node anomaly, 2 = threat
@@ -102,7 +102,7 @@ class Revelation(Inquisit):
         if timestamp < 0:
             raise ValueError('invalid alert timestamp provided :: [ ' + str(timestamp) + ' ]')
 
-        if alertType < 0 or 1 < alertType:
+        if alertType < 0 or 2 < alertType:
             raise ValueError('invalid alert type provided :: [ ' + str(alertType) + ' ]')
 
         if status < 0 or 2 < status:
@@ -112,9 +112,9 @@ class Revelation(Inquisit):
         alert = Alert(timestamp=timestamp, alertType=alertType, status=status, host=host, srcNode=srcNode, dstNode=dstNode, alertDetails=alertDetails)
         self.lgr.debug('created new alert :: ' + str(alert))
 
-        # add to alert store and db
+        # add to alert store
         self.alertStore.append(alert)
 
-        # add/update alert
-        self.addAlertToDB(alert=self.alertStore[-1])
+        # add alert in db
+        self.addAlertToDB(alert=alert)
 

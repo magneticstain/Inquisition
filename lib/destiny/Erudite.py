@@ -166,8 +166,8 @@ class Erudite(Destiny):
                     self.inquisitionDbHandle.commit()
                     self.lgr.debug('added [ ' + str(len(hostData)) + ' ] new hosts to known hosts table in Inquisition database')
                 except err as e:
-                    self.lgr.critical('database error when inserting known host into Inquisition database while in baseline mode :: [ ' + str(e) + ' ]')
                     self.inquisitionDbHandle.rollback()
+                    self.lgr.critical('database error when inserting known host into Inquisition database while in baseline mode :: [ ' + str(e) + ' ]')
 
     def performUnknownHostAnalysis(self):
         """
@@ -201,7 +201,7 @@ class Erudite(Destiny):
             self.lgr.debug('beginning unknown host identification')
             unknownHosts = self.identifyUnknownHosts(hostField)
             self.lgr.info(
-                'host identification complete - [ ' + str(len(unknownHosts)) + ' ] unknown hosts identified')
+                'host identification complete: [ ' + str(len(unknownHosts)) + ' ] unknown hosts identified')
 
             # check if any unknown hosts were found
             if 0 < len(unknownHosts):
@@ -243,44 +243,36 @@ class Erudite(Destiny):
                 for result in dbResults:
                     self.fieldTypes[result['type_id']] = result['type_name']
 
-    def calculateNodeOccurrenceCounts(self, srcNodeFieldName, dstNodeFieldName):
+    def calculateNodeOccurrenceCounts(self, nodeFieldName, nodeFieldType):
         """
-        Calculates the total number of occurrences we see each individual node in the raw log store
+        Calculates the total number of occurrences we see each individual node of given type and name in the raw log store
 
-        :param srcNodeFieldName: field name to use for identifying source field val
-        :param dstNodeFieldName: field name to use for identifying destination field val
+        :param nodeFieldName: field name to use for identifying field val
+        :param nodeFieldType: field value type to search for
         :return: void
         """
 
+        nodeFieldType = nodeFieldType.lower()
+
+        if not nodeFieldName:
+            raise ValueError('node field name not specified for OCC calculations')
+        if nodeFieldType not in ('src', 'dst'):
+            raise ValueError('invalid node field type specified for traffic node OCC calculation')
+
         for logIdx in self.logStore:
-            # see if source field name is present
+            # see if field name is present
             try:
-                srcNodeFieldVal = self.logStore[logIdx][srcNodeFieldName]
+                nodeFieldVal = self.logStore[logIdx][nodeFieldName]
 
                 # update log counts for val
-                if srcNodeFieldVal in self.nodeCounts['src']:
+                if nodeFieldVal in self.nodeCounts[nodeFieldType]:
                     # previous entries already found, increase count
-                    self.nodeCounts['src'][srcNodeFieldVal] += 1
-                else:
-                    # first occurance found, set to 1
-                    self.nodeCounts['src'][srcNodeFieldVal] = 1
-            except KeyError:
-                # log doesn't have anything set for src field, continue on
-                pass
-
-            # see if destination field name is present
-            try:
-                dstNodeFieldVal = self.logStore[logIdx][dstNodeFieldName]
-
-                # update log counts for val
-                if dstNodeFieldVal in self.nodeCounts['dst']:
-                    # previous entries already found, increase count
-                    self.nodeCounts['dst'][dstNodeFieldVal] += 1
+                    self.nodeCounts[nodeFieldType][nodeFieldVal] += 1
                 else:
                     # first occurrence found, set to 1
-                    self.nodeCounts['dst'][dstNodeFieldVal] = 1
+                    self.nodeCounts[nodeFieldType][nodeFieldVal] = 1
             except KeyError:
-                # log doesn't have anything set for dst field, continue onto next log
+                # log doesn't have anything set for field name, continue on
                 pass
 
     def calculateOPSForNode(self, occurrenceCount):
@@ -555,18 +547,17 @@ class Erudite(Destiny):
 
         # check for raw logs
         if self.logStore:
-            # raw logs present, initialize OCC calculations for all indiv. nodes
+            # raw logs present, initialize occurrence count calculations for all indiv. nodes for each node type
             self.lgr.debug('searching log store for source and destination traffic nodes')
-            self.calculateNodeOccurrenceCounts(srcNodeFieldName=srcNodeFieldName, dstNodeFieldName=dstNodeFieldName)
+            self.calculateNodeOccurrenceCounts(nodeFieldName=srcNodeFieldName, nodeFieldType='src')
+            self.calculateNodeOccurrenceCounts(nodeFieldName=dstNodeFieldName, nodeFieldType='dst')
 
             # take previously calculated OCCs and calculate OPS of each node set type
             self.lgr.info('calculating OPS for source and destination node sets')
-            # src
             self.calculateOPSForNodeSet('src')
-            # dst
             self.calculateOPSForNodeSet('dst')
 
-            # read in prev OPS results in db
+            # read in OPS results calculated on previous runs from db
             self.fetchNodeOPSRecordInDB()
 
             # run anomaly analysis
