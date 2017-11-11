@@ -16,7 +16,6 @@ from time import sleep
 
 # | Third-Party
 import pymysql
-import redis
 
 # | Custom
 from lib.inquisit.Inquisit import Inquisit

@@ -55,7 +55,7 @@ class Erudite(Destiny):
 
     def fetchKnownHostData(self):
         """
-        Fetches known host records from inquisition DB and inserts them into the local host store
+        Fetches known host records from inquisition DB
 
         :return: dict
         """
@@ -171,12 +171,11 @@ class Erudite(Destiny):
 
     def performUnknownHostAnalysis(self):
         """
-        Run checks for unknown hosts that are generating logs
+        Perform analysis that runs checks for unknown hosts that are generating logs
 
         :return: void
         """
 
-        # read in list of already known hosts
         # clear current master host list
         self.hostStore = []
 
@@ -529,10 +528,15 @@ class Erudite(Destiny):
         self.lgr.info('starting traffic node analysis')
 
         # get field names associated with each field type
-        srcNodeFieldName = self.getFieldNameFromType(typeID=2)
-        dstNodeFieldName = self.getFieldNameFromType(typeID=3)
-        self.lgr.debug('using [ ' + str(srcNodeFieldName) + ' ] field as source traffic node and [ '
-                       + str(dstNodeFieldName) + ' ] field as destination traffic node')
+        try:
+            srcNodeFieldName = self.getFieldNameFromType(typeID=2)
+            dstNodeFieldName = self.getFieldNameFromType(typeID=3)
+            self.lgr.debug('using [ ' + str(srcNodeFieldName) + ' ] field as source traffic node and [ '
+                           + str(dstNodeFieldName) + ' ] field as destination traffic node')
+        except KeyError as e:
+            self.lgr.warning('problem while trying to identify field names, skipping traffic analysis  :: [ ' + str(e)
+                             + ' ]')
+            return
 
         # get counts for src and dst node fields in raw logs in log store
         # reset node counts
@@ -554,7 +558,6 @@ class Erudite(Destiny):
             # raw logs present, initialize OCC calculations for all indiv. nodes
             self.lgr.debug('searching log store for source and destination traffic nodes')
             self.calculateNodeOccurrenceCounts(srcNodeFieldName=srcNodeFieldName, dstNodeFieldName=dstNodeFieldName)
-            # print("NC: " + str(self.nodeCounts))
 
             # take previously calculated OCCs and calculate OPS of each node set type
             self.lgr.info('calculating OPS for source and destination node sets')
@@ -580,12 +583,12 @@ class Erudite(Destiny):
 
     def startAnomalyDetectionEngine(self):
         """
-        Starts anomaly detection engine
+        Starts anomaly detection engine and its components
 
         :return: void
         """
 
-        # set initial start time and initial run flag for use with traffic node analysis
+        # set initial start time for use with traffic node analysis
         self.runStartTime = time()
 
         # fork process before beginning analysis
@@ -607,12 +610,13 @@ class Erudite(Destiny):
                     logType = 'baseline'
 
                 # record end time before fetching logs
+                # this is used when the loop restarts
                 self.runEndTime = time()
 
                 # fetch logs
                 self.logStore = self.fetchLogData(logType=logType)
 
-                # set cached start time as right after logs are read in so none are missed (we use this later)
+                # set cached start time right after logs are read in so no time is missed (we use this later)
                 cachedStartTime = time()
 
                 if self.logStore:

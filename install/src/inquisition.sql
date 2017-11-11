@@ -376,7 +376,6 @@ CREATE TABLE `TrafficNodeStats` (
 
 LOCK TABLES `TrafficNodeStats` WRITE;
 /*!40000 ALTER TABLE `TrafficNodeStats` DISABLE KEYS */;
-INSERT INTO `TrafficNodeStats` VALUES (1,'2017-10-22 20:58:29','2017-10-22 20:58:47','94.0.50.199',1,0.198797339569638);
 /*!40000 ALTER TABLE `TrafficNodeStats` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -437,7 +436,6 @@ CREATE TABLE `Alerts` (
 
 LOCK TABLES `Alerts` WRITE;
 /*!40000 ALTER TABLE `Alerts` DISABLE KEYS */;
-INSERT INTO `Alerts` VALUES (1,'2017-10-28 17:44:45','2017-10-28 17:44:45',1,'127.0.0.1','94.0.50.199','0.0.0.0','detected significant change in OPS for traffic node :: [ 0.154166174900941 -> 227.91414443297288 ]'),(2,'2017-10-28 17:45:08','2017-10-28 17:45:08',1,'127.0.0.1','94.0.50.199','0.0.0.0','detected significant change in OPS for traffic node :: [ 227.914144432973 -> 0.1597870696371599 ]');
 /*!40000 ALTER TABLE `Alerts` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;

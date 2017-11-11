@@ -432,7 +432,7 @@ class Parser(Inquisit):
 
         # check if we should print the raw log in our log messages
         if self.cfg.getboolean('logging', 'printMatchValues'):
-            rawLogValueForLogs = '<REDACTED BY CONFIG>'
+            rawLogValueForLogs = '< REDACTED BY CONFIG >'
         else:
             rawLogValueForLogs = rawLog
 

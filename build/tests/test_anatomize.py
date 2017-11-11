@@ -12,11 +12,9 @@ CREATION_DATE: 2017-04-28
 # MODULES
 # | Native
 import configparser
-import logging
 import unittest
 
 # | Third-Party
-import pymysql
 
 # | Custom
 from lib.anatomize.Anatomize import Anatomize
