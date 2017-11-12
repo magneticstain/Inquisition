@@ -198,21 +198,23 @@ class Erudite(Destiny):
         else:
             self.lgr.debug('using [ ' + hostField + ' ] as host-identifying field name')
 
-            self.lgr.debug('beginning unknown host identification')
+            self.lgr.info('beginning unknown host identification')
             unknownHosts = self.identifyUnknownHosts(hostField)
             self.lgr.info(
                 'host identification complete: [ ' + str(len(unknownHosts)) + ' ] unknown hosts identified')
 
             # check if any unknown hosts were found
             if 0 < len(unknownHosts):
-                # preserve hosts if in baseline mode
-                if self.cfg.getboolean('learning', 'enableBaselineMode'):
-                    # in baseline mode, add unknown hosts
-                    self.lgr.debug('in baseline mode - unknown hosts now identified as known and added to database')
-                    self.addUnknownHostData(unknownHosts)
-                else:
-                    # not in baseline mode, generate alert
-                    self.alertNode.addAlert(timestamp=int(time()), alertType=0, alertDetails='Host anomaly detected!')
+                # generate alerts if not in baseline mode
+                if not self.cfg.getboolean('learning', 'enableBaselineMode'):
+                    # not in baseline mode, generate alert(s)
+                    for host in unknownHosts:
+                        self.alertNode.addAlert(timestamp=int(time()), alertType=0, host=host,
+                                                alertDetails='Host anomaly detected!')
+
+                # add unknown hosts
+                self.addUnknownHostData(unknownHosts)
+                self.lgr.debug('unknown hosts now identified as known and added to database')
 
     def fetchFieldTypes(self):
         """
@@ -287,13 +289,16 @@ class Erudite(Destiny):
             # no occurrences seen, we can just return 0 w/o doing anything else
             return 0
 
+        timeValString = '[ START: { ' + str(self.runStartTime) + ' } // END: { ' + str(self.runEndTime) + ' } ]'
+
         if self.runStartTime < 1 or self.runEndTime < 1:
-            raise ValueError('invalid start or end time provided :: [ START: { ' + str(self.runStartTime) + ' } // END: { ' + str(self.runEndTime) + ' } ]')
+            raise ValueError('invalid start or end time provided :: ' + timeValString)
 
         # calculate elapsed time in seconds and validate it
-        elapsedTime = float(self.runEndTime) - float(self.runStartTime)
+        elapsedTime = self.runEndTime - self.runStartTime
         if elapsedTime <= 0:
-            raise ValueError('end time is the same or before start time, could not calculate occurrences per second for node')
+            raise ValueError('end time is the same or before start time; could not calculate occurrences per second for'
+                             ' node :: ' + timeValString)
 
         # calculate occ/sec
         occurrencesPerSec = float(occurrenceCount / elapsedTime)
@@ -506,8 +511,9 @@ class Erudite(Destiny):
                         alertDetails = 'detected significant change in OPS for traffic node :: [ ' + str(prevOPSResult) \
                                        + ' -> ' + str(currentOPSResult) + ' ]'
 
-                        # nodes set, add alert
-                        self.alertNode.addAlert(timestamp=int(time()), alertType=1, srcNode=srcNode, dstNode=dstNode,
+                        # nodes set, add alert if required
+                        if not self.cfg.getboolean('learning', 'enableBaselineMode'):
+                            self.alertNode.addAlert(timestamp=int(time()), alertType=1, srcNode=srcNode, dstNode=dstNode,
                                                 alertDetails=alertDetails)
 
     def performTrafficNodeAnalysis(self):
@@ -523,8 +529,8 @@ class Erudite(Destiny):
         try:
             srcNodeFieldName = self.getFieldNameFromType(typeID=2)
             dstNodeFieldName = self.getFieldNameFromType(typeID=3)
-            self.lgr.debug('using [ ' + str(srcNodeFieldName) + ' ] field as source traffic node and [ '
-                           + str(dstNodeFieldName) + ' ] field as destination traffic node')
+            self.lgr.debug('using [ ' + str(srcNodeFieldName) + ' ] field as source traffic node field name and [ '
+                           + str(dstNodeFieldName) + ' ] field as destination traffic node field name')
         except KeyError as e:
             self.lgr.warning('problem while trying to identify field names, skipping traffic analysis  :: [ ' + str(e)
                              + ' ]')
@@ -579,10 +585,11 @@ class Erudite(Destiny):
         :return: void
         """
 
+        self.runStartTime = time()
         analysisHasRan = False
 
         # fork process before beginning analysis
-        self.lgr.debug('forking off host-anomaly detection engine to child process')
+        self.lgr.debug('forking off host and traffic anomaly detection engine to child process')
         newTrainerPID = fork()
         if newTrainerPID == 0:
             # in child process, start analyzing
@@ -598,29 +605,29 @@ class Erudite(Destiny):
                 if self.cfg.getboolean('learning', 'enableBaselineMode'):
                     logType = 'baseline'
 
-                # record end time before fetching logs
-                # this is used when the loop restarts
-                self.runEndTime = time()
-
                 # fetch logs
                 self.logStore = self.fetchLogData(logType=logType)
 
-                # set cached start time right after logs are read in so no time is missed (we use this later)
+                # set end time and cached start time right after logs are read in so no time is missed (we use this later)
+                self.runEndTime = time()
                 cachedStartTime = time()
 
-                # only run analysis if we have logs and have ran an analysis before
-                # we get bad results on the first run, see Issue #54
-                if self.logStore and analysisHasRan:
+                if self.logStore:
                     # raw logs available
                     # start unknown host analysis
                     self.performUnknownHostAnalysis()
 
                     # start traffic node analysis
-                    self.performTrafficNodeAnalysis()
+                    # only run analysis if we have logs and have ran an analysis before
+                    # we get bad results on the first run, see Issue #54
+                    if analysisHasRan:
+                        self.performTrafficNodeAnalysis()
+                    else:
+                        self.lgr.debug('skipping traffic node analysis since this is the first run (see Issue #54)')
                 else:
                     self.lgr.info('no raw logs to perform host anomaly detection on - sleeping...')
 
-                # set cached start time as current start time now that analysis is done and we don't need the old time
+                # update orig start time with cached start time now that we're done with the orig time
                 self.runStartTime = cachedStartTime
 
                 analysisHasRan = True

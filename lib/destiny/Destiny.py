@@ -79,6 +79,8 @@ class Destiny(Inquisit):
             # add to log data collection
             logData[logRecordKey.decode('utf-8')] = decodedLogItem
 
+        self.lgr.debug('fetched and decoded [ ' + str(len(logData)) + ' ] log records from db')
+
         return logData
 
     def getUniqueLogDataFields(self, logData):

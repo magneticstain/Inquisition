@@ -140,7 +140,7 @@ CREATE TABLE `Fields` (
   `field_name` varchar(40) NOT NULL,
   `updated` datetime DEFAULT NULL,
   `created` datetime DEFAULT NULL,
-  `field_type` int(11) NOT NULL DEFAULT '0',
+  `field_type` int(11) DEFAULT NULL,
   PRIMARY KEY (`field_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -226,7 +226,7 @@ CREATE TABLE `KnownHosts` (
   `host_val` varchar(65) DEFAULT NULL,
   `events_per_second` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`host_id`),
-  KEY `hv_field` (`host_val`)
+  UNIQUE KEY `uk_host_val` (`host_val`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -372,7 +372,7 @@ CREATE TABLE `TrafficNodeStats` (
   `field_type_id` int(11) NOT NULL,
   `occ_per_sec` double NOT NULL DEFAULT '0',
   PRIMARY KEY (`stat_id`),
-  UNIQUE KEY `uk_node_val` (`node_val`)
+  UNIQUE KEY `uk_node_val` (`node_val`,`field_type_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
