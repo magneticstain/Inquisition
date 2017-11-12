@@ -579,8 +579,7 @@ class Erudite(Destiny):
         :return: void
         """
 
-        # set initial start time for use with traffic node analysis
-        self.runStartTime = time()
+        analysisHasRan = False
 
         # fork process before beginning analysis
         self.lgr.debug('forking off host-anomaly detection engine to child process')
@@ -594,7 +593,6 @@ class Erudite(Destiny):
             while True:
                 # fetch raw logs
                 self.lgr.info('fetching raw logs for anomaly detection')
-
                 # get baseline logs if in baseline mode, raw if not
                 logType = 'raw'
                 if self.cfg.getboolean('learning', 'enableBaselineMode'):
@@ -610,18 +608,22 @@ class Erudite(Destiny):
                 # set cached start time right after logs are read in so no time is missed (we use this later)
                 cachedStartTime = time()
 
-                if self.logStore:
+                # only run analysis if we have logs and have ran an analysis before
+                # we get bad results on the first run, see Issue #54
+                if self.logStore and analysisHasRan:
                     # raw logs available
                     # start unknown host analysis
                     self.performUnknownHostAnalysis()
 
                     # start traffic node analysis
                     self.performTrafficNodeAnalysis()
-
-                    # set cached start time as current start time now that analysis is done and we don't need the old time
-                    self.runStartTime = cachedStartTime
                 else:
                     self.lgr.info('no raw logs to perform host anomaly detection on - sleeping...')
+
+                # set cached start time as current start time now that analysis is done and we don't need the old time
+                self.runStartTime = cachedStartTime
+
+                analysisHasRan = True
 
                 # sleep for determined time
                 self.lgr.debug('anomaly detection engine is sleeping for [ ' + str(sleepTime)
