@@ -109,7 +109,7 @@ class Template:
     def __str__(self):
         """
         Override __str__special method to print template metadata when obj is treated as a string
-        
+
         :return: str
         """
 

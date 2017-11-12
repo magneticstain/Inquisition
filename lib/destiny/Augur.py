@@ -53,7 +53,7 @@ class Augur(Inquisit):
     def getXMLSrcData(self, url):
         """
         Fetch raw XML from given URL and return as dict
-        
+
         :param url: url to fetch XML from
         :return: BeautifulSoup obj
         """

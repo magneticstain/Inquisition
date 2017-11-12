@@ -112,7 +112,7 @@ class Sage(Destiny):
                     rawTrainingDataset.update(self.baselineLogStore)
                     rawTrainingDataset.update(self.intelLogStore)
 
-                    # get list of unique fields
+                    # get list of unique fields in both training and testing log sets
                     self.lgr.debug('calculating unique field list for training and testing data initialization')
                     uniqueFieldsForTraining = self.getUniqueLogDataFields(rawTrainingDataset)
                     uniqueFieldsForTesting = self.getUniqueLogDataFields(self.logStore)
@@ -135,6 +135,7 @@ class Sage(Destiny):
                                 self.lgr.info('making predictions for testing data')
                                 predictionResults = self.networkThreatClassifier.predict(testingData)
                                 self.lgr.info('threat detection results :: { ' + str(predictionResults) + ' }')
+                                # TODO: process results
                         else:
                             self.lgr.info('no raw log available for threat detection - sleeping...')
                     else:

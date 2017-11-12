@@ -246,7 +246,7 @@ class Parser(Inquisit):
     def resetParserStats(self, statType=None, statData=None, updateLogDb=True):
         """
         Reset all or specific stat(s)
-        
+
         :param statType: stat key to reset (default: None, meaning reset all stats)
         :param statData: value to reset stat to
         :param updateLogDb: flag indication whether we should update the db or just the in-memory stats (default: T)
