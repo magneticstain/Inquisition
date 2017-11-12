@@ -299,7 +299,7 @@ class Parser(Inquisit):
     def printStats(self, runSpecific=False, raw=False):
         """
         Generate stats in string or raw form
-        
+
         :param raw: flag to determine if raw stats in dict form should be returned (default: False)
         :param runSpecific: flag to determine whether to return general parser stats (F) or stats related to the current
                             run (T)
@@ -329,7 +329,7 @@ class Parser(Inquisit):
     def parseLog(self, rawLog):
         """
         Parse log into individual fields and stick them in a database
-        
+
         :param rawLog: a raw log to be processed, coming in in the form of a string
         :return: bool
         """
@@ -419,7 +419,7 @@ class Parser(Inquisit):
     def processLog(self, rawLog):
         """
         Filter and process raw log
-        
+
         :param rawLog: a raw log to be processed, coming in in the form of a string
         :return: bool
         """
@@ -466,7 +466,7 @@ class Parser(Inquisit):
     def pollLogFile(self, isTestRun=False, useHazyStateTracking=False, numLogsBetweenTrackingUpdate=0):
         """
         Tails the log file for new logs and processes them
-        
+
         :param isTestRun: signifies if we're performing a test run or not
         :param useHazyStateTracking: this feature gives up some exactitude in exchange for better efficiency and
                                         faster speeds; updates the offset file every $numLogsBetweenTrackingUpdate
@@ -582,7 +582,7 @@ class Parser(Inquisit):
     def __str__(self):
         """
         Print metadata as a string
-        
+
         :return: str
         """
 
