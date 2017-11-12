@@ -85,7 +85,8 @@ class Revelation(Inquisit):
 
                 return False
 
-    def addAlert(self, timestamp=0, alertType=0, status=0, host='127.0.0.1', srcNode='0.0.0.0', dstNode='0.0.0.0', alertDetails=''):
+    def addAlert(self, timestamp=0, alertType=0, status=0, host='127.0.0.1', srcNode='0.0.0.0', dstNode='0.0.0.0',
+                 alertDetails=''):
         """
         Generate an alert with given parameters and make it persistent
 \
@@ -109,7 +110,8 @@ class Revelation(Inquisit):
             raise ValueError('invalid alert status provided :: [ ' + str(status) + ' ]')
 
         # create alert
-        alert = Alert(timestamp=timestamp, alertType=alertType, status=status, host=host, srcNode=srcNode, dstNode=dstNode, alertDetails=alertDetails)
+        alert = Alert(timestamp=timestamp, alertType=alertType, status=status, host=host, srcNode=srcNode,
+                      dstNode=dstNode, alertDetails=alertDetails)
         self.lgr.debug('created new alert :: ' + str(alert))
 
         # add to alert store

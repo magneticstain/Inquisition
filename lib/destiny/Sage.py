@@ -11,7 +11,7 @@ CREATION_DATE: 2017-09-02
 # MODULES
 # | Native
 from os import fork
-from time import sleep
+from time import sleep,time
 
 # | Third-Party
 from sklearn import svm
@@ -75,6 +75,19 @@ class Sage(Destiny):
         self.lgr.debug('fetching testing (raw log) data')
         self.logStore = self.fetchLogData('raw')
 
+    def processTestingResults(self, results):
+        """
+        Check results and generate alerts if needed
+
+        :param results: results from running testing data through network threat engine model
+        :return: void
+        """
+
+        for result in results:
+            if result:
+                # model detected this as a threat, raise alert
+                self.alertNode.addAlert(timestamp=int(time()), alertType=2, alertDetails='Network threat detected!')
+
     def startNetworkThreatEngine(self):
         """
         Run network threat analysis engine and all needed components
@@ -118,7 +131,8 @@ class Sage(Destiny):
                     uniqueFieldsForTesting = self.getUniqueLogDataFields(self.logStore)
                     uniqueFields = list(set(uniqueFieldsForTraining + uniqueFieldsForTesting))
 
-                    trainingData, trainingTargets = self.initializeLogData(rawTrainingDataset, uniqueFields, 'training', targetFieldName)
+                    trainingData, trainingTargets = self.initializeLogData(rawTrainingDataset, uniqueFields, 'training',
+                                                                           targetFieldName)
 
                     # run model evaluation and print results
                     self.lgr.info('training threat detection model')
@@ -130,12 +144,14 @@ class Sage(Destiny):
                             self.lgr.debug('initializing log data')
                             testingData = self.initializeLogData(self.logStore, uniqueFields, 'testing')
                             if testingData == None:
-                                self.lgr.info('no data after initialization for threat detection - sleeping...')
+                                self.lgr.info('no data after initialization for threat detection, sleeping...')
                             else:
                                 self.lgr.info('making predictions for testing data')
                                 predictionResults = self.networkThreatClassifier.predict(testingData)
                                 self.lgr.info('threat detection results :: { ' + str(predictionResults) + ' }')
-                                # TODO: process results
+
+                                self.lgr.debug('processing threat detection results')
+                                self.processTestingResults(results=predictionResults)
                         else:
                             self.lgr.info('no raw log available for threat detection - sleeping...')
                     else:
