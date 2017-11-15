@@ -227,7 +227,7 @@ class Augur(Inquisit):
                         iocData[apiName] = self.parseIntelXML(rawXml)
                     else:
                         # could not fetch XML
-                        self.lgr.critical('could not fetch intel data feed :: [ ' + url + ' ]')
+                        self.lgr.error('could not fetch intel data feed :: [ ' + url + ' ]')
 
                 # make ioc data persistent
                 self.lgr.debug('saving intel data')

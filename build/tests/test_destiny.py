@@ -12,7 +12,6 @@ CREATION_DATE: 2017-11-04
 # MODULES
 # | Native
 import configparser
-import logging
 import unittest
 
 # | Third-Party

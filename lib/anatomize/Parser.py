@@ -427,8 +427,8 @@ class Parser(Inquisit):
         # check if the log processing max has been reached, exit if so
         if self.maxLogsToProcess > 0 and self.stats['total_logs_processed'] > self.maxLogsToProcess:
             # we hit the limit, let's exit
-            self.lgr.info('will NOT PROCESS log, max number of logs to process has been reached; exiting w/ SUCCESS')
-            exit(0)
+            self.lgr.info('will NOT PROCESS log, max number of logs to process has been reached')
+            return False
 
         # check if we should print the raw log in our log messages
         if self.cfg.getboolean('logging', 'printMatchValues'):
@@ -463,7 +463,8 @@ class Parser(Inquisit):
 
         return True
 
-    def pollLogFile(self, isTestRun=False, useHazyStateTracking=False, numLogsBetweenTrackingUpdate=0):
+    def pollLogFile(self, isTestRun=False, useHazyStateTracking=False, numLogsBetweenTrackingUpdate=0,
+                    exitOnMaxLogs=True):
         """
         Tails the log file for new logs and processes them
 
@@ -471,7 +472,9 @@ class Parser(Inquisit):
         :param useHazyStateTracking: this feature gives up some exactitude in exchange for better efficiency and
                                         faster speeds; updates the offset file every $numLogsBetweenTrackingUpdate
         :param numLogsBetweenTrackingUpdate: num logs to update offset file after
-        :return: void
+        :param exitOnMaxLogs: denotes whether we should exit (True) or just return False if we hit the max logs to
+                                process limit
+        :return: bool
         """
 
         totalRunStartTime = datetime.datetime.utcnow()
@@ -486,8 +489,12 @@ class Parser(Inquisit):
         try:
             if self.maxLogsToProcess > 0 and self.stats['total_logs_processed'] >= self.maxLogsToProcess:
                 # we hit the limit, let's exit
-                self.lgr.info('max number of logs to process has been reached, exiting w/ SUCCESS')
-                exit(0)
+                self.lgr.info('max number of logs to process has been reached')
+                if exitOnMaxLogs:
+                    self.lgr.info('exiting successfully due to configuration options')
+                    exit(0)
+                else:
+                    return False
         except KeyError:
             # this means we haven't read any logs and haven't set the TLP stat yet; we can just proceed
             pass
@@ -578,6 +585,8 @@ class Parser(Inquisit):
             self.lgr.info(statsLogMsg)
         else:
             self.lgr.debug(statsLogMsg)
+
+        return True
 
     def __str__(self):
         """

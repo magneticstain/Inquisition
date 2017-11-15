@@ -259,7 +259,7 @@ class ParserTestCase(unittest.TestCase):
             # set log file
             self.parser.logFile = 'build/src/sample_logs/bluecoat.log'
 
-            self.parser.pollLogFile()
+            self.parser.pollLogFile(exitOnMaxLogs=False)
 
             self.assertTrue(True)
         except Exception:
