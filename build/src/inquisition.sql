@@ -236,6 +236,7 @@ CREATE TABLE `KnownHosts` (
 
 LOCK TABLES `KnownHosts` WRITE;
 /*!40000 ALTER TABLE `KnownHosts` DISABLE KEYS */;
+INSERT INTO `KnownHosts` VALUES (1,'2017-11-12 17:08:25','2017-11-12 17:08:25','3.2.4.8',0);
 /*!40000 ALTER TABLE `KnownHosts` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;

@@ -60,7 +60,7 @@ class Erudite(Destiny):
         :return: dict
         """
 
-        hosts = []
+        hosts = ()
 
         # define sql
         sql = """
