@@ -60,6 +60,8 @@ class Erudite(Destiny):
         :return: dict
         """
 
+        hosts = []
+
         # define sql
         sql = """
                 SELECT 
@@ -218,7 +220,7 @@ class Erudite(Destiny):
 
     def fetchFieldTypes(self):
         """
-        Read in field types and their IDs to class var from DB
+        Read in field types and their IDs to class var from DB [[* FOR FUTURE USE]]
 
         :return: void
         """
@@ -245,11 +247,32 @@ class Erudite(Destiny):
                 for result in dbResults:
                     self.fieldTypes[result['type_id']] = result['type_name']
 
+    def initTrafficNodeAnalysisCalculations(self):
+        """
+        Resets all class variables for traffic analysis calculations
+
+        :return: void
+        """
+
+        # reset node counts
+        self.nodeCounts = {
+            'src': {},
+            'dst': {}
+        }
+        self.nodeOPSResults = {
+            'src': {},
+            'dst': {}
+        }
+        self.prevNodeOPSResults = {
+            'src': {},
+            'dst': {}
+        }
+
     def calculateNodeOccurrenceCounts(self, nodeFieldName, nodeFieldType):
         """
         Calculates the total number of occurrences we see each individual node of given type and name in the raw log store
 
-        :param nodeFieldName: field name to use for identifying field val
+        :param nodeFieldName: key name to use for identifying field val in log record dicts
         :param nodeFieldType: field value type to search for
         :return: void
         """
@@ -292,7 +315,7 @@ class Erudite(Destiny):
         timeValString = '[ START: { ' + str(self.runStartTime) + ' } // END: { ' + str(self.runEndTime) + ' } ]'
 
         if self.runStartTime < 1 or self.runEndTime < 1:
-            raise ValueError('invalid start or end time provided :: ' + timeValString)
+            raise ValueError('invalid start or end time set :: ' + timeValString)
 
         # calculate elapsed time in seconds and validate it
         elapsedTime = self.runEndTime - self.runStartTime
@@ -536,21 +559,9 @@ class Erudite(Destiny):
                              + ' ]')
             return
 
-        # get counts for src and dst node fields in raw logs in log store
-        # reset node counts
-        self.nodeCounts = {
-            'src': {},
-            'dst': {}
-        }
-        self.nodeOPSResults = {
-            'src': {},
-            'dst': {}
-        }
-        self.prevNodeOPSResults = {
-            'src': {},
-            'dst': {}
-        }
+        self.initTrafficNodeAnalysisCalculations()
 
+        # get counts for src and dst node fields in raw logs in log store
         # check for raw logs
         if self.logStore:
             # raw logs present, initialize occurrence count calculations for all indiv. nodes for each node type

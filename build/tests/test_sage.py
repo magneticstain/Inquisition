@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 """
-test_destiny.py
+test_sage.py
 
 APP: Inquisition
 DESC: Unit test for Sage library
@@ -12,9 +12,7 @@ CREATION_DATE: 2017-11-12
 # MODULES
 # | Native
 import configparser
-from os import fork
 import unittest
-from unittest.mock import patch
 
 # | Third-Party
 from sklearn import svm
