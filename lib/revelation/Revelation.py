@@ -86,7 +86,7 @@ class Revelation(Inquisit):
                 return False
 
     def addAlert(self, timestamp=0, alertType=0, status=0, host='127.0.0.1', srcNode='0.0.0.0', dstNode='0.0.0.0',
-                 alertDetails=''):
+                 alertDetails='', addAlertToDb=True):
         """
         Generate an alert with given parameters and make it persistent
 \
@@ -97,6 +97,7 @@ class Revelation(Inquisit):
         :param srcNode: source host that generated the alert
         :param dstNode: destination host that generated the alert
         :param alertDetails: blob of text constituting the additional details of the alert
+        :param addAlertToDb: bool determining whether we should add the alert to the db along with the alert store
         :return: void
         """
 
@@ -117,6 +118,7 @@ class Revelation(Inquisit):
         # add to alert store
         self.alertStore.append(alert)
 
-        # add alert in db
-        self.addAlertToDB(alert=alert)
+        if addAlertToDb:
+            # add alert in db
+            self.addAlertToDB(alert=alert)
 
