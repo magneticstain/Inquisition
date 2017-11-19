@@ -16,6 +16,9 @@ function createDirStructure()
     mkdir $1'/tmp/' > /dev/null 2>&1
     echo "Creating log directory @ [ $2 ]..."
     mkdir $2 > /dev/null 2>&1
+
+    # update directory perms
+    chown -R travis $1 $2
 }
 
 function syncAppFiles()
