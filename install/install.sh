@@ -32,17 +32,17 @@ function runBuildPrep()
     TEST_LOG_DIR="$1/test_logs/"
     echo "Using [ $TEST_LOG_DIR ] for storing sample logs"
 
-    # update directory perms
-    mkdir $TEST_LOG_DIR > /dev/null 2>&1
-    chown -R travis $1
-    chmod -R 774 $1
-    chown -R travis $TEST_LOG_DIR
-    chmod -R 774 $TEST_LOG_DIR
-
     # create and xfer test/sample log files
     sudo touch /var/log/inaccessible_test_log
     sudo chmod 600 /var/log/inaccessible_test_log
+    mkdir $TEST_LOG_DIR > /dev/null 2>&1
     cp -rf build/src/sample_logs/* $TEST_LOG_DIR
+
+    # update directory perms
+    chown -R travis $1
+    chmod -R 777 $1
+    chown -R travis $TEST_LOG_DIR
+    chmod -R 777 $TEST_LOG_DIR
 }
 
 function initializeInquisitionDb()
