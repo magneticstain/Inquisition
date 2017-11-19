@@ -121,6 +121,8 @@ class Parser(Inquisit):
 
                 self.lgr.debug('loaded template SUCCESSFULLY :: ' + str(templates[row['TID']]))
 
+            dbCursor.close()
+
         return templates
 
     def updateStatInLogDB(self, statName, action='incrby', incrAmt=0, newVal=0, strict=False, statKey=None,

@@ -46,6 +46,8 @@ class Revelation(Inquisit):
         :return: bool
         """
 
+        status = False
+
         # set sql
         sql = """
                 INSERT INTO 
@@ -76,14 +78,14 @@ class Revelation(Inquisit):
                     self.lgr.debug(
                         'successfully added alert ' + str(alert) + ' to Inquisition database')
 
-                return True
+                status = True
             except err as e:
                 self.inquisitionDbHandle.rollback()
                 self.lgr.critical(
                     'database error when adding new alert ' + str(alert) + ' :: [ ' + str(
                         e) + ' ]')
 
-                return False
+            dbCursor.close()
 
     def addAlert(self, timestamp=0, alertType=0, status=0, host='127.0.0.1', srcNode='0.0.0.0', dstNode='0.0.0.0',
                  alertDetails='', addAlertToDb=True):

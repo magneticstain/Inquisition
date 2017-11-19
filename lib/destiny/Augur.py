@@ -16,6 +16,7 @@ from time import sleep
 import urllib3
 
 # | Third-Party
+from pymysql import OperationalError
 from bs4 import BeautifulSoup as BSoup
 
 # | Custom
@@ -113,6 +114,8 @@ class Augur(Inquisit):
 
             # fetch results
             dbResults = dbCursor.fetchone()
+            dbCursor.close()
+            
             if dbResults:
                 return dbResults['field_name']
             else:
@@ -211,6 +214,16 @@ class Augur(Inquisit):
         self.lgr.debug('forking off OSINT feed (Augur) to child process')
         newCollectorPID = fork()
         if newCollectorPID == 0:
+            # in child process, bounce inquisition DB handle (see issue #66)
+            try:
+                self.bounceInquisitionDbConnection()
+            except OperationalError as e:
+                self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
+                if self.sentryClient:
+                    self.sentryClient.captureException()
+
+                exit(1)
+
             while True:
                 # fetch data
                 self.lgr.info('fetching intel data')

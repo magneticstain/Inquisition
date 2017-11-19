@@ -42,7 +42,8 @@ class InquisitTestCase(unittest.TestCase):
     def test_generateLogger(self):
         self.assertIsInstance(self.inquisit.lgr, logging.Logger)
 
-    def test_generateInquisitionDbConnection(self):
+    def test_bounceInquisitionDbConnection(self):
+        self.inquisit.bounceInquisitionDbConnection()
         self.assertIsInstance(self.inquisit.inquisitionDbHandle, pymysql.connections.Connection)
 
 if __name__ == '__main__':

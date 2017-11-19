@@ -15,7 +15,7 @@ from time import sleep,time
 from statistics import stdev
 
 # | Third-Party
-from pymysql import err
+from pymysql import err,OperationalError
 
 # | Custom
 from lib.destiny.Destiny import Destiny
@@ -77,6 +77,8 @@ class Erudite(Destiny):
             # fetch results
             hosts = dbCursor.fetchall()
 
+            dbCursor.close()
+
         return hosts
 
     def getFieldNameFromType(self, typeID):
@@ -114,6 +116,8 @@ class Erudite(Destiny):
                     self.lgr.warn(
                         'results returned, but field name value not found (see Issue #65 on GitHub) :: [ MSG: '
                         + str(e) + ' ]')
+
+            dbCursor.close()
 
         return hostFieldName
 
@@ -175,6 +179,8 @@ class Erudite(Destiny):
                 except err as e:
                     self.inquisitionDbHandle.rollback()
                     self.lgr.critical('database error when inserting known host into Inquisition database while in baseline mode :: [ ' + str(e) + ' ]')
+
+                dbCursor.close()
 
     def performUnknownHostAnalysis(self):
         """
@@ -251,6 +257,8 @@ class Erudite(Destiny):
                 # parse results
                 for result in dbResults:
                     self.fieldTypes[result['type_id']] = result['type_name']
+
+            dbCursor.close()
 
     def initTrafficNodeAnalysisCalculations(self):
         """
@@ -369,6 +377,8 @@ class Erudite(Destiny):
         :return: bool
         """
 
+        status = False
+
         # set sql
         sql = """
                 INSERT INTO 
@@ -406,14 +416,16 @@ class Erudite(Destiny):
                     self.lgr.debug(
                         'successfully synced node ' + nodeString + ' to traffic node tracking table in Inquisition database')
 
-                return True
+                status = True
             except err as e:
                 self.lgr.critical(
                     'database error when syncing data for ' + nodeString + ' :: [ ' + str(
                         e) + ' ]')
                 self.inquisitionDbHandle.rollback()
 
-                return False
+            dbCursor.close()
+
+        return status
 
     def syncOPSResultsToDB(self):
         """
@@ -471,6 +483,8 @@ class Erudite(Destiny):
                     self.prevNodeOPSResults[fieldType][result['node_val']] = {
                         'ops': result['occ_per_sec']
                     }
+
+            dbCursor.close()
 
     def determineOPSStdDevSignificance(self, node, nodeType, prevNodeTrafficResult, currentNodeTrafficResult):
         """
@@ -608,7 +622,15 @@ class Erudite(Destiny):
         self.lgr.debug('forking off host and traffic anomaly detection engine to child process')
         newTrainerPID = fork()
         if newTrainerPID == 0:
-            # in child process, start analyzing
+            # in child process, bounce inquisition DB handle (see issue #66)
+            try:
+                self.bounceInquisitionDbConnection()
+            except OperationalError as e:
+                self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
+                if self.sentryClient:
+                    self.sentryClient.captureException()
+
+                exit(1)
 
             # run analysis after every $sleepTime seconds
             sleepTime = int(self.cfg['learning']['anomalyDetectionSleepTime'])

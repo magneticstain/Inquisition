@@ -15,7 +15,7 @@ from os import fork
 from time import sleep
 
 # | Third-Party
-import pymysql
+from pymysql import InternalError, ProgrammingError, OperationalError
 
 # | Custom
 from lib.inquisit.Inquisit import Inquisit
@@ -47,7 +47,7 @@ class Anatomize(Inquisit):
         try:
             self.parserStore = self.fetchParsers()
             self.lgr.debug('loaded [ ' + str(len(self.parserStore)) + ' ] parsers into parser store')
-        except (pymysql.InternalError, pymysql.ProgrammingError) as e:
+        except (InternalError, ProgrammingError) as e:
             self.lgr.critical('could not fetch parsers from inquisition database :: [ ' + str(e) + ' ]')
             if Inquisit.sentryClient:
                 Inquisit.sentryClient.captureException()
@@ -93,6 +93,8 @@ class Anatomize(Inquisit):
                                                    metricsMode=self.cfg.getboolean('logging', 'enableMetricsMode'),
                                                    baselineMode=self.cfg.getboolean('learning', 'enableBaselineMode'))
 
+            dbCursor.close()
+
         return parsers
 
     def startAnatomizer(self):
@@ -128,7 +130,17 @@ class Anatomize(Inquisit):
                            + ' ] to child process')
             newParserPID = fork()
             if newParserPID == 0:
-                # in child process, start parsing
+                # in child process, bounce inquisition DB handle (see issue #66)
+                try:
+                    self.bounceInquisitionDbConnection()
+                except OperationalError as e:
+                    self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
+                    if self.sentryClient:
+                        self.sentryClient.captureException()
+
+                    exit(1)
+
+                # start parsing
                 numRuns = 0
                 numRunsBetweenStats = int(self.cfg['parsing']['numSleepsBetweenStats'])
                 sleepTime = int(self.cfg['parsing']['sleepTime'])

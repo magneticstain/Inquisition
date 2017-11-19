@@ -14,6 +14,7 @@ from os import fork
 from time import sleep,time
 
 # | Third-Party
+from pymysql import OperationalError
 from sklearn import svm
 
 # | Custom
@@ -99,7 +100,16 @@ class Sage(Destiny):
         self.lgr.debug('forking off engine to child process')
         newTrainerPID = fork()
         if newTrainerPID == 0:
-            # in child process, start analyzing
+            # in child process, bounce inquisition DB handle (see issue #66)
+            try:
+                self.bounceInquisitionDbConnection()
+            except OperationalError as e:
+                self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
+                if self.sentryClient:
+                    self.sentryClient.captureException()
+
+                exit(1)
+
             # create model
             self.lgr.debug('initializing classifier')
             self.initClassifier()

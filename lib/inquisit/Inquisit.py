@@ -58,16 +58,7 @@ class Inquisit:
 
         # create connection to inquisition db
         try:
-            self.inquisitionDbHandle = Inquisit.generateInquisitionDbConnection(cfg['mysql_database']['db_user'],
-                                                                                cfg['mysql_database']['db_pass'],
-                                                                                cfg['mysql_database']['db_name'],
-                                                                                cfg['mysql_database']['db_host'],
-                                                                                int(cfg['mysql_database']['db_port']))
-
-            self.lgr.debug('database connection established for main inquisition database :: [ '
-                           + cfg['mysql_database']['db_host'] + ':' + cfg['mysql_database']['db_port'] + ' ]')
-
-            self.lgr.debug('all database connections established [ SUCCESSFULLY ]')
+            self.bounceInquisitionDbConnection()
         except pymysql.OperationalError as e:
             self.lgr.critical('could not create database connection :: [ ' + str(e) + ' ]')
             if self.sentryClient:
@@ -112,18 +103,26 @@ class Inquisit:
 
         return newLgr
 
-    @staticmethod
-    def generateInquisitionDbConnection(dbUser, dbPass, dbName, dbHost='127.0.0.1', dbPort=3306):
+    def bounceInquisitionDbConnection(self):
         """
-        Generate main Inquisition database connection handler
+        Reconnects to MySQL for Inquisition DB connection
 
-        :param dbUser: username of db account
-        :param dbPass: password of db account
-        :param dbName: name of database to connect to
-        :param dbHost: (Opt.) database host to connect to (default: 127.0.0.1)
-        :param dbPort: (Opt.) port to use when connecting to database host (default: 3306)
-        :return: PyMySQL connection obj
+        :return: bool
         """
 
-        return pymysql.connect(host=dbHost, port=dbPort, user=dbUser, password=dbPass, db=dbName,
-                               charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
+        # regenerate conn
+        self.inquisitionDbHandle = pymysql.connect(host=self.cfg['mysql_database']['db_host'],
+                                                   port=int(self.cfg['mysql_database']['db_port']),
+                                                   user=self.cfg['mysql_database']['db_user'],
+                                                   password=self.cfg['mysql_database']['db_pass'],
+                                                   db=self.cfg['mysql_database']['db_name'],
+                                                   charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
+        if self.inquisitionDbHandle:
+            self.lgr.debug('database connection established for main inquisition database :: [ '
+                           + self.cfg['mysql_database']['db_host'] + ':' + self.cfg['mysql_database']['db_port'] + ' ]')
+
+            self.lgr.debug('all database connections established [ SUCCESSFULLY ]')
+
+            return True
+        else:
+            return False

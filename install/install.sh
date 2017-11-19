@@ -64,7 +64,7 @@ function initializeInquisitionDb()
     mysql -u root $2 -e "CREATE DATABASE inquisition"
     echo "Creating DB service account..."
     mysql -u root $2 -e "CREATE USER inquisition@'localhost' IDENTIFIED BY ''; GRANT SELECT,INSERT,UPDATE,DELETE ON inquisition.* TO inquisition@'localhost'; FLUSH PRIVILEGES"
-    echo "Import table schema..."
+    echo "Importing table schema..."
     mysql -u root $2 inquisition < $TABLE_SCHEMA || exit 1
 }
 
