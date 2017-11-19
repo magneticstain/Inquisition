@@ -16,9 +16,6 @@ function createDirStructure()
     mkdir $1'/tmp/' > /dev/null 2>&1
     echo "Creating log directory @ [ $2 ]..."
     mkdir $2 > /dev/null 2>&1
-
-    # update directory perms
-    chown -R travis $1 $2
 }
 
 function syncAppFiles()
@@ -32,7 +29,7 @@ function runBuildPrep()
 {
     # run all steps needed to prep for build test
     echo "Running build prep..."
-    TEST_LOG_DIR="$1/test_logs/"
+    TEST_LOG_DIR="$2/test_logs/"
     echo "Using [ $TEST_LOG_DIR ] for storing sample logs"
 
     # create and xfer test/sample log files
@@ -44,6 +41,8 @@ function runBuildPrep()
     # update directory perms
     chown -R travis $1
     chmod -R 777 $1
+    chown -R travis $2
+    chmod -R 777 $2
     chown -R travis $TEST_LOG_DIR
     chmod -R 777 $TEST_LOG_DIR
 }
@@ -102,7 +101,7 @@ syncAppFiles $APP_DIR
 # run build prep if needed
 if [ $BUILD_FLAG == 1 ]
 then
-    runBuildPrep $LOG_DIR
+    runBuildPrep $APP_DIR $LOG_DIR
 else
     # password is needed for accessing db
     MYSQL_PASS_FLAG='-p'
