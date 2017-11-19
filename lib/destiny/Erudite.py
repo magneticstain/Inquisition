@@ -108,7 +108,12 @@ class Erudite(Destiny):
             # fetch results
             dbResults = dbCursor.fetchone()
             if dbResults:
-                hostFieldName = dbResults['field_name']
+                try:
+                    hostFieldName = dbResults['field_name']
+                except KeyError as e:
+                    self.lgr.warn(
+                        'results returned, but field name value not found (see Issue #65 on GitHub) :: [ MSG: '
+                        + str(e) + ' ]')
 
         return hostFieldName
 
