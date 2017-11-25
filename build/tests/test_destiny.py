@@ -69,13 +69,13 @@ class DestinyTestCase(unittest.TestCase):
 
     def test_getUniqueLogDataFields(self):
         logSet = self.destiny.fetchLogData()
-        uniqueFields = self.destiny.getUniqueLogDataFields(logSet)
+        uniqueFields = Destiny.getUniqueLogDataFields(logSet)
 
         self.assertGreater(len(uniqueFields), 0)
 
     def test_initializeLogData(self):
         logSet = self.destiny.fetchLogData('baseline')
-        uniqueFields = self.destiny.getUniqueLogDataFields(logSet)
+        uniqueFields = Destiny.getUniqueLogDataFields(logSet)
         encTrainingData, targetData = self.destiny.initializeLogData(logData=logSet, uniqueFields=uniqueFields,
                                                              dataUsage='training', targetFieldName='threat')
 
@@ -88,7 +88,7 @@ class DestinyTestCase(unittest.TestCase):
 
     def test_initializeLogData_noLogData(self):
         logSet = self.destiny.fetchLogData('baseline')
-        uniqueFields = self.destiny.getUniqueLogDataFields(logSet)
+        uniqueFields = Destiny.getUniqueLogDataFields(logSet)
 
         try:
             encTrainingData, targetData = self.destiny.initializeLogData(logData={}, uniqueFields=uniqueFields,
@@ -107,7 +107,7 @@ class DestinyTestCase(unittest.TestCase):
 
     def test_initializeLogData_invalidDataUsageOption(self):
         logSet = self.destiny.fetchLogData('baseline')
-        uniqueFields = self.destiny.getUniqueLogDataFields(logSet)
+        uniqueFields = Destiny.getUniqueLogDataFields(logSet)
 
         try:
             encTrainingData, targetData = self.destiny.initializeLogData(logData=logSet, uniqueFields=uniqueFields,
@@ -118,7 +118,7 @@ class DestinyTestCase(unittest.TestCase):
 
     def test_initializeLogData_invalidTargetFieldName(self):
         logSet = self.destiny.fetchLogData('baseline')
-        uniqueFields = self.destiny.getUniqueLogDataFields(logSet)
+        uniqueFields = Destiny.getUniqueLogDataFields(logSet)
 
         try:
             encTrainingData, targetData = self.destiny.initializeLogData(logData=logSet, uniqueFields=uniqueFields,
@@ -128,7 +128,7 @@ class DestinyTestCase(unittest.TestCase):
 
     def test_initializeLogData_sendTrainingDataWithoutTFN(self):
         logSet = self.destiny.fetchLogData('baseline')
-        uniqueFields = self.destiny.getUniqueLogDataFields(logSet)
+        uniqueFields = Destiny.getUniqueLogDataFields(logSet)
 
         try:
             encTrainingData, targetData = self.destiny.initializeLogData(logData=logSet, uniqueFields=uniqueFields,

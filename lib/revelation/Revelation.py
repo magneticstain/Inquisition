@@ -46,8 +46,6 @@ class Revelation(Inquisit):
         :return: bool
         """
 
-        status = False
-
         # set sql
         sql = """
                 INSERT INTO 

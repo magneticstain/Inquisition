@@ -159,6 +159,8 @@ def main():
             # not running in baseline mode; start network threat detection engine
             # network threat engine (Sage)
             sage.startNetworkThreatEngine()
+        else:
+            lgr.info('running in baseline mode, not running network threat analysis engine (Sage)')
     else:
         msg = 'configuration check is SUCCESSFUL, exiting...'
         print('[INFO] ' + msg)

@@ -115,7 +115,7 @@ class Augur(Inquisit):
             # fetch results
             dbResults = dbCursor.fetchone()
             dbCursor.close()
-            
+
             if dbResults:
                 return dbResults['field_name']
             else:

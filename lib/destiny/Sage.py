@@ -137,8 +137,8 @@ class Sage(Destiny):
 
                     # get list of unique fields in both training and testing log sets
                     self.lgr.debug('calculating unique field list for training and testing data initialization')
-                    uniqueFieldsForTraining = self.getUniqueLogDataFields(rawTrainingDataset)
-                    uniqueFieldsForTesting = self.getUniqueLogDataFields(self.logStore)
+                    uniqueFieldsForTraining = Destiny.getUniqueLogDataFields(rawTrainingDataset)
+                    uniqueFieldsForTesting = Destiny.getUniqueLogDataFields(self.logStore)
                     uniqueFields = list(set(uniqueFieldsForTraining + uniqueFieldsForTesting))
 
                     trainingData, trainingTargets = self.initializeLogData(rawTrainingDataset, uniqueFields, 'training',

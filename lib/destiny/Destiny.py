@@ -83,7 +83,8 @@ class Destiny(Inquisit):
 
         return logData
 
-    def getUniqueLogDataFields(self, logData):
+    @staticmethod
+    def getUniqueLogDataFields(logData):
         """
         Returns unique list of field names from log data for future use as learning model features
 
