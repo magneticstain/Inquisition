@@ -75,8 +75,6 @@ class Revelation(Inquisit):
                 if self.cfg.getboolean('logging', 'verbose'):
                     self.lgr.debug(
                         'successfully added alert ' + str(alert) + ' to Inquisition database')
-
-                status = True
             except err as e:
                 self.inquisitionDbHandle.rollback()
                 self.lgr.critical(
