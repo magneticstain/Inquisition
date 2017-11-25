@@ -179,8 +179,8 @@ class Erudite(Destiny):
                 except err as e:
                     self.inquisitionDbHandle.rollback()
                     self.lgr.critical('database error when inserting known host into Inquisition database while in baseline mode :: [ ' + str(e) + ' ]')
-
-                dbCursor.close()
+                finally:
+                    dbCursor.close()
 
     def performUnknownHostAnalysis(self):
         """
@@ -422,8 +422,8 @@ class Erudite(Destiny):
                     'database error when syncing data for ' + nodeString + ' :: [ ' + str(
                         e) + ' ]')
                 self.inquisitionDbHandle.rollback()
-
-            dbCursor.close()
+            finally:
+                dbCursor.close()
 
         return status
 

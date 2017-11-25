@@ -110,6 +110,15 @@ class Inquisit:
         :return: bool
         """
 
+        # check if connection already exists
+        try:
+            if self.inquisitionDbHandle:
+                self.inquisitionDbHandle.close()
+        except AttributeError:
+            # sometimes the above statement does fail properly when inquisitionDbHandle == None
+            # this is harmless; see Issue #66
+            pass
+
         # regenerate conn
         self.inquisitionDbHandle = pymysql.connect(host=self.cfg['mysql_database']['db_host'],
                                                    port=int(self.cfg['mysql_database']['db_port']),
@@ -118,10 +127,8 @@ class Inquisit:
                                                    db=self.cfg['mysql_database']['db_name'],
                                                    charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
         if self.inquisitionDbHandle:
-            self.lgr.debug('database connection established for main inquisition database :: [ '
+            self.lgr.debug('database connection established [ SUCCESSFULLY ] for main inquisition database :: [ '
                            + self.cfg['mysql_database']['db_host'] + ':' + self.cfg['mysql_database']['db_port'] + ' ]')
-
-            self.lgr.debug('all database connections established [ SUCCESSFULLY ]')
 
             return True
         else:

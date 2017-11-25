@@ -41,12 +41,12 @@ class AugurTestCase(unittest.TestCase):
     def test_getXMLSrcData_validURL(self):
         responseData = self.augur.getXMLSrcData(url='https://isc.sans.edu/api/openiocsources/')
 
-        self.assertIsInstance(self.responseData, BSoup)
+        self.assertIsInstance(responseData, BSoup)
 
     def test_getXMLSrcData_invalidURL(self):
         responseData = self.augur.getXMLSrcData(url='https://invalid.url/')
 
-        self.assertEqual(self.responseData, {})
+        self.assertEqual(responseData, {})
 
     def test_getXMLSrcData_blankURL(self):
         try:
