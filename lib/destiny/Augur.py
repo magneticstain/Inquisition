@@ -210,10 +210,19 @@ class Augur(Inquisit):
 
         iocData = {}
 
+        # check if this is a test run
+        try:
+            testRun = self.cfg.getboolean('cli', 'test_run')
+        except KeyError:
+            # test run not defined, set to default of FALSE
+            self.lgr.warning('test run flag not set, defaulting to [ FALSE ]')
+
+            testRun = False
+
         # fork process before beginning stream
         self.lgr.debug('forking off OSINT feed (Augur) to child process')
         newCollectorPID = fork()
-        if newCollectorPID == 0:
+        if newCollectorPID == 0 or testRun:
             # in child process, bounce inquisition DB handle (see issue #66)
             try:
                 self.bounceInquisitionDbConnection()

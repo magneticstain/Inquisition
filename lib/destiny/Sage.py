@@ -96,10 +96,19 @@ class Sage(Destiny):
         :return: void
         """
 
+        # check if this is a test run
+        try:
+            testRun = self.cfg.getboolean('cli', 'test_run')
+        except KeyError:
+            # test run not defined, set to default of FALSE
+            self.lgr.warning('test run flag not set, defaulting to [ FALSE ]')
+
+            testRun = False
+
         # fork process before beginning analysis
         self.lgr.debug('forking off engine to child process')
         newTrainerPID = fork()
-        if newTrainerPID == 0:
+        if newTrainerPID == 0 or testRun:
             # in child process, bounce inquisition DB handle (see issue #66)
             try:
                 self.bounceInquisitionDbConnection()

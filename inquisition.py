@@ -49,7 +49,7 @@ def parseCliArgs():
     cliParser.add_argument('-k', '--config-check', action='store_true',
                            help='Try running Inquisition up to after the configs are read in and parsed', default=False)
     cliParser.add_argument('-t', '--test-run', action='store_true',
-                           help='Run Inquisition in test mode (read-only, debug-level logs, single log processes)',
+                           help='Run Inquisition in test mode (read-only, debug-level logs, single processes)',
                            default=False)
     cliParser.add_argument('-l', '--max-logs-to-parse',
                            help='The maximum number of logs to parse before the parser dies', default=-1)

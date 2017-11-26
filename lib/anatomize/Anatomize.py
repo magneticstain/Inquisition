@@ -129,7 +129,7 @@ class Anatomize(Inquisit):
             self.lgr.debug('forking off parser [ ' + str(parserId) + ' - ' + self.parserStore[parserId].parserName
                            + ' ] to child process')
             newParserPID = fork()
-            if newParserPID == 0:
+            if newParserPID == 0 or testRun:
                 # in child process, bounce inquisition DB handle (see issue #66)
                 try:
                     self.bounceInquisitionDbConnection()
