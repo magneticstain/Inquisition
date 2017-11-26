@@ -674,6 +674,11 @@ class Erudite(Destiny):
                 else:
                     self.lgr.info('no raw logs to perform host anomaly detection on - sleeping...')
 
+                # check if running a test run
+                if testRun:
+                    self.lgr.debug('test run, exiting anatomizer loop')
+                    break
+
                 # update orig start time with cached start time now that we're done with the orig time
                 self.runStartTime = cachedStartTime
 

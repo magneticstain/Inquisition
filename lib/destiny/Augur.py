@@ -255,6 +255,11 @@ class Augur(Inquisit):
                 self.lgr.debug('saving intel data')
                 self.saveIntelData(iocData)
 
+                # check if running a test run
+                if testRun:
+                    self.lgr.debug('test run, exiting anatomizer loop')
+                    break
+
                 # sleep for specified time
                 sleepTime = self.cfg['intel']['sleepTime']
                 self.lgr.debug('sleeping for [ ' + str(sleepTime) + ' ] seconds')

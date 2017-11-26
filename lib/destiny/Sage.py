@@ -176,6 +176,11 @@ class Sage(Destiny):
                     else:
                         self.lgr.warn('could not train network threat model; threat detection not performed')
 
+                # check if running a test run
+                if testRun:
+                    self.lgr.debug('test run, exiting anatomizer loop')
+                    break
+
                 # sleep for determined time
                 self.lgr.debug('network threat engine is sleeping for [ ' + str(sleepTime)
                                + ' ] seconds before restarting routines')
