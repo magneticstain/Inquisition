@@ -219,9 +219,12 @@ class Augur(Inquisit):
 
             testRun = False
 
-        # fork process before beginning stream
-        self.lgr.debug('forking off OSINT feed (Augur) to child process')
-        newCollectorPID = fork()
+        newCollectorPID = 0
+        if not testRun:
+            # fork process before beginning stream
+            self.lgr.debug('forking off OSINT feed (Augur) to child process')
+            newCollectorPID = fork()
+
         if newCollectorPID == 0 or testRun:
             # in child process, bounce inquisition DB handle (see issue #66)
             try:
@@ -257,7 +260,7 @@ class Augur(Inquisit):
 
                 # check if running a test run
                 if testRun:
-                    self.lgr.debug('test run, exiting anatomizer loop')
+                    self.lgr.debug('test run, exiting augur loop')
                     break
 
                 # sleep for specified time

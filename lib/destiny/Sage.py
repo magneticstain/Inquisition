@@ -105,9 +105,11 @@ class Sage(Destiny):
 
             testRun = False
 
-        # fork process before beginning analysis
-        self.lgr.debug('forking off engine to child process')
-        newTrainerPID = fork()
+        newTrainerPID = 0
+        if not testRun:
+            # fork process before beginning analysis
+            self.lgr.debug('forking off engine to child process')
+            newTrainerPID = fork()
         if newTrainerPID == 0 or testRun:
             # in child process, bounce inquisition DB handle (see issue #66)
             try:
@@ -178,7 +180,7 @@ class Sage(Destiny):
 
                 # check if running a test run
                 if testRun:
-                    self.lgr.debug('test run, exiting anatomizer loop')
+                    self.lgr.debug('test run, exiting sage loop')
                     break
 
                 # sleep for determined time

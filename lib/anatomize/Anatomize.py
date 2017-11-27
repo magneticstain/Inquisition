@@ -125,11 +125,14 @@ class Anatomize(Inquisit):
 
         # cycle through parsers
         for parserId in self.parserStore:
-            # fork process before beginning read
-            self.lgr.debug('forking off parser [ ' + str(parserId) + ' - ' + self.parserStore[parserId].parserName
-                           + ' ] to child process')
-            newParserPID = fork()
-            if newParserPID == 0 or testRun:
+            newParserPID = 0
+            if not testRun:
+                # fork process before beginning read
+                self.lgr.debug('forking off parser [ ' + str(parserId) + ' - ' + self.parserStore[parserId].parserName
+                               + ' ] to child process')
+                newParserPID = fork()
+
+            if newParserPID == 0:
                 # in child process, bounce inquisition DB handle (see issue #66)
                 try:
                     self.bounceInquisitionDbConnection()
@@ -146,7 +149,7 @@ class Anatomize(Inquisit):
                 sleepTime = int(self.cfg['parsing']['sleepTime'])
                 while True:
                     # poll for new logs
-                    self.parserStore[parserId].pollLogFile(testRun, useHazyStateTracking=hazyStateTrackingStatus,
+                    self.parserStore[parserId].pollLogFile(isTestRun=testRun, useHazyStateTracking=hazyStateTrackingStatus,
                                                            numLogsBetweenTrackingUpdate=numLogsBetweenTrackingUpdate)
 
                     # check if running a test run

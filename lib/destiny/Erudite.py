@@ -627,10 +627,13 @@ class Erudite(Destiny):
 
             testRun = False
 
-        # fork process before beginning analysis
-        self.lgr.debug('forking off host and traffic anomaly detection engine to child process')
-        newTrainerPID = fork()
-        if newTrainerPID == 0 or testRun:
+        newAnalyzerPID = 0
+        if not testRun:
+            # fork process before beginning analysis
+            self.lgr.debug('forking off host and traffic anomaly detection engine to child process')
+            newAnalyzerPID = fork()
+
+        if newAnalyzerPID == 0 or testRun:
             # in child process, bounce inquisition DB handle (see issue #66)
             try:
                 self.bounceInquisitionDbConnection()
@@ -676,7 +679,7 @@ class Erudite(Destiny):
 
                 # check if running a test run
                 if testRun:
-                    self.lgr.debug('test run, exiting anatomizer loop')
+                    self.lgr.debug('test run, exiting erudite loop')
                     break
 
                 # update orig start time with cached start time now that we're done with the orig time
