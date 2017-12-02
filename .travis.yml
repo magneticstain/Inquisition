@@ -24,6 +24,7 @@ script:
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_hazy_tracking_enabled.cfg -t
     - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_persistent_stats_disabled.cfg -t
     - timeout 60s coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_no_log_limit.cfg -t
+    - timeout 60s coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_no_log_limit.cfg
     - coverage run --parallel-mode --source="." -m unittest discover build/tests/
     - coverage combine
 after_success:
