@@ -5,18 +5,25 @@
 [![Build Status](https://travis-ci.org/magneticstain/Inquisition.svg?branch=master)](https://travis-ci.org/magneticstain/Inquisition)
 [![Stories in Ready](https://badge.waffle.io/magneticstain/Inquisition.svg?label=ready&title=Ready)](http://waffle.io/magneticstain/Inquisition)
 
-An advanced and versatile SIEM platform for SMB and enterprise alike.
+An advanced and versatile network anomaly detection platform for SMB and enterprise alike.
 
 # Introduction
-Inquisition utilizes three pieces of software in order to analyze your environments logs and generate security events
+Inquisition utilizes three pieces of software in order to analyze your environment's logs and generate security alerts
 that you **actually** want to know about.
 
 **Anatomize.py** scans and parses your log files and sticks them in an in-memory log store for further analysis.
 
-**Destiny** utilizes machine-learning (via the SciKit library) in order to analyze the log store and generate new security events.
+**Destiny** utilizes machine-learning (via the SciKit library) in order to analyze the log store and identify anomalous events.
 
-**Celestial** provides a front-end web GUI and API for managing your Inquisition install, responding to events, and receiving
-awareness of the security of your environment.
+**Celestial** provides a front-end web GUI and API for managing your Inquisition install, receiving and responding to alerts, and 
+overeseeing the security of your environment.
+
+## What Does Inquisition Help Identify
+Since it specifically identifies anomalous network events, Inquisition specializes in alerting on security issues such as:
+* Data Exfiltration
+* Current Breaches
+* Active APT Attacks
+* Widespread malware infections (especially RAT's and trojans)
 
 # Installation
 Installation of Inquisition is easy: install the requirements, install the software, and run through setup for your environment.
