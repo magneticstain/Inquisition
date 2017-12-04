@@ -65,5 +65,11 @@ class AugurTestCase(unittest.TestCase):
         except ValueError:
             self.assertTrue(True)
 
+    def test_parseIntelXML(self):
+        responseData = self.augur.getXMLSrcData(url='https://isc.sans.edu/api/openiocsources/')
+        parsedData = self.augur.parseIntelXML(responseData)
+
+        self.assertNotEqual(parsedData, {})
+
 if __name__ == '__main__':
     unittest.main()
