@@ -85,6 +85,11 @@ class EruditeTestCase(unittest.TestCase):
         except ValueError:
             self.assertTrue(True)
 
+    def test_fetchFieldTypes(self):
+        self.erudite.fetchFieldTypes()
+
+        self.assertIsNotNone(self.erudite.fieldTypes)
+
     def test_calculateNodeOccurrenceCounts_withLogs(self):
         self.erudite.logStore = self.erudite.fetchLogData(logType='raw')
         self.erudite.initTrafficNodeAnalysisCalculations()
@@ -104,6 +109,15 @@ class EruditeTestCase(unittest.TestCase):
             self.erudite.calculateNodeOccurrenceCounts(nodeFieldName='field2', nodeFieldType='')
         except ValueError:
             self.assertTrue(True)
+
+    def test_calculateOPSForNode_zeroAndNegOccurrentCount(self):
+        OPSZero = self.erudite.calculateOPSForNode(occurrenceCount=0)
+        OPSSmallNeg = self.erudite.calculateOPSForNode(occurrenceCount=-1)
+        OPSLgNeg = self.erudite.calculateOPSForNode(occurrenceCount=-10000000000)
+
+        self.assertEqual(OPSZero, 0)
+        self.assertEqual(OPSSmallNeg, 0)
+        self.assertEqual(OPSLgNeg, 0)
 
     def test_calculateOPSForNode_defaultTimes(self):
         # run function with default class variables
@@ -129,6 +143,14 @@ class EruditeTestCase(unittest.TestCase):
         except ValueError:
             self.assertTrue(True)
 
+    def test_calculateOPSForNode_invalidTimes(self):
+        self.erudite.runStartTime = 10000
+        self.erudite.runEndTime = 1
+        try:
+            OPS = self.erudite.calculateOPSForNode(occurrenceCount=1)
+        except ValueError:
+            self.assertTrue(True)
+
     def test_calculateOPSForNode_validTimes(self):
         self.erudite.runStartTime = time()
         sleep(5)
@@ -138,12 +160,15 @@ class EruditeTestCase(unittest.TestCase):
         self.assertEqual(round(OPS, ndigits=2), 1)
 
     def test_calculateOPSForNodeSet(self):
-        self.erudite.fetchLogData(logType='raw')
+        self.erudite.logStore = self.erudite.fetchLogData(logType='raw')
+        self.erudite.runStartTime = time()
+        sleep(5)
+        self.erudite.runEndTime = time()
         self.erudite.initTrafficNodeAnalysisCalculations()
-        self.erudite.calculateNodeOccurrenceCounts(nodeFieldName='field1', nodeFieldType='src')
+        self.erudite.calculateNodeOccurrenceCounts(nodeFieldName='field2', nodeFieldType='src')
         self.erudite.calculateOPSForNodeSet(nodeSetType='src')
 
-        self.assertIsNotNone(self.erudite.nodeOPSResults['src'])
+        self.assertNotEqual(self.erudite.nodeOPSResults['src'], {})
 
     def test_calculateOPSForNodeSet_invalidNodeType(self):
         try:
@@ -155,7 +180,7 @@ class EruditeTestCase(unittest.TestCase):
         self.erudite.initTrafficNodeAnalysisCalculations()
         self.erudite.fetchNodeOPSRecordInDB()
 
-        self.assertIsNotNone(self.erudite.prevNodeOPSResults['src'])
+        self.assertNotEqual(self.erudite.prevNodeOPSResults['src'], {})
 
     def test_determineOPSStdDevSignificance_insignificantStdDev(self):
         stdDev = self.erudite.determineOPSStdDevSignificance(node='unit_test', nodeType='src',
@@ -188,7 +213,10 @@ class EruditeTestCase(unittest.TestCase):
             self.assertTrue(True)
 
     def test_performTrafficNodeAnalysis(self):
-        self.erudite.fetchLogData(logType='raw')
+        self.erudite.logStore = self.erudite.fetchLogData(logType='raw')
+        self.erudite.runStartTime = time()
+        sleep(5)
+        self.erudite.runEndTime = time()
         self.erudite.performTrafficNodeAnalysis()
 
         self.assertIsNotNone(self.erudite.nodeCounts['src'])
