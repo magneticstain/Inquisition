@@ -81,31 +81,34 @@ class Erudite(Destiny):
 
         return hosts
 
-    def getFieldNameFromType(self, typeID):
+    def getFieldNameFromType(self, fieldType='log_host'):
         """
         Get name of field to use based on type ID
 
+        :param fieldType: type of field to fetch the name of
         :return: str
         """
 
         hostFieldName = ''
 
         # define sql
-        # DEV NOTE: pymysql seems to have some sort of bug where it only validates strings correctly.
-        # If we use %d here, execute will fail even if we explicitly cast typeID as an int.
         sql = """
                 SELECT 
-                    field_name 
+                    F.field_name 
                 FROM 
-                    Fields 
+                    Fields F
+                JOIN 
+                    FieldTypes FT 
+                ON 
+                    (F.field_type=FT.type_id) 
                 WHERE 
-                    field_type = %s
+                    FT.type_name = %s
                 LIMIT 1
             """
 
         # execute query
         with self.inquisitionDbHandle.cursor() as dbCursor:
-            dbCursor.execute(sql, typeID)
+            dbCursor.execute(sql, fieldType)
 
             # fetch results
             dbResults = dbCursor.fetchone()
@@ -205,7 +208,7 @@ class Erudite(Destiny):
 
         # read through log entries for new hosts
         # get host field
-        hostField = self.getFieldNameFromType(typeID=1)
+        hostField = self.getFieldNameFromType(fieldType='log_source')
         if not hostField:
             self.lgr.warn('no host field specified, not able to perform host-anomaly detection')
         else:
@@ -654,8 +657,6 @@ class Erudite(Destiny):
                 logType = 'raw'
                 if self.cfg.getboolean('learning', 'enableBaselineMode'):
                     logType = 'baseline'
-
-                # fetch logs
                 self.logStore = self.fetchLogData(logType=logType)
 
                 # set end time and cached start time right after logs are read in so no time is missed (we use this later)
