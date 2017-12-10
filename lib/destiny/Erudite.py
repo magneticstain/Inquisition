@@ -38,7 +38,8 @@ class Erudite(Destiny):
 
     hostStore = []
     logStore = {}
-    fieldTypes = {}
+    nodeTypes = ('src', 'dst')
+    fieldTypeKeyToIDCache = {}
     nodeCounts = {}
     nodeOPSResults = {}
     prevNodeOPSResults = {}
@@ -52,6 +53,8 @@ class Erudite(Destiny):
 
         # create revalation instance
         self.alertNode = Revelation(cfg, sentryClient=sentryClient)
+
+        self.initTrafficNodeAnalysisCalculations()
 
     def fetchKnownHostData(self):
         """
@@ -123,6 +126,40 @@ class Erudite(Destiny):
             dbCursor.close()
 
         return hostFieldName
+
+    def getFieldTypeIDFromTypeKey(self, typeKey='hst'):
+        """
+        Get type ID of field type with given type key
+
+        :param typeKey: type key to find field type ID of
+        :return: int
+        """
+
+        fieldTypeID = None
+
+        # define sql
+        sql = """
+                SELECT 
+                    type_id 
+                FROM 
+                    FieldTypes  
+                WHERE 
+                    type_key = %s
+                LIMIT 1
+            """
+
+        # execute query
+        with self.inquisitionDbHandle.cursor() as dbCursor:
+            dbCursor.execute(sql, typeKey)
+
+            # fetch results
+            dbResults = dbCursor.fetchone()
+            if dbResults:
+                fieldTypeID = dbResults['type_id']
+
+            dbCursor.close()
+
+        return fieldTypeID
 
     def identifyUnknownHosts(self, hostFieldName):
         """
@@ -232,37 +269,6 @@ class Erudite(Destiny):
                 self.addUnknownHostData(unknownHosts)
                 self.lgr.debug('unknown hosts now identified as known and added to database')
 
-    def fetchFieldTypes(self):
-        """
-        Read in field types and their IDs to class var from DB [[* FOR FUTURE USE]]
-
-        :return: void
-        """
-
-        # define sql
-        sql = """
-                SELECT 
-                    type_id,
-                    type_name 
-                FROM 
-                    FieldTypes
-                WHERE
-                    type_id > 1
-            """
-
-        # execute query
-        with self.inquisitionDbHandle.cursor() as dbCursor:
-            dbCursor.execute(sql)
-
-            # fetch results
-            dbResults = dbCursor.fetchall()
-            if dbResults:
-                # parse results
-                for result in dbResults:
-                    self.fieldTypes[result['type_id']] = result['type_name']
-
-            dbCursor.close()
-
     def initTrafficNodeAnalysisCalculations(self):
         """
         Resets all class variables for traffic analysis calculations
@@ -270,26 +276,18 @@ class Erudite(Destiny):
         :return: void
         """
 
-        # reset node counts
-        self.nodeCounts = {
-            'src': {},
-            'dst': {}
-        }
-        self.nodeOPSResults = {
-            'src': {},
-            'dst': {}
-        }
-        self.prevNodeOPSResults = {
-            'src': {},
-            'dst': {}
-        }
+        for nodeType in self.nodeTypes:
+            # initialize dict with node type as key for multiple node-related class vars
+            self.nodeCounts[nodeType] = {}
+            self.nodeOPSResults[nodeType] = {}
+            self.prevNodeOPSResults[nodeType] = {}
 
     def calculateNodeOccurrenceCounts(self, nodeFieldName, nodeFieldType):
         """
         Calculates the total number of occurrences we see each individual node of given type and name in the raw log store
 
         :param nodeFieldName: key name to use for identifying field val in log record dicts
-        :param nodeFieldType: field value type to search for
+        :param nodeFieldType: field value type to search for ('src' or 'dst')
         :return: void
         """
 
@@ -297,7 +295,7 @@ class Erudite(Destiny):
 
         if not nodeFieldName:
             raise ValueError('node field name not specified for OCC calculations')
-        if nodeFieldType not in ('src', 'dst'):
+        if nodeFieldType not in self.nodeTypes:
             raise ValueError('invalid node field type specified for traffic node OCC calculation')
 
         for logIdx in self.logStore:
@@ -337,14 +335,14 @@ class Erudite(Destiny):
         elapsedTime = self.runEndTime - self.runStartTime
         if elapsedTime <= 0:
             raise ValueError('end time is the same or before start time; could not calculate occurrences per second for'
-                             ' node :: ' + timeValString)
+                             + ' node :: ' + timeValString)
 
         # calculate occ/sec
         occurrencesPerSec = float(occurrenceCount / elapsedTime)
 
         return occurrencesPerSec
 
-    def calculateOPSForNodeSet(self, nodeSetType):
+    def calculateOPSResultsForNodeSet(self, nodeSetType):
         """
         Calculate OPS for all nodes in given set type
 
@@ -354,7 +352,7 @@ class Erudite(Destiny):
 
         # validate node set type
         nodeSetType = nodeSetType.lower()
-        if nodeSetType != 'src' and nodeSetType != 'dst':
+        if nodeSetType not in self.nodeTypes:
             raise ValueError('invalid node set type provided')
 
         for node in self.nodeCounts[nodeSetType]:
@@ -370,86 +368,6 @@ class Erudite(Destiny):
                     'calculated occurrences of node [ ' + str(node) + ' // TYPE: ' + nodeSetType + ' ] to be [ '
                     + str(occPerSec) + ' / sec ]')
 
-    def updateNodeOPSRecordInDB(self, nodeVal, fieldType, ops):
-        """
-        Update record with given node value and field type with OPS val
-
-        :param nodeVal: node value of record to update, e.g. IP or hostname
-        :param fieldType: ID of field type this val came from; src = 1, dst = 2
-        :param ops: occurrences per second that we're seeing given node val
-        :return: bool
-        """
-
-        status = False
-
-        # set sql
-        sql = """
-                INSERT INTO 
-                    TrafficNodeStats 
-                    (
-                        node_val, 
-                        field_type_id, 
-                        occ_per_sec
-                    ) 
-                VALUES 
-                    (
-                        %s, 
-                        %s, 
-                        %s
-                    ) 
-                ON DUPLICATE KEY UPDATE  
-                    occ_per_sec=VALUES(occ_per_sec)
-        """
-
-        # convert field type to field ID
-        fieldType = fieldType.lower()
-        if fieldType == 'src':
-            fieldTypeID = 2
-        else:
-            fieldTypeID = 3
-
-        # try inserting/updating in db
-        with self.inquisitionDbHandle.cursor() as dbCursor:
-            nodeString = '[ ' + str(nodeVal) + ' // TYPE ID: ' + str(fieldTypeID) + ' ]'
-
-            try:
-                dbCursor.execute(sql, (nodeVal, fieldTypeID, ops))
-                self.inquisitionDbHandle.commit()
-                if self.cfg.getboolean('logging', 'verbose'):
-                    self.lgr.debug(
-                        'successfully synced node ' + nodeString + ' to traffic node tracking table in Inquisition database')
-
-                status = True
-            except err as e:
-                self.lgr.critical(
-                    'database error when syncing data for ' + nodeString + ' :: [ ' + str(
-                        e) + ' ]')
-                self.inquisitionDbHandle.rollback()
-            finally:
-                dbCursor.close()
-
-        return status
-
-    def syncOPSResultsToDB(self):
-        """
-        Traverse through set of OPS results for each node and update associated entry in db with value
-
-        :return:
-        """
-
-        # check if OPS results are present
-        if self.nodeOPSResults:
-            # traverse results and update each in db
-            self.lgr.debug('beginning update of traffic node OPS results in DB')
-            for nodeType in self.nodeOPSResults:
-                for node in self.nodeOPSResults[nodeType]:
-                    # send to db
-                    if not self.updateNodeOPSRecordInDB(nodeVal=node, fieldType=nodeType,
-                                                        ops=self.nodeOPSResults[nodeType][node]['ops']):
-                        self.lgr.critical('unable to sync node OPS data to inquisition DB :: [ NODE: ' + str(node)
-                                          + ' // TYPE ID: ' + str(nodeType)
-                                          + ' // OPS: ' + str(self.nodeOPSResults[nodeType][node]['ops']) + ' ]')
-
     def fetchNodeOPSRecordInDB(self):
         """
         Fetch all node OPS results that were previously collected from the inquisition DB
@@ -461,11 +379,15 @@ class Erudite(Destiny):
         # define sql
         sql = """
                 SELECT 
+                    type_key,
                     node_val,
-                    field_type_id,
                     occ_per_sec 
                 FROM 
-                    TrafficNodeStats
+                    TrafficNodeStats TNS 
+                JOIN 
+                    FieldTypes FT
+                ON 
+                   (TNS.field_type_id=FT.type_id)
             """
 
         # execute query
@@ -475,17 +397,16 @@ class Erudite(Destiny):
             # fetch results
             dbResults = dbCursor.fetchall()
             if dbResults:
-                # refactor results to match current result set
+                self.lgr.debug('fetched [ ' + str(len(dbResults)) + ' ] previously-calculated OPS results from db' )
                 for result in dbResults:
-                    # translate field type ID to field type key
-                    if result['field_type_id'] == 2:
-                        fieldType = 'src'
-                    else:
-                        fieldType = 'dst'
+                    if result['type_key']:
+                        self.prevNodeOPSResults[result['type_key']][result['node_val']] = {
+                            'ops': result['occ_per_sec']
+                        }
 
-                    self.prevNodeOPSResults[fieldType][result['node_val']] = {
-                        'ops': result['occ_per_sec']
-                    }
+                    if self.cfg.getboolean('logging', 'verbose'):
+                        self.lgr.debug('fetched past OPS result from db :: [ NODE: ' + result['node_val'] + ' // TYPE: '
+                                       + result['type_key'] + ' // OPS: ' + str(result['occ_per_sec']))
 
             dbCursor.close()
 
@@ -533,9 +454,6 @@ class Erudite(Destiny):
             for node in self.nodeOPSResults[nodeType]:
                 # check if node was found in prev results and is the same type (nodes can have diff src and dst results)
                 if node in self.prevNodeOPSResults[nodeType]:
-                    if self.cfg.getboolean('logging', 'verbose'):
-                        self.lgr.debug('found previous records for node [ ' + node + ' // TYPE: ' + nodeType + ' ]')
-
                     # node was previously found, compare values by checking std deviation
                     prevOPSResult = self.prevNodeOPSResults[nodeType][node]['ops']
                     currentOPSResult = self.nodeOPSResults[nodeType][node]['ops']
@@ -553,13 +471,113 @@ class Erudite(Destiny):
                             dstNode = node
 
                         # set alert details
-                        alertDetails = 'detected significant change in OPS for traffic node :: [ ' + str(prevOPSResult) \
-                                       + ' -> ' + str(currentOPSResult) + ' ]'
+                        alertDetails = 'detected significant change in OPS for traffic node :: [ NODE: ' + node \
+                                       + ' // TYPE: ' + nodeType + ' // { ' + str(prevOPSResult) + ' -> ' \
+                                       + str(currentOPSResult) + ' } ]'
 
-                        # nodes set, add alert if required
+                        # nodes and alert metadata set, add alert if required
                         if not self.cfg.getboolean('learning', 'enableBaselineMode'):
                             self.alertNode.addAlert(timestamp=int(time()), alertType=1, srcNode=srcNode, dstNode=dstNode,
                                                 alertDetails=alertDetails)
+
+    def updateNodeOPSRecordInDB(self, nodeVal, nodeType):
+        """
+        Update record with given node value and field type with OPS val
+
+        :param nodeVal: node value of record to update, e.g. IP or hostname
+        :param nodeType: type of field this node is
+        :return: bool
+        """
+
+        verboseLogging = self.cfg.getboolean('logging', 'verbose')
+        status = False
+
+        if not nodeVal or not nodeType:
+            raise ValueError('missing node data :: [ NODE: ' + nodeVal + ' // FT: ' + nodeType + ' ]')
+
+        # get OPS results
+        try:
+            ops = self.nodeOPSResults[nodeType][nodeVal]['ops']
+        except KeyError:
+            # node OPS data is missing, nothing to insert into db
+            return status
+
+        # set sql
+        sql = """
+                INSERT INTO 
+                    TrafficNodeStats 
+                    (
+                        node_val, 
+                        field_type_id, 
+                        occ_per_sec
+                    ) 
+                VALUES 
+                    (
+                        %s, 
+                        %s, 
+                        %s
+                    ) 
+                ON DUPLICATE KEY UPDATE  
+                    occ_per_sec=VALUES(occ_per_sec)
+        """
+
+        # check if we've already matched the key to a field type ID
+        if nodeType in self.fieldTypeKeyToIDCache:
+            fieldTypeID = self.fieldTypeKeyToIDCache[nodeType]['id']
+        else:
+            # convert field ID from given node type
+            fieldTypeID = self.getFieldTypeIDFromTypeKey(nodeType)
+
+            # add to mapping cache
+            if verboseLogging:
+                self.lgr.debug('adding field type ID to field type key to ID cache :: [ KEY: ' + nodeType
+                               + ' // TYPE ID: ' + str(fieldTypeID) + ' ]')
+            self.fieldTypeKeyToIDCache[nodeType] = {
+                'id': fieldTypeID
+            }
+
+        if fieldTypeID:
+            # try inserting/updating in db
+            with self.inquisitionDbHandle.cursor() as dbCursor:
+                nodeString = '[ ' + str(nodeVal) + ' // TYPE ID: ' + str(fieldTypeID) + ' ]'
+
+                try:
+                    dbCursor.execute(sql, (nodeVal, fieldTypeID, ops))
+                    self.inquisitionDbHandle.commit()
+                    if verboseLogging:
+                        self.lgr.debug(
+                            'successfully synced node ' + nodeString + ' to traffic node tracking table in Inquisition database')
+
+                    status = True
+                except err as e:
+                    self.lgr.critical(
+                        'database error when syncing data for ' + nodeString + ' :: [ ' + str(e) + ' ]')
+                    self.inquisitionDbHandle.rollback()
+                finally:
+                    dbCursor.close()
+        else:
+            self.lgr.debug('field type ID not found for field type key :: [ KEY: ' + nodeType + ' ]')
+
+        return status
+
+    def syncOPSResultsToDB(self):
+        """
+        Traverse through set of OPS results for each node and update associated entry in db with value
+
+        :return:
+        """
+
+        # check if OPS results are present
+        if self.nodeOPSResults:
+            # traverse results and update each in db
+            self.lgr.debug('beginning update of traffic node OPS results in DB')
+            for nodeType in self.nodeOPSResults:
+                for node in self.nodeOPSResults[nodeType]:
+                    # send to db
+                    if not self.updateNodeOPSRecordInDB(nodeVal=node, nodeType=nodeType):
+                        self.lgr.critical('unable to sync node OPS data to inquisition DB :: [ NODE: ' + str(node)
+                                          + ' // TYPE ID: ' + str(nodeType)
+                                          + ' // OPS: ' + str(self.nodeOPSResults[nodeType][node]['ops']) + ' ]')
 
     def performTrafficNodeAnalysis(self):
         """
@@ -572,8 +590,8 @@ class Erudite(Destiny):
 
         # get field names associated with each field type
         try:
-            srcNodeFieldName = self.getFieldNameFromType(typeID=2)
-            dstNodeFieldName = self.getFieldNameFromType(typeID=3)
+            srcNodeFieldName = self.getFieldNameFromType(fieldType='traffic_source')
+            dstNodeFieldName = self.getFieldNameFromType(fieldType='traffic_destination')
             self.lgr.debug('using [ ' + str(srcNodeFieldName) + ' ] field as source traffic node field name and [ '
                            + str(dstNodeFieldName) + ' ] field as destination traffic node field name')
         except KeyError as e:
@@ -587,16 +605,16 @@ class Erudite(Destiny):
         # check for raw logs
         if self.logStore:
             # raw logs present, initialize occurrence count calculations for all indiv. nodes for each node type
-            self.lgr.debug('searching log store for source and destination traffic nodes')
             self.calculateNodeOccurrenceCounts(nodeFieldName=srcNodeFieldName, nodeFieldType='src')
             self.calculateNodeOccurrenceCounts(nodeFieldName=dstNodeFieldName, nodeFieldType='dst')
 
             # take previously calculated OCCs and calculate OPS of each node set type
             self.lgr.info('calculating OPS for source and destination node sets')
-            self.calculateOPSForNodeSet('src')
-            self.calculateOPSForNodeSet('dst')
+            self.calculateOPSResultsForNodeSet('src')
+            self.calculateOPSResultsForNodeSet('dst')
 
-            # read in OPS results calculated on previous runs from db
+            # read in OPS results from db that were calculated on previous runs
+            self.lgr.info('fetching previously-calculated OPS results from Inquisition database')
             self.fetchNodeOPSRecordInDB()
 
             # run anomaly analysis

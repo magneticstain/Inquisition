@@ -53,21 +53,15 @@ class EruditeTestCase(unittest.TestCase):
         self.assertIsInstance(knownHosts, list)
 
     def test_getFieldNameFromType(self):
-        # there should currently be three field types, with IDs 1,2,3
-        # we should check for all of them
+        # there should currently be three field types, we should check for all of them
 
-        self.assertIsNotNone(self.erudite.getFieldNameFromType(typeID=1))
-        self.assertIsNotNone(self.erudite.getFieldNameFromType(typeID=2))
-        self.assertIsNotNone(self.erudite.getFieldNameFromType(typeID=3))
+        self.assertIsNotNone(self.erudite.getFieldNameFromType(fieldType='log_host'))
+        self.assertIsNotNone(self.erudite.getFieldNameFromType(fieldType='traffic_source'))
+        self.assertIsNotNone(self.erudite.getFieldNameFromType(fieldType='traffic_destination'))
 
-    def test_getFieldNameFromType_nonExistentTypeID(self):
-        # here we're testing a lookup for a very large, known non-existent  type ID
-        self.assertEqual(self.erudite.getFieldNameFromType(typeID=1000000000000), '')
-
-    def test_getFieldNameFromType_negativeTypeID(self):
-        # here we're testing a lookup for a negative type ID
-        self.assertEqual(self.erudite.getFieldNameFromType(typeID=-1), '')
-        self.assertEqual(self.erudite.getFieldNameFromType(typeID=-1000000000000), '')
+    def test_getFieldNameFromType_nonExistentType(self):
+        # here we're testing a lookup for a known non-existent node type
+        self.assertEqual(self.erudite.getFieldNameFromType(fieldType='DOES_NOT_EXIST'), '')
 
     def test_identifyUnknownHosts(self):
         unknownHosts = self.erudite.identifyUnknownHosts(hostFieldName='field1')
@@ -84,11 +78,6 @@ class EruditeTestCase(unittest.TestCase):
             unknownHosts = self.erudite.identifyUnknownHosts(hostFieldName='')
         except ValueError:
             self.assertTrue(True)
-
-    def test_fetchFieldTypes(self):
-        self.erudite.fetchFieldTypes()
-
-        self.assertIsNotNone(self.erudite.fieldTypes)
 
     def test_calculateNodeOccurrenceCounts_withLogs(self):
         self.erudite.logStore = self.erudite.fetchLogData(logType='raw')
@@ -166,13 +155,13 @@ class EruditeTestCase(unittest.TestCase):
         self.erudite.runEndTime = time()
         self.erudite.initTrafficNodeAnalysisCalculations()
         self.erudite.calculateNodeOccurrenceCounts(nodeFieldName='field2', nodeFieldType='src')
-        self.erudite.calculateOPSForNodeSet(nodeSetType='src')
+        self.erudite.calculateOPSResultsForNodeSet(nodeSetType='src')
 
         self.assertNotEqual(self.erudite.nodeOPSResults['src'], {})
 
     def test_calculateOPSForNodeSet_invalidNodeType(self):
         try:
-            self.erudite.calculateOPSForNodeSet(nodeSetType='invalid!!')
+            self.erudite.calculateOPSResultsForNodeSet(nodeSetType='invalid!!')
         except ValueError:
             self.assertTrue(True)
 

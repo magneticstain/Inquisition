@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.7.19, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 5.7.20, for Linux (x86_64)
 --
 -- Host: localhost    Database: inquisition
 -- ------------------------------------------------------
--- Server version	5.7.19-0ubuntu0.16.04.1
+-- Server version	5.7.20-0ubuntu0.16.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -14,6 +14,65 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `Alerts`
+--
+
+DROP TABLE IF EXISTS `Alerts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `Alerts` (
+  `alert_id` int(11) NOT NULL AUTO_INCREMENT,
+  `created` datetime DEFAULT NULL,
+  `updated` datetime DEFAULT NULL,
+  `alert_type` tinyint(1) DEFAULT NULL,
+  `host` varchar(65) DEFAULT NULL,
+  `src_node` varchar(65) DEFAULT NULL,
+  `dst_node` varchar(65) DEFAULT NULL,
+  `alert_detail` mediumtext,
+  PRIMARY KEY (`alert_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `Alerts`
+--
+
+LOCK TABLES `Alerts` WRITE;
+/*!40000 ALTER TABLE `Alerts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `Alerts` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger Alerts_INSERT before insert on Alerts for each row set new.created = now(), new.updated = now() */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger Alerts_UPDATE before update on Alerts for each row set new.updated = now() */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `FieldTemplateRegex`
@@ -112,7 +171,10 @@ DROP TABLE IF EXISTS `FieldTypes`;
 CREATE TABLE `FieldTypes` (
   `type_id` int(11) NOT NULL AUTO_INCREMENT,
   `type_name` varchar(35) NOT NULL,
-  PRIMARY KEY (`type_id`)
+  `type_key` varchar(10) NOT NULL,
+  PRIMARY KEY (`type_id`),
+  UNIQUE KEY `uk_type_name` (`type_name`),
+  UNIQUE KEY `uk_type_key` (`type_key`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -122,7 +184,7 @@ CREATE TABLE `FieldTypes` (
 
 LOCK TABLES `FieldTypes` WRITE;
 /*!40000 ALTER TABLE `FieldTypes` DISABLE KEYS */;
-INSERT INTO `FieldTypes` VALUES (1,'log_source'),(2,'traffic_source'),(3,'traffic_destination');
+INSERT INTO `FieldTypes` VALUES (1,'log_source','hst'),(2,'traffic_source','src'),(3,'traffic_destination','dst');
 /*!40000 ALTER TABLE `FieldTypes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -139,7 +201,10 @@ CREATE TABLE `Fields` (
   `updated` datetime DEFAULT NULL,
   `created` datetime DEFAULT NULL,
   `field_type` int(11) DEFAULT NULL,
-  PRIMARY KEY (`field_id`)
+  PRIMARY KEY (`field_id`),
+  UNIQUE KEY `uk_field_name` (`field_name`),
+  KEY `fk_field_type` (`field_type`),
+  CONSTRAINT `fk_field_type` FOREIGN KEY (`field_type`) REFERENCES `FieldTypes` (`type_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -219,7 +284,7 @@ CREATE TABLE `KnownHosts` (
   `host_id` int(11) NOT NULL AUTO_INCREMENT,
   `created` datetime NOT NULL,
   `updated` datetime NOT NULL,
-  `host_val` varchar(65) DEFAULT NULL,
+  `host_val` varchar(65) NOT NULL,
   `events_per_second` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`host_id`),
   UNIQUE KEY `uk_host_val` (`host_val`)
@@ -243,7 +308,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger KnownHosts_INSERT before insert on KnownHosts for each row set new.created = now(),new.updated = now(); */;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger KnownHosts_INSERT before insert ON `KnownHosts` for each row set new.created = now(),new.updated = now() */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -258,7 +323,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger KnownHosts_UPDATE before update on KnownHosts for each row set new.updated = now() */;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger KnownHosts_UPDATE before update ON `KnownHosts` for each row set new.updated = now() */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -307,7 +372,8 @@ CREATE TABLE `Parsers` (
   `created` datetime DEFAULT NULL,
   `updated` datetime DEFAULT NULL,
   `status` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`parser_id`)
+  PRIMARY KEY (`parser_id`),
+  UNIQUE KEY `uk_parser_name` (`parser_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -349,7 +415,6 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 --
 -- Table structure for table `TrafficNodeStats`
@@ -363,11 +428,13 @@ CREATE TABLE `TrafficNodeStats` (
   `created` datetime DEFAULT NULL,
   `updated` datetime DEFAULT NULL,
   `node_val` varchar(65) NOT NULL,
-  `field_type_id` int(11) NOT NULL,
+  `field_type_id` int(11) DEFAULT NULL,
   `occ_per_sec` double NOT NULL DEFAULT '0',
   PRIMARY KEY (`stat_id`),
-  UNIQUE KEY `uk_node_val` (`node_val`,`field_type_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+  UNIQUE KEY `uk_node_val` (`node_val`,`field_type_id`),
+  KEY `fk_field_type_id` (`field_type_id`),
+  CONSTRAINT `fk_field_type_id` FOREIGN KEY (`field_type_id`) REFERENCES `FieldTypes` (`type_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -410,66 +477,6 @@ DELIMITER ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
---
--- Table structure for table `Alerts`
---
-
-DROP TABLE IF EXISTS `Alerts`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `Alerts` (
-  `alert_id` int(11) NOT NULL AUTO_INCREMENT,
-  `created` datetime DEFAULT NULL,
-  `updated` datetime DEFAULT NULL,
-  `alert_type` tinyint(1) DEFAULT NULL,
-  `host` varchar(65) DEFAULT NULL,
-  `src_node` varchar(65) DEFAULT NULL,
-  `dst_node` varchar(65) DEFAULT NULL,
-  `alert_detail` mediumtext,
-  PRIMARY KEY (`alert_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `Alerts`
---
-
-LOCK TABLES `Alerts` WRITE;
-/*!40000 ALTER TABLE `Alerts` DISABLE KEYS */;
-/*!40000 ALTER TABLE `Alerts` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8 */ ;
-/*!50003 SET character_set_results = utf8 */ ;
-/*!50003 SET collation_connection  = utf8_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger Alerts_INSERT before insert on Alerts for each row set new.created = now(), new.updated = now() */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8 */ ;
-/*!50003 SET character_set_results = utf8 */ ;
-/*!50003 SET collation_connection  = utf8_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 trigger Alerts_UPDATE before update on Alerts for each row set new.updated = now() */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
@@ -478,4 +485,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-10-07 13:02:20
+-- Dump completed on 2017-12-08 19:23:48
