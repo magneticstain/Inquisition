@@ -451,7 +451,7 @@ CREATE TABLE `TrafficNodeStats` (
 
 LOCK TABLES `TrafficNodeStats` WRITE;
 /*!40000 ALTER TABLE `TrafficNodeStats` DISABLE KEYS */;
-INSERT INTO `TrafficNodeStats` VALUES (1,'2017-10-22 20:58:29','2017-10-22 20:58:47','94.0.50.199',1,0.198797339569638);
+INSERT INTO `TrafficNodeStats` VALUES (1,'2017-10-22 20:58:29','2017-10-22 20:58:47','94.0.50.199',2,0.198797339569638);
 /*!40000 ALTER TABLE `TrafficNodeStats` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
