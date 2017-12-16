@@ -31,6 +31,7 @@ CREATE TABLE `Alerts` (
   `src_node` varchar(65) DEFAULT NULL,
   `dst_node` varchar(65) DEFAULT NULL,
   `alert_detail` mediumtext,
+  `log_data` text,
   PRIMARY KEY (`alert_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
