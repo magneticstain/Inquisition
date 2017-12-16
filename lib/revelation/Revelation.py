@@ -10,6 +10,7 @@ CREATION_DATE: 2017-10-15
 
 # MODULES
 # | Native
+import json
 
 # | Third-Party
 from pymysql import err
@@ -55,10 +56,12 @@ class Revelation(Inquisit):
                     host, 
                     src_node, 
                     dst_node, 
-                    alert_detail
+                    alert_detail,
+                    log_data
                 )
                 VALUES
                 (
+                    %s,
                     %s,
                     %s,
                     %s,
@@ -70,7 +73,8 @@ class Revelation(Inquisit):
         # run sql query
         with self.inquisitionDbHandle.cursor() as dbCursor:
             try:
-                dbCursor.execute(sql, (alert.alertType, alert.host, alert.srcNode, alert.dstNode, alert.alertDetails))
+                dbCursor.execute(sql, (alert.alertType, alert.host, alert.srcNode, alert.dstNode, alert.alertDetails,
+                                       alert.logData))
                 self.inquisitionDbHandle.commit()
                 if self.cfg.getboolean('logging', 'verbose'):
                     self.lgr.debug(
@@ -78,13 +82,12 @@ class Revelation(Inquisit):
             except err as e:
                 self.inquisitionDbHandle.rollback()
                 self.lgr.critical(
-                    'database error when adding new alert ' + str(alert) + ' :: [ ' + str(
-                        e) + ' ]')
+                    'database error when adding new alert ' + str(alert) + ' :: [ ' + str(e) + ' ]')
             finally:
                 dbCursor.close()
 
     def addAlert(self, timestamp=0, alertType=0, status=0, host='127.0.0.1', srcNode='0.0.0.0', dstNode='0.0.0.0',
-                 alertDetails='', addAlertToDb=True):
+                 alertDetails='', logData=None, serializeLogData=True, addAlertToDb=True):
         """
         Generate an alert with given parameters and make it persistent
 \
@@ -95,6 +98,8 @@ class Revelation(Inquisit):
         :param srcNode: source host that generated the alert
         :param dstNode: destination host that generated the alert
         :param alertDetails: blob of text constituting the additional details of the alert
+        :param logData: a key-value pair representation of the log that generated the alert
+        :param serializeLogData: bool denoting whether to serialize the data or not if it's already been serialized
         :param addAlertToDb: bool determining whether we should add the alert to the db along with the alert store
         :return: void
         """
@@ -108,9 +113,13 @@ class Revelation(Inquisit):
         if status < 0 or 2 < status:
             raise ValueError('invalid alert status provided :: [ ' + str(status) + ' ]')
 
+        if serializeLogData:
+            # serialize log data as json for storage in db
+            logData = json.dumps(logData)
+
         # create alert
         alert = Alert(timestamp=timestamp, alertType=alertType, status=status, host=host, srcNode=srcNode,
-                      dstNode=dstNode, alertDetails=alertDetails)
+                      dstNode=dstNode, alertDetails=alertDetails, logData=logData)
         self.lgr.debug('created new alert :: ' + str(alert))
 
         # add to alert store

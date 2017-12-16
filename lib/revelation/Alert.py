@@ -42,8 +42,10 @@ class Alert():
     srcNode = '0.0.0.0'
     dstNode = '0.0.0.0'
     alertDetails = ''
+    logData = {}
 
-    def __init__(self, alertID=0, timestamp=0, alertType=0, status=0, host='127.0.0.1', srcNode='0.0.0.0', dstNode='0.0.0.0', alertDetails=''):
+    def __init__(self, alertID=0, timestamp=0, alertType=0, status=0, host='127.0.0.1', srcNode='0.0.0.0',
+                 dstNode='0.0.0.0', alertDetails='', logData=None):
         # set metadata
         self.alertID = alertID
         self.timestamp = timestamp
@@ -53,6 +55,7 @@ class Alert():
         self.srcNode = srcNode
         self.dstNode = dstNode
         self.alertDetails = alertDetails
+        self.logData = logData
 
     def __str__(self):
         """
@@ -64,5 +67,5 @@ class Alert():
         return '[ ID: ' + str(self.alertID) + ' // TIMESTAMP: ' + str(self.timestamp) \
                + ' // TYPE: ' + str(self.alertType) + ' // STATUS: ' + str(self.status) \
                + ' // HOST: ' + str(self.host) + ' // SRC: ' + str(self.srcNode) + ' // DST: ' + str(self.dstNode) \
-               + ' // ALERT DETAILS: { ' + str(self.alertDetails) + ' } ]'
+               + ' // ALERT DETAILS: { ' + str(self.alertDetails) + ' } // LOG: { ' + str(self.logData) + ' } ]'
 

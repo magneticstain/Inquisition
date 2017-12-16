@@ -166,9 +166,10 @@ class Erudite(Destiny):
         Searches raw logs for hosts not in host store
 
         :param hostFieldName: string to use as key/field name to identify host val
-        :return: list
+        :return: list (unknown host data), list (host list)
         """
 
+        hostCache = []
         unknownHosts = []
 
         if not hostFieldName:
@@ -183,9 +184,15 @@ class Erudite(Destiny):
                     logHost = self.logStore[logIdx][hostFieldName]
 
                     # check if log host is already in host store OR if we've already added it to the unknown hosts list
-                    if logHost not in self.hostStore and logHost not in unknownHosts:
-                        # unknown host, add to list
-                        unknownHosts.append(logHost)
+                    if logHost not in self.hostStore and logHost not in hostCache:
+                        # unknown host, add to unknown host list and host list cache
+                        hostData = {
+                            'host': logHost,
+                            'logIndex': logIdx
+                        }
+
+                        unknownHosts.append(hostData)
+                        hostCache.append(logHost)
                 except KeyError:
                     # log doesn't have anything set for host field, skip it
                     continue
@@ -212,15 +219,22 @@ class Erudite(Destiny):
             """
 
             with self.inquisitionDbHandle.cursor() as dbCursor:
-                try:
-                    dbCursor.executemany(sql, hostData)
-                    self.inquisitionDbHandle.commit()
-                    self.lgr.debug('added [ ' + str(len(hostData)) + ' ] new hosts to known hosts table in Inquisition database')
-                except err as e:
-                    self.inquisitionDbHandle.rollback()
-                    self.lgr.critical('database error when inserting known host into Inquisition database while in baseline mode :: [ ' + str(e) + ' ]')
-                finally:
-                    dbCursor.close()
+                for hostObj in hostData:
+                    try:
+                        host = hostObj['host']
+
+                        dbCursor.execute(sql, host)
+                        self.inquisitionDbHandle.commit()
+
+                        if self.cfg.getboolean('logging', 'verbose'):
+                            self.lgr.debug('synced new unknown host [ ' + host + ' ] to inquisition DB')
+                    except err as e:
+                        self.inquisitionDbHandle.rollback()
+                        self.lgr.critical('database error when inserting known host into Inquisition database while in baseline mode :: [ ' + str(e) + ' ]')
+
+                dbCursor.close()
+
+                self.lgr.debug('added [ ' + str(len(hostData)) + ' ] new hosts to known hosts table in Inquisition database')
 
     def performUnknownHostAnalysis(self):
         """
@@ -261,11 +275,12 @@ class Erudite(Destiny):
                 # generate alerts if not in baseline mode
                 if not self.cfg.getboolean('learning', 'enableBaselineMode'):
                     # not in baseline mode, generate alert(s)
-                    for host in unknownHosts:
-                        self.alertNode.addAlert(timestamp=int(time()), alertType=0, host=host,
-                                                alertDetails='Host anomaly detected!')
+                    for hostData in unknownHosts:
+                        self.alertNode.addAlert(timestamp=int(time()), alertType=0, host=hostData['host'],
+                                                alertDetails='Host anomaly detected!',
+                                                logData=self.logStore[hostData['logIndex']])
 
-                # add unknown hosts
+                # add unknown hosts from host list to db
                 self.addUnknownHostData(unknownHosts)
                 self.lgr.debug('unknown hosts now identified as known and added to database')
 
@@ -578,6 +593,8 @@ class Erudite(Destiny):
                         self.lgr.critical('unable to sync node OPS data to inquisition DB :: [ NODE: ' + str(node)
                                           + ' // TYPE ID: ' + str(nodeType)
                                           + ' // OPS: ' + str(self.nodeOPSResults[nodeType][node]['ops']) + ' ]')
+
+            self.lgr.info('synced traffic node stats for [ ' + str(len(self.nodeOPSResults)) + ' ] nodes')
 
     def performTrafficNodeAnalysis(self):
         """

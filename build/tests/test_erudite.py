@@ -71,7 +71,7 @@ class EruditeTestCase(unittest.TestCase):
         # test after reading in logs as well
         self.erudite.logStore = self.erudite.fetchLogData(logType='raw')
         unknownHosts = self.erudite.identifyUnknownHosts(hostFieldName='field1')
-        self.assertIn('value', unknownHosts)
+        self.assertIn('value', unknownHosts[0]['host'])
 
     def test_identifyUnknownHosts_blankHFN(self):
         try:
