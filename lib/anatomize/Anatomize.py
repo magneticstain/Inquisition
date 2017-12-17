@@ -152,11 +152,6 @@ class Anatomize(Inquisit):
                     self.parserStore[parserId].pollLogFile(isTestRun=testRun, useHazyStateTracking=hazyStateTrackingStatus,
                                                            numLogsBetweenTrackingUpdate=numLogsBetweenTrackingUpdate)
 
-                    # check if running a test run
-                    if testRun:
-                        self.lgr.debug('test run, exiting anatomizer loop')
-                        break
-
                     # run complete, increase counter
                     numRuns += 1
                     if numRuns >= numRunsBetweenStats:
@@ -165,6 +160,11 @@ class Anatomize(Inquisit):
                                       + self.parserStore[parserId].printStats())
 
                         numRuns = 0
+
+                    # check if running a test run
+                    if testRun:
+                        self.lgr.debug('test run, exiting anatomizer loop')
+                        break
 
                     self.lgr.debug('sleeping for [ ' + self.cfg['parsing']['sleepTime'] + ' ] seconds')
                     sleep(sleepTime)
