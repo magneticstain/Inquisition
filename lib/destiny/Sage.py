@@ -84,10 +84,14 @@ class Sage(Destiny):
         :return: void
         """
 
-        for result in results:
+        for idx, result in enumerate(results):
             if result:
+                # get log at matching index
+                logData = list(self.logStore)[idx]
+
                 # model detected this as a threat, raise alert
-                self.alertNode.addAlert(timestamp=int(time()), alertType=2, alertDetails='Network threat detected!')
+                self.alertNode.addAlert(timestamp=int(time()), alertType=2, alertDetails='Network threat detected!',
+                                        logData=logData)
 
     def startNetworkThreatEngine(self):
         """
@@ -165,7 +169,7 @@ class Sage(Destiny):
                             self.lgr.debug('initializing log data')
                             testingData = self.initializeLogData(self.logStore, uniqueFields, 'testing')
                             if testingData == None:
-                                self.lgr.info('no data after initialization for threat detection, sleeping...')
+                                self.lgr.info('no data after initialization for threat detection - sleeping...')
                             else:
                                 self.lgr.info('making predictions for testing data')
                                 predictionResults = self.networkThreatClassifier.predict(testingData)

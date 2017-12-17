@@ -60,6 +60,13 @@ class SageTestCase(unittest.TestCase):
         self.assertIsNotNone(self.sage.baselineLogStore)
         self.assertIsNotNone(self.sage.intelLogStore)
 
+    def test_processTestingResults(self):
+        testResults = [0, 1]
+        self.sage.gatherAllData()
+        self.sage.processTestingResults(results=testResults)
+
+        self.assertGreaterEqual(len(self.sage.alertNode.alertStore), 1)
+
     def tearDown(self):
         # remove test log entries
         self.sage.logDbHandle.delete('log:non_existent_parser:1234')
