@@ -321,10 +321,16 @@ class Erudite(Destiny):
                 # update log counts for val
                 if nodeFieldVal in self.nodeCounts[nodeFieldType]:
                     # previous entries already found, increase count
-                    self.nodeCounts[nodeFieldType][nodeFieldVal] += 1
+                    self.nodeCounts[nodeFieldType][nodeFieldVal]['count'] += 1
                 else:
-                    # first occurrence found, set to 1
-                    self.nodeCounts[nodeFieldType][nodeFieldVal] = 1
+                    # first occurrence found, initialize data set for node
+                    self.nodeCounts[nodeFieldType][nodeFieldVal] = {
+                        'count': 1
+                    }
+
+                # add example log for node (to be used later for possible alerts)
+                # we always want the latest log, so this will always get set if a value for the nodeFiledName is set
+                self.nodeCounts[nodeFieldType][nodeFieldVal]['logIdx'] = logIdx
             except KeyError:
                 # log doesn't have anything set for field name, continue on
                 pass
@@ -371,10 +377,11 @@ class Erudite(Destiny):
             raise ValueError('invalid node set type provided')
 
         for node in self.nodeCounts[nodeSetType]:
-            occPerSec = self.calculateOPSForNode(self.nodeCounts[nodeSetType][node])
+            occPerSec = self.calculateOPSForNode(self.nodeCounts[nodeSetType][node]['count'])
 
             # add OPS to result set
             self.nodeOPSResults[nodeSetType][node] = {
+                'logIdx': self.nodeCounts[nodeSetType][node]['logIdx'],
                 'ops': occPerSec
             }
 
@@ -453,9 +460,9 @@ class Erudite(Destiny):
                            + str(standardDeviation) + ' ] w/ max std dev set to [ ' + str(maxStdDev) + ' ]')
 
         if maxStdDev < standardDeviation:
-            return True
+            return standardDeviation
 
-        return False
+        return 0
 
     def analyzeOPSResultsForAnomalies(self):
         """
@@ -473,10 +480,13 @@ class Erudite(Destiny):
                     prevOPSResult = self.prevNodeOPSResults[nodeType][node]['ops']
                     currentOPSResult = self.nodeOPSResults[nodeType][node]['ops']
 
-                    if self.determineOPSStdDevSignificance(node=node, nodeType=nodeType,
-                                                           prevNodeTrafficResult=prevOPSResult,
-                                                           currentNodeTrafficResult=currentOPSResult):
+                    stdDev = self.determineOPSStdDevSignificance(node=node, nodeType=nodeType,
+                                                                 prevNodeTrafficResult=prevOPSResult,
+                                                                 currentNodeTrafficResult=currentOPSResult)
+                    if 0 < stdDev:
                         # raise anomaly alert
+                        logData = self.logStore[self.nodeOPSResults[nodeType][node]['logIdx']]
+
                         # set default src and dst node, then set correct one to node val depending on node type
                         srcNode = '0.0.0.0'
                         dstNode = '0.0.0.0'
@@ -486,14 +496,14 @@ class Erudite(Destiny):
                             dstNode = node
 
                         # set alert details
-                        alertDetails = 'detected significant change in OPS for traffic node :: [ NODE: ' + node \
+                        alertDetails = 'Detected significant change in OPS for traffic node :: [ NODE: ' + node \
                                        + ' // TYPE: ' + nodeType + ' // { ' + str(prevOPSResult) + ' -> ' \
-                                       + str(currentOPSResult) + ' } ]'
+                                       + str(currentOPSResult) + ' } // STD DEV: { ' + str(stdDev) + ' } ]'
 
                         # nodes and alert metadata set, add alert if required
                         if not self.cfg.getboolean('learning', 'enableBaselineMode'):
                             self.alertNode.addAlert(timestamp=int(time()), alertType=1, srcNode=srcNode, dstNode=dstNode,
-                                                alertDetails=alertDetails)
+                                                alertDetails=alertDetails, logData=logData)
 
     def updateNodeOPSRecordInDB(self, nodeVal, nodeType):
         """
@@ -594,7 +604,11 @@ class Erudite(Destiny):
                                           + ' // TYPE ID: ' + str(nodeType)
                                           + ' // OPS: ' + str(self.nodeOPSResults[nodeType][node]['ops']) + ' ]')
 
-            self.lgr.info('synced traffic node stats for [ ' + str(len(self.nodeOPSResults)) + ' ] nodes')
+            numNodeOPSResults = 0
+            for nodeType in self.nodeTypes:
+                numNodeOPSResults += len(self.nodeOPSResults[nodeType])
+
+            self.lgr.info('synced traffic node stats for [ ' + str(numNodeOPSResults) + ' ] nodes')
 
     def performTrafficNodeAnalysis(self):
         """
@@ -626,9 +640,9 @@ class Erudite(Destiny):
             self.calculateNodeOccurrenceCounts(nodeFieldName=dstNodeFieldName, nodeFieldType='dst')
 
             # take previously calculated OCCs and calculate OPS of each node set type
-            self.lgr.info('calculating OPS for source and destination node sets')
-            self.calculateOPSResultsForNodeSet('src')
-            self.calculateOPSResultsForNodeSet('dst')
+            for nodeType in self.nodeTypes:
+                self.lgr.info('calculating OPS for [ ' + nodeType + ' ] node set')
+                self.calculateOPSResultsForNodeSet(nodeType)
 
             # read in OPS results from db that were calculated on previous runs
             self.lgr.info('fetching previously-calculated OPS results from Inquisition database')

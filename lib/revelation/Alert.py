@@ -67,5 +67,5 @@ class Alert():
         return '[ ID: ' + str(self.alertID) + ' // TIMESTAMP: ' + str(self.timestamp) \
                + ' // TYPE: ' + str(self.alertType) + ' // STATUS: ' + str(self.status) \
                + ' // HOST: ' + str(self.host) + ' // SRC: ' + str(self.srcNode) + ' // DST: ' + str(self.dstNode) \
-               + ' // ALERT DETAILS: { ' + str(self.alertDetails) + ' } // LOG: { ' + str(self.logData) + ' } ]'
+               + ' // ALERT DETAILS: { ' + str(self.alertDetails) + ' } // LOG DATA: (( ' + str(self.logData) + ' )) ]'
 

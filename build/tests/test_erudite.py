@@ -85,7 +85,7 @@ class EruditeTestCase(unittest.TestCase):
         self.erudite.calculateNodeOccurrenceCounts(nodeFieldName='field2', nodeFieldType='src')
 
         # check to see if count was recorded correctly
-        self.assertGreaterEqual(self.erudite.nodeCounts['src']['value2'], 1)
+        self.assertGreaterEqual(self.erudite.nodeCounts['src']['value2']['count'], 1)
 
     def test_calculateNodeOccurrenceCounts_blankFieldName(self):
         try:
