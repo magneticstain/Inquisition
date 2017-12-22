@@ -45,9 +45,10 @@ def parseCliArgs():
 
     # set CLI arguments
     cliParser = argparse.ArgumentParser(description='An advanced and versatile open-source SIEM platform')
-    cliParser.add_argument('-c', '--config-file', help='Configuration file to be used', default='conf/main.cfg')
+    cliParser.add_argument('-c', '--config-file', help='Configuration file to be used')
     cliParser.add_argument('-k', '--config-check', action='store_true',
-                           help='Try running Inquisition up to after the configs are read in and parsed', default=False)
+                           help='Try running Inquisition up to right after the configs are read in and parsed',
+                           default=False)
     cliParser.add_argument('-t', '--test-run', action='store_true',
                            help='Run Inquisition in test mode (read-only, debug-level logs, single processes)',
                            default=False)
@@ -69,15 +70,16 @@ def parseConfigFile(configFile):
     cfg = configparser.ConfigParser()
 
     # check if config file is readable
-    if path.isfile(configFile):
-        # ingest and return configuration
-        cfg.read(configFile)
+    if configFile:
+        if path.isfile(configFile):
+            # ingest and return configuration
+            cfg.read(configFile)
+        else:
+            print('[CRIT] config file not found :: [', configFile, ']')
 
-        return (cfg)
-    else:
-        print('[CRIT] config file not found :: [', configFile, ']')
+            exit(1)
 
-        exit(1)
+    return cfg
 
 def generateCfg():
     """
@@ -111,6 +113,9 @@ def generateCfg():
     # check if any CLI args overlap with config file options (CLI wins)
     if int(cliArgs.max_logs_to_parse) >= 0:
         # max logs set by cli, override config file val
+        if not cfg.has_section('parsing'):
+            cfg.add_section('parsing')
+
         cfg['parsing']['maxLogsToParse'] = cliArgs.max_logs_to_parse
 
     return cfg
@@ -131,7 +136,10 @@ def main():
 
     # create Sentry client for debugging (if API key is available)
     sentryClient = None
-    sentryApiKey = cfg['debug']['sentry_api_key']
+    try:
+        sentryApiKey = cfg['debug']['sentry_api_key']
+    except KeyError:
+        sentryApiKey = ''
     if sentryApiKey:
         # API key provided, initialize client
         sentryClient = raven.Client(
@@ -155,14 +163,18 @@ def main():
         # start log anomaly engine (Erudite)
         erudite.startAnomalyDetectionEngine()
 
-        if not cfg.getboolean('learning', 'enableBaselineMode'):
+        try:
+            baselineMode = cfg.getboolean('learning', 'enableBaselineMode')
+        except (configparser.NoSectionError, configparser.NoOptionError, KeyError):
+            baselineMode = False
+        if not baselineMode:
             # not running in baseline mode; start network threat detection engine
             # network threat engine (Sage)
             sage.startNetworkThreatEngine()
         else:
             lgr.info('running in baseline mode, not running network threat analysis engine (Sage)')
     else:
-        msg = 'configuration check is SUCCESSFUL, exiting...'
+        msg = 'configuration check is [ SUCCESSFUL ], exiting...'
         print('[INFO] ' + msg)
         lgr.info(msg)
 

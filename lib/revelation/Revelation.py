@@ -76,7 +76,7 @@ class Revelation(Inquisit):
                 dbCursor.execute(sql, (alert.alertType, alert.host, alert.srcNode, alert.dstNode, alert.alertDetails,
                                        alert.logData))
                 self.inquisitionDbHandle.commit()
-                if self.cfg.getboolean('logging', 'verbose'):
+                if self.getCfgValue(section='logging', name='verbose', defaultVal=False, dataType=bool):
                     self.lgr.debug(
                         'successfully added alert ' + str(alert) + ' to Inquisition database')
             except err as e:

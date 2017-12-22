@@ -372,7 +372,7 @@ class Parser(Inquisit):
 
                 # check if we should log matched value or not
                 templateMatchLogMsg = 'template MATCHED log :: ' + str(self.templateStore[templateId])
-                if self.cfg.getboolean('logging', 'printMatchValues'):
+                if self.getCfgValue(section='logging', name='printMatchValues', defaultVal=False):
                     # value should be added in
                     templateMatchLogMsg += ' :: [ VALUE: ' + matchedString + ' ]'
                 self.lgr.debug(templateMatchLogMsg)
@@ -433,7 +433,7 @@ class Parser(Inquisit):
             return False
 
         # check if we should print the raw log in our log messages
-        if self.cfg.getboolean('logging', 'printMatchValues'):
+        if self.getCfgValue(section='logging', name='printMatchValues', defaultVal=False):
             rawLogValueForLogs = '< REDACTED BY CONFIG >'
         else:
             rawLogValueForLogs = rawLog
@@ -465,7 +465,7 @@ class Parser(Inquisit):
 
         return True
 
-    def pollLogFile(self, isTestRun=False, useHazyStateTracking=False, numLogsBetweenTrackingUpdate=0,
+    def pollLogFile(self, isTestRun=False, useHazyStateTracking=False, numLogsBetweenTrackingUpdate=1,
                     exitOnMaxLogs=True):
         """
         Tails the log file for new logs and processes them
@@ -487,20 +487,6 @@ class Parser(Inquisit):
                 raise ValueError('invalid tracking update log count ( ' + str(numLogsBetweenTrackingUpdate)
                                  + ' ) w/ hazy state tracking enabled')
 
-        # make sure we haven't already hit the max number of logs we want to read it
-        try:
-            if self.maxLogsToProcess > 0 and self.stats['total_logs_processed'] >= self.maxLogsToProcess:
-                # we hit the limit, let's exit
-                self.lgr.info('max number of logs to process has been reached')
-                if exitOnMaxLogs:
-                    self.lgr.info('exiting successfully due to configuration options')
-                    exit(0)
-                else:
-                    return False
-        except KeyError:
-            # this means we haven't read any logs and haven't set the TLP stat yet; we can just proceed
-            pass
-
         # reset run stats
         runStats = {
                     'num_logs': 0,
@@ -517,10 +503,38 @@ class Parser(Inquisit):
             paranoidMode = True
         # NOTE: paranoid denotes updating the offset file after every log is read; statefullness is important ^_^
 
+        # make sure we haven't already hit the max number of logs we want to read it
+        try:
+            if self.maxLogsToProcess > 0 and self.stats['total_logs_processed'] >= self.maxLogsToProcess:
+                # we hit the limit, let's exit
+                self.lgr.info('max number of logs to process has been reached')
+                if exitOnMaxLogs:
+                    self.lgr.info('exiting successfully due to configuration options')
+                    exit(0)
+                else:
+                    return False
+        except KeyError:
+            # this means we haven't read any logs and haven't set the TLP stat yet; we can just proceed
+            pass
+
         # begin polling w/ Pygtail
         try:
             for log in Pygtail(self.logFile, offset_file=self.offsetFile, paranoid=paranoidMode,
                                every_n=numLogsBetweenTrackingUpdate):
+                # check to see if we've hit the max number of logs after each log read
+                try:
+                    if self.maxLogsToProcess > 0 and self.stats['total_logs_processed'] >= self.maxLogsToProcess:
+                        # we hit the limit, let's exit
+                        self.lgr.info('max number of logs to process has been reached :: ' + self.__str__())
+                        if exitOnMaxLogs:
+                            self.lgr.info('exiting parser successfully due to configuration options')
+                            exit(0)
+                        else:
+                            return False
+                except KeyError:
+                    # this means we haven't read any logs and haven't set the TLP stat yet; we can just proceed
+                    continue
+
                 pollStartTime = datetime.datetime.utcnow()
 
                 # try to process the log
@@ -597,6 +611,13 @@ class Parser(Inquisit):
         :return: str
         """
 
+        try:
+            logsProcessed = self.stats['total_logs_processed']
+        except KeyError:
+            # this means we haven't read any logs and haven't set the TLP stat yet; we can just proceed
+            logsProcessed = 0
+
         return '[ PARSER ID: ' + str(self.parserID) + ' // NAME: ' + self.parserName + ' // READING FROM LOG FILE: ' \
-               + self.logFile + ' // OFFSET FILE: ' + self.offsetFile + ' ]'
+               + self.logFile + ' // OFFSET FILE: ' + self.offsetFile + ' // TOTAL LOGS PROCESSED: { ' \
+               + str(logsProcessed) + ' } ]'
 

@@ -101,13 +101,7 @@ class Sage(Destiny):
         """
 
         # check if this is a test run
-        try:
-            testRun = self.cfg.getboolean('cli', 'test_run')
-        except KeyError:
-            # test run not defined, set to default of FALSE
-            self.lgr.warning('test run flag not set, defaulting to [ FALSE ]')
-
-            testRun = False
+        testRun = self.getCfgValue(section='cli', name='test_run', defaultVal=False, dataType=bool)
 
         newTrainerPID = 0
         if not testRun:
@@ -130,7 +124,7 @@ class Sage(Destiny):
             self.initClassifier()
 
             # train and predict model after every $sleepTime seconds
-            sleepTime = int(self.cfg['learning']['networkThreatDetectionSleepTime'])
+            sleepTime = self.getCfgValue('learning', 'networkThreatDetectionSleepTime', defaultVal=30, dataType=int)
 
             while True:
                 # fetch all needed data

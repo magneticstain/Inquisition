@@ -211,13 +211,7 @@ class Augur(Inquisit):
         iocData = {}
 
         # check if this is a test run
-        try:
-            testRun = self.cfg.getboolean('cli', 'test_run')
-        except KeyError:
-            # test run not defined, set to default of FALSE
-            self.lgr.warning('test run flag not set, defaulting to [ FALSE ]')
-
-            testRun = False
+        testRun = self.getCfgValue(section='cli', name='test_run', defaultVal=False, dataType=bool)
 
         newCollectorPID = 0
         if not testRun:
@@ -264,7 +258,7 @@ class Augur(Inquisit):
                     break
 
                 # sleep for specified time
-                sleepTime = self.cfg['intel']['sleepTime']
+                sleepTime = self.getCfgValue(section='intel', name='sleepTime', defaultVal=30, dataType=int)
                 self.lgr.debug('sleeping for [ ' + str(sleepTime) + ' ] seconds')
-                sleep(int(sleepTime))
+                sleep(sleepTime)
 

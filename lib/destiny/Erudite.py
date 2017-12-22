@@ -226,11 +226,12 @@ class Erudite(Destiny):
                         dbCursor.execute(sql, host)
                         self.inquisitionDbHandle.commit()
 
-                        if self.cfg.getboolean('logging', 'verbose'):
+                        if self.getCfgValue(section='logging', name='verbose', defaultVal=False, dataType=bool):
                             self.lgr.debug('synced new unknown host [ ' + host + ' ] to inquisition DB')
                     except err as e:
                         self.inquisitionDbHandle.rollback()
-                        self.lgr.critical('database error when inserting known host into Inquisition database while in baseline mode :: [ ' + str(e) + ' ]')
+                        self.lgr.critical('database error when inserting known host into Inquisition database while ' +
+                                          'in baseline mode :: [ ' + str(e) + ' ]')
 
                 dbCursor.close()
 
@@ -273,7 +274,7 @@ class Erudite(Destiny):
             # check if any unknown hosts were found
             if 0 < len(unknownHosts):
                 # generate alerts if not in baseline mode
-                if not self.cfg.getboolean('learning', 'enableBaselineMode'):
+                if not self.getCfgValue(section='learning', name='enableBaselineMode', defaultVal=False, dataType=bool):
                     # not in baseline mode, generate alert(s)
                     for hostData in unknownHosts:
                         self.alertNode.addAlert(timestamp=int(time()), alertType=0, host=hostData['host'],
@@ -385,7 +386,7 @@ class Erudite(Destiny):
                 'ops': occPerSec
             }
 
-            if self.cfg.getboolean('logging', 'verbose'):
+            if self.getCfgValue(section='logging', name='verbose', defaultVal=False, dataType=bool):
                 self.lgr.debug(
                     'calculated occurrences of node [ ' + str(node) + ' // TYPE: ' + nodeSetType + ' ] to be [ '
                     + str(occPerSec) + ' / sec ]')
@@ -426,7 +427,7 @@ class Erudite(Destiny):
                             'ops': result['occ_per_sec']
                         }
 
-                    if self.cfg.getboolean('logging', 'verbose'):
+                    if self.getCfgValue(section='logging', name='verbose', defaultVal=False, dataType=bool):
                         self.lgr.debug('fetched past OPS result from db :: [ NODE: ' + result['node_val'] + ' // TYPE: '
                                        + result['type_key'] + ' // OPS: ' + str(result['occ_per_sec']))
 
@@ -448,14 +449,14 @@ class Erudite(Destiny):
 
         # check if std dev was set
         try:
-            maxStdDev = self.cfg.getfloat('alerting', 'maxTrafficNodeStdDev')
+            maxStdDev = self.getCfgValue('alerting', 'maxTrafficNodeStdDev', defaultVal=1.0, dataType=float)
         except KeyError:
             # config not set, use default
             maxStdDev = 1.0
 
         # calculate std deviation
         standardDeviation = stdev([prevNodeTrafficResult, currentNodeTrafficResult])
-        if self.cfg.getboolean('logging', 'verbose'):
+        if self.getCfgValue(section='logging', name='verbose', defaultVal=False, dataType=bool):
             self.lgr.debug('calculated std dev for [ NODE: ' + str(node) + ' // TYPE ID: ' + str(nodeType) + ' ] as [ '
                            + str(standardDeviation) + ' ] w/ max std dev set to [ ' + str(maxStdDev) + ' ]')
 
@@ -501,7 +502,8 @@ class Erudite(Destiny):
                                        + str(currentOPSResult) + ' } // STD DEV: { ' + str(stdDev) + ' } ]'
 
                         # nodes and alert metadata set, add alert if required
-                        if not self.cfg.getboolean('learning', 'enableBaselineMode'):
+                        if not self.getCfgValue(section='learning', name='enableBaselineMode', defaultVal=False,
+                                                dataType=bool):
                             self.alertNode.addAlert(timestamp=int(time()), alertType=1, srcNode=srcNode, dstNode=dstNode,
                                                 alertDetails=alertDetails, logData=logData)
 
@@ -514,7 +516,7 @@ class Erudite(Destiny):
         :return: bool
         """
 
-        verboseLogging = self.cfg.getboolean('logging', 'verbose')
+        verboseLogging = self.getCfgValue(section='logging', name='verbose', defaultVal=False, dataType=bool)
         status = False
 
         if not nodeVal or not nodeType:
@@ -671,13 +673,7 @@ class Erudite(Destiny):
         analysisHasRan = False
 
         # check if this is a test run
-        try:
-            testRun = self.cfg.getboolean('cli', 'test_run')
-        except KeyError:
-            # test run not defined, set to default of FALSE
-            self.lgr.warning('test run flag not set, defaulting to [ FALSE ]')
-
-            testRun = False
+        testRun = self.getCfgValue(section='cli', name='test_run', defaultVal=False, dataType=bool)
 
         newAnalyzerPID = 0
         if not testRun:
@@ -697,14 +693,15 @@ class Erudite(Destiny):
                 exit(1)
 
             # run analysis after every $sleepTime seconds
-            sleepTime = int(self.cfg['learning']['anomalyDetectionSleepTime'])
+            sleepTime = self.getCfgValue(section='learning', name='anomalyDetectionSleepTime', defaultVal=15,
+                                         dataType=int)
 
             while True:
                 # fetch raw logs
                 self.lgr.info('fetching raw logs for anomaly detection')
                 # get baseline logs if in baseline mode, raw if not
                 logType = 'raw'
-                if self.cfg.getboolean('learning', 'enableBaselineMode'):
+                if self.getCfgValue(section='learning', name='enableBaselineMode', defaultVal=False, dataType=bool):
                     logType = 'baseline'
                 self.logStore = self.fetchLogData(logType=logType)
 

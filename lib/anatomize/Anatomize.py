@@ -85,13 +85,23 @@ class Anatomize(Inquisit):
             dbResults = dbCursor.fetchall()
             for row in dbResults:
                 # add each parser to parser store
-                parsers[row['parser_id']] = Parser(cfg=self.cfg, logTTL=self.cfg['parsing']['logTTL'],
-                                                   maxLogsToProcess=self.cfg.getint('parsing', 'maxLogsToParse'),
+                parsers[row['parser_id']] = Parser(cfg=self.cfg,
+                                                   logTTL=self.getCfgValue(section='parsing', name='logTTL',
+                                                                           defaultVal=60),
+                                                   maxLogsToProcess=self.getCfgValue(section='parsing',
+                                                                                         name='maxLogsToParse',
+                                                                                         defaultVal=-1, dataType=int),
                                                    parserID=row['parser_id'], parserName=row['parser_name'],
                                                    logFile=row['parser_log'],
-                                                   keepPersistentStats=self.cfg.getboolean('stats', 'keepPersistentStats'),
-                                                   metricsMode=self.cfg.getboolean('logging', 'enableMetricsMode'),
-                                                   baselineMode=self.cfg.getboolean('learning', 'enableBaselineMode'))
+                                                   keepPersistentStats=self.getCfgValue(section='stats',
+                                                                                        name='keepPersistentStats',
+                                                                                        defaultVal=True, dataType=bool),
+                                                   metricsMode=self.getCfgValue(section='logging',
+                                                                                name='enableMetricsMode',
+                                                                                defaultVal=False, dataType=bool),
+                                                   baselineMode=self.getCfgValue(section='learning',
+                                                                                 name='enableBaselineMode',
+                                                                                 defaultVal=False, dataType=bool))
 
             dbCursor.close()
 
@@ -106,22 +116,18 @@ class Anatomize(Inquisit):
 
         self.lgr.info('starting anatomizer...')
 
-        hazyStateTrackingStatus = self.cfg.getboolean('state_tracking', 'enableHazyStateTracking')
-        numLogsBetweenTrackingUpdate = self.cfg.getint('state_tracking', 'stateTrackingWaitNumLogs')
-
-        # check if this is a test run
-        try:
-            testRun = self.cfg.getboolean('cli', 'test_run')
-        except KeyError:
-            # test run not defined, set to default of FALSE
-            self.lgr.warning('test run flag not set, defaulting to [ FALSE ]')
-
-            testRun = False
+        hazyStateTrackingStatus = self.getCfgValue(section='state_tracking', name='enableHazyStateTracking',
+                                                   defaultVal=True, dataType=bool)
+        numLogsBetweenTrackingUpdate = self.getCfgValue(section='state_tracking', name='stateTrackingWaitNumLogs',
+                                                            defaultVal=1, dataType=int)
 
         # let user know if anatomizer was started in hazy state tracking mode
         if hazyStateTrackingStatus:
             self.lgr.info('hazy state tracking is [ ENABLED ] with updates set to occur every { '
                           + str(numLogsBetweenTrackingUpdate) + ' } logs read in')
+
+        # check if this is a test run
+        testRun = self.getCfgValue(section='cli', name='test_run', defaultVal=False, dataType=bool)
 
         # cycle through parsers
         for parserId in self.parserStore:
@@ -145,8 +151,9 @@ class Anatomize(Inquisit):
 
                 # start parsing
                 numRuns = 0
-                numRunsBetweenStats = int(self.cfg['parsing']['numSleepsBetweenStats'])
-                sleepTime = int(self.cfg['parsing']['sleepTime'])
+                numRunsBetweenStats = self.getCfgValue(section='parsing', name='numSleepsBetweenStats', defaultVal=5,
+                                                       dataType=int)
+                sleepTime = self.getCfgValue(section='parsing', name='sleepTime', defaultVal=5, dataType=int)
                 while True:
                     # poll for new logs
                     self.parserStore[parserId].pollLogFile(isTestRun=testRun, useHazyStateTracking=hazyStateTrackingStatus,
@@ -166,6 +173,6 @@ class Anatomize(Inquisit):
                         self.lgr.debug('test run, exiting anatomizer loop')
                         break
 
-                    self.lgr.debug('sleeping for [ ' + self.cfg['parsing']['sleepTime'] + ' ] seconds')
+                    self.lgr.debug('sleeping for [ ' + str(sleepTime) + ' ] seconds')
                     sleep(sleepTime)
 

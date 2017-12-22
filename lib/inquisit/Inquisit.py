@@ -12,6 +12,7 @@ CREATION_DATE: 2017-05-12
 # MODULES
 # | Native
 import logging
+import configparser
 
 # | Third-Party
 import pymysql
@@ -83,25 +84,67 @@ class Inquisit:
         newLgr = logging.getLogger(lgrName)
 
         # set logging level
-        logLvl = getattr(logging, cfg['logging']['logLvl'].upper())
+        try:
+            logLvl = getattr(logging, cfg['logging']['logLvl'].upper())
+        except (configparser.NoSectionError, configparser.NoOptionError, KeyError):
+            logLvl = 'INFO'
         newLgr.setLevel(logLvl)
 
         # check if handlers have already been added to this logger
         if not len(newLgr.handlers):
             # handlers not added yet
             # create file handler for log file
-            fileHandler = logging.FileHandler(cfg['logging']['logFile'])
+            try:
+                logFile = cfg['logging']['logFile']
+            except (configparser.NoSectionError, configparser.NoOptionError, KeyError):
+                logFile = '/var/log/inquisition/app.log'
+            fileHandler = logging.FileHandler(logFile)
             fileHandler.setLevel(logLvl)
 
             # set output formatter
-            # NOTE: we need to get the logFormat val with the raw flag set in order to avoid logging from interpolating
-            frmtr = logging.Formatter(cfg.get('logging', 'logFormat', raw=True))
+            try:
+                # NOTE: we need to get the logFormat val with the raw flag set in order to avoid logging from interpolating
+                logFormat = cfg.get('logging', 'logFormat', raw=True)
+            except (configparser.NoSectionError, configparser.NoOptionError, KeyError):
+                logFormat = '%(asctime)s [ %(levelname)s ] [ %(name)s ] %(message)s'
+            frmtr = logging.Formatter(logFormat)
             fileHandler.setFormatter(frmtr)
 
             # associate file handler w/ logger
             newLgr.addHandler(fileHandler)
 
         return newLgr
+
+    def getCfgValue(self, section, name, defaultVal, dataType=str):
+        """
+        Fetch configuration value for specified section/name
+
+        :param section: section to get value from
+        :param name: name to get value of
+        :param defaultVal: value to set as config val in case one is not found
+        :param errorMsg: error message to log if not found
+        :param dataType: specifies datatype to cast config value to before returning
+        :return: bool, int, or str
+        """
+
+        configVal = None
+
+        try:
+            if dataType == str:
+                configVal = self.cfg[section][name]
+            elif dataType == int:
+                configVal = self.cfg.getint(section, name)
+            elif dataType == bool:
+                configVal = self.cfg.getboolean(section, name)
+            elif dataType == float:
+                configVal = self.cfg.getfloat(section, name)
+        except (configparser.NoSectionError, configparser.NoOptionError, KeyError):
+            # log error and set default
+            self.lgr.debug('config value not found :: [ ' + section + ' / ' + name + ' ] :: using default val [ '
+                             + str(defaultVal) + ' ]')
+            configVal = defaultVal
+
+        return configVal
 
     def bounceInquisitionDbConnection(self):
         """

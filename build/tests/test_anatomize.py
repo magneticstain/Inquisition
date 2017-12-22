@@ -40,14 +40,5 @@ class AnatomizeTestCase(unittest.TestCase):
     def test_fetchParsers(self):
         self.assertGreater(len(self.anatomizer.parserStore), 0)
 
-    def test_startAnatomizer_noTestRunSetting(self):
-        try:
-            self.anatomizer.startAnatomizer()
-
-            # if we get here, we didn't get to where we expected; considered failure
-            self.assertTrue(False)
-        except configparser.NoSectionError:
-            self.assertTrue(True)
-
 if __name__ == '__main__':
     unittest.main()
