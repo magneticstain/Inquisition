@@ -2,46 +2,95 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
 
     <!-- css -->
-    <link href="static/css/main.css" rel="stylesheet" media="all">
+    <link rel="stylesheet" href="static/css/main.css" media="all">
 
     <title>Inquisition - Home</title>
 </head>
-<body id="alerts">
+<body>
     <header>
-        <div class="contentWrapper">
-            <div id="titleLogoWrapper">
-                <img src="/IQ/static/imgs/title_icon.png">
-                <h1>inquisition</h1>
-            </div>
+        <div class="headerWrapper">
+                <div id="titleLogoWrapper">
+                    <a href="/IQ/" title="Go to Inquisition homepage">
+                        <img src="/IQ/static/imgs/title_logo.png" alt="Welcome to Inquisition">
+                    </a>
+                </div>
             <!--<div id="loginModule">-->
                 <!--Josh Carlson | logout-->
             <!--</div>-->
         </div>
     </header>
-    <nav>
-        <div>Alerts</div>
-        <div>Tuning</div>
-        <div>Stats</div>
-    </nav>
     <main>
-        <div id="alertData">
-            <div>Sort by: latest</div>
-            <div class="alert">
-
-            </div>
-            <div class="alert">
-
-            </div>
-            <div class="alert">
-
+        <div id="mainWrapper">
+            <nav>
+                <div id="navContainer">
+                    <div class="navOption selected">
+                        <img src="/IQ/static/imgs/icons/alerts.svg" alt="View Current Alerts">
+                        <span>Alerts</span>
+                    </div>
+                    <div class="navOption">
+                        <img src="/IQ/static/imgs/icons/stats.svg" alt="View Current Alerts">
+                        <span>Stats</span>
+                    </div>
+                    <div class="navOption">
+                        <img src="/IQ/static/imgs/icons/tuning.svg" alt="View Current Alerts">
+                        <span>Tuning</span>
+                    </div>
+                </div>
+            </nav>
+            <div id="contentWrapper">
+                <div id="contentTitleWrapper" class="contentModule">
+                    <h1>Alerts</h1>
+                </div>
+                <div></div>
+                <div id="primaryContentData" class="contentModule">
+                    <div class="contentTable">
+                        <div class="contentHeader contentRow">
+                            <span>TYPE</span>
+                            <span>ALERT ID</span>
+                            <span>CREATED</span>
+                            <span>HOST</span>
+                            <span>SOURCE</span>
+                            <span>DESTINATION</span>
+                            <span>SUMMARY</span>
+                        </div>
+                        <div class="alert contentRow">
+                            <span>Host Anomaly</span>
+                            <span><a href="#" title="View Alert">00000001</a></span>
+                            <span>28 minutes ago</span>
+                            <span>10.0.0.1</span>
+                            <span>10.0.0.2</span>
+                            <span>10.0.0.3</span>
+                            <span>Unknown host detected</span>
+                        </div>
+                        <div class="alert contentRow">
+                            <span>Host Anomaly</span>
+                            <span><a href="#" title="View Alert">00000001</a></span>
+                            <span>28 minutes ago</span>
+                            <span>10.0.0.1</span>
+                            <span>10.0.0.2</span>
+                            <span>10.0.0.3</span>
+                            <span>Unknown host detected</span>
+                        </div>
+                        <div class="alert contentRow">
+                            <span>Host Anomaly</span>
+                            <span><a href="#" title="View Alert">00000001</a></span>
+                            <span>28 minutes ago</span>
+                            <span>10.0.0.1</span>
+                            <span>10.0.0.2</span>
+                            <span>10.0.0.3</span>
+                            <span>Unknown host detected</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
     <footer>
         <div>
-            <a href="#">MIT License</a> // <a href="#">Project on GitHub</a>
+            <a href="https://opensource.org/licenses/MIT">MIT License</a> // <a href="https://github.com/magneticstain/Inquisition">Project on GitHub</a>
         </div>
     </footer>
 </body>

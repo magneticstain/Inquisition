@@ -1,0 +1,34 @@
+/*
+    Inquisition // Celestial // _nav.css
+
+    - styles for nav menu
+ */
+
+nav {
+    background: #403F4C;
+    float: left;
+    height: 100%;
+    width: 15%;
+}
+
+.navOption {
+    color: #C64923;
+    font: 16px Roboto, sans-serif;
+    letter-spacing: 2px;
+    padding: 10% 20% 10% 5%;
+    opacity: .85;
+    white-space: nowrap;
+}
+
+.navOption:hover, .navOption.selected {
+    background: #626073;
+    font-weight: bold;
+    opacity: 1;
+    cursor: pointer;
+}
+
+.navOption img {
+    height: 40px;
+    margin: 0 16px;
+    vertical-align: middle;
+}

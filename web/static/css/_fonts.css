@@ -5,6 +5,16 @@
  */
 
 @font-face {
-    font-family: 'Comfortaa';
-    src: url('/IQ/static/fonts/Comfortaa.ttf');
+    font-family: 'Roboto';
+    src: url('/IQ/static/fonts/Roboto-Regular.ttf');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    src: url('/IQ/static/fonts/NotoSans-Regular.ttf');
+}
+
+@font-face {
+    font-family: 'Work Sans';
+    src: url('/IQ/static/fonts/WorkSans-Regular.ttf');
 }

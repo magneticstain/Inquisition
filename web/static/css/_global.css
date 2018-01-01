@@ -1,0 +1,35 @@
+/*
+    Inquisition // Celestial // _global.css
+
+    - styles used globally across the entire page and/or multiple pages
+ */
+
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+main {
+    color: #333;
+    height: 100%;
+}
+
+#mainWrapper {
+    height: 100%;
+}
+
+a:link {
+    color: #25AAE1;
+    padding: 2px;
+    text-decoration: none;
+}
+
+a:visited {
+    color: #25AAE1;
+    text-decoration: none;
+}
+
+a:hover {
+    background: #25AAE1;
+    color: #333;
+}

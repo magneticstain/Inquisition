@@ -7,8 +7,14 @@
 /* CSS Reset */
 @import "_reset.css";
 
-/* Fonts */
 @import "_fonts.css";
 
-/* Header */
+@import "_global.css";
+
 @import "_header.css";
+
+@import "_nav.css";
+
+@import "_content.css";
+
+@import "_footer.css";

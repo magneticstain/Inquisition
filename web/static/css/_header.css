@@ -4,21 +4,20 @@
     - header-specific styles
  */
 
-header .contentWrapper {
-    background: #2C3D55;
+header .headerWrapper {
+    background: #E8E8E8;
 }
 
-header .contentWrapper #titleLogoWrapper {
-    color: #A5A4AD;
+header .headerWrapper #titleLogoWrapper {
     display: inline-block;
-    font: 3em "Comfortaa", sans-serif;
-    margin: 24px;
 }
 
-#titleLogoWrapper img, #titleLogoWrapper h1 {
+#titleLogoWrapper img {
+    height: 20%;
     vertical-align: middle;
+    width: 20%;
 }
 
-#titleLogoWrapper h1 {
-    display: inline;
+#titleLogoWrapper a:hover {
+    background: none;
 }

@@ -1,0 +1,66 @@
+/*
+    Inquisition // Celestial // _content.css
+
+    - styles for main content container
+ */
+
+.contentModule {
+    margin: 20px auto;
+    width: 90%;
+}
+
+#contentWrapper {
+    display: inline-block;
+    height: 100%;
+    width: 85%;
+}
+
+#contentTitleWrapper {
+    background: transparent;
+    border-bottom: 2px dotted #25AAE1;
+}
+
+#contentTitleWrapper h1 {
+    color: #626073;
+    display: inline-block;
+    font: 44px 'Noto Sans', sans-serif;
+    letter-spacing: 5px;
+    margin-bottom: 8px;
+}
+
+#primaryContentData {
+    background: #E8E8E8;
+    height: 65%;
+    margin-top: 28px;
+    max-height: 85%;
+    min-height: 25%;
+}
+
+.contentTable {
+    font: 18px 'Work Sans', sans-serif;
+    display: table;
+    text-align: center;
+    width: 100%;
+}
+
+.contentTable .contentRow {
+    display: table-row;
+}
+
+.contentTable .contentRow:nth-child(even) {
+    background: #C8C8C8;
+}
+
+.contentTable .contentHeader {
+    background: #25AAE1;
+    color: #E8E8E8;
+}
+
+.contentRow span {
+    display: table-cell;
+    padding: 8px 0;
+}
+
+.contentTable .contentRow:not(:first-child) {
+    font-size: 14px;
+}
