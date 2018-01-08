@@ -10,9 +10,24 @@
 }
 
 #contentWrapper {
-    display: inline-block;
     height: 100%;
-    width: 85%;
+    overflow: auto;
+}
+
+#contentWrapper .large.loadingModule {
+    margin: 15% auto;
+    padding: 24px;
+}
+
+#contentWrapper .large.loadingModule p {
+    color: #403F4C;
+    font-size: 48px;
+    letter-spacing: 2px;
+    margin-top: 64px;
+}
+
+#contentWrapper .large.loadingModule img {
+    height: 230px;
 }
 
 #contentTitleWrapper {
@@ -22,7 +37,6 @@
 
 #contentTitleWrapper h1 {
     color: #626073;
-    display: inline-block;
     font: 44px 'Noto Sans', sans-serif;
     letter-spacing: 5px;
     margin-bottom: 8px;
@@ -34,11 +48,12 @@
     margin-top: 28px;
     max-height: 85%;
     min-height: 25%;
+    overflow: auto;
 }
 
 .contentTable {
-    font: 18px 'Work Sans', sans-serif;
     display: table;
+    font: 18px 'Work Sans', sans-serif;
     text-align: center;
     width: 100%;
 }
@@ -58,7 +73,7 @@
 
 .contentRow span {
     display: table-cell;
-    padding: 8px 0;
+    padding: 8px 2px;
 }
 
 .contentTable .contentRow:not(:first-child) {

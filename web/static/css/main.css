@@ -7,6 +7,9 @@
 /* CSS Reset */
 @import "_reset.css";
 
+/* Third-Party Library Reqs */
+@import "pace.css";
+
 @import "_fonts.css";
 
 @import "_global.css";

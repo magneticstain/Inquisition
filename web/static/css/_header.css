@@ -19,5 +19,5 @@ header .headerWrapper #titleLogoWrapper {
 }
 
 #titleLogoWrapper a:hover {
-    background: none;
+    border: none;
 }
