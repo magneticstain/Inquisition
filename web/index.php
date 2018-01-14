@@ -1,11 +1,9 @@
 <?php
-namespace Inquisition\Web\Lib;
+namespace Inquisition\Web;
 
 /**
  * Index.php - main page of inquisition's web component
  */
-
-use Perspective\View;
 
 $BASE_URL = $_SERVER['DOCUMENT_ROOT'];
 require $BASE_URL.'/lib/Autoloader.php';
@@ -23,7 +21,7 @@ $contentHTML = '
 try {
     \Perspective\View::setHTTPHeaders();
 
-    $view = new View(
+    $view = new \Perspective\View(
         $content = $contentHTML
     );
 

@@ -96,11 +96,11 @@ class View
         <div id="mainLoadingProgressBar"></div>
         <header>
             <div class="headerWrapper">
-                    <div id="titleLogoWrapper">
-                        <a href="./" title="Go to Inquisition homepage">
-                            <img src="static/imgs/title_logo.png" alt="Welcome to Inquisition">
-                        </a>
-                    </div>
+                <div id="titleLogoWrapper">
+                    <a href="./" title="Go to Inquisition homepage">
+                        <img src="static/imgs/title_logo.png" alt="Welcome to Inquisition">
+                    </a>
+                </div>
                 <!--<div id="loginModule">-->
                     <!--Josh Carlson | logout-->
                 <!--</div>-->
@@ -139,8 +139,7 @@ class View
         <script src="static/js/nav.js"></script>
         <script src="static/js/main.js"></script>
     </body>
-</html>
-			';
+</html>';
     }
 
     public function __toString()
