@@ -30,13 +30,6 @@ class View
          *  Returns: NONE
          */
 
-        // normalize cache time to integer and validate it
-        $cacheTime = (int) $cacheTime;
-        if($cacheTime < 0)
-        {
-            throw new \Exception('invalid cache time supplied');
-        }
-
         // SECURITY
         // HSTS
         header('strict-transport-security: max-age=86400');
@@ -58,6 +51,7 @@ class View
 
         // CACHING
         // Cache-Control
+        $cacheTime = (int) $cacheTime;
         header('Cache-Control: max-age='.$cacheTime);
 
         // OTHER

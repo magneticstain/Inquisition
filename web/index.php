@@ -21,9 +21,7 @@ $contentHTML = '
 try {
     \Perspective\View::setHTTPHeaders();
 
-    $view = new \Perspective\View(
-        $content = $contentHTML
-    );
+    $view = new \Perspective\View($contentHTML);
 
     echo $view;
 } catch(\Exception $e) {

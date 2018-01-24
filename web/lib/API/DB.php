@@ -15,6 +15,10 @@ class DB
         'password' => '',
         'dbName' => ''
     ];
+    public $dbQueryOptions = [
+        'query' => '',
+        'optionVals' => []
+    ];
 
     public function __construct($host = '127.0.0.1', $port = 3306, $dbName = 'inquisition',
                                 $username = 'inquisition', $password = '')
@@ -48,9 +52,26 @@ class DB
         ];
 
         // create DSN
-        $dsn = 'mysql:host='.$this->dbConfig['host'].';dbname='.$this->dbConfig['dbName'].';port='.$this->dbConfig['port'].';charset=utf8';
+        $dsn = 'mysql:host='.$this->dbConfig['host'].';dbname='.$this->dbConfig['dbName'].';port='
+            .$this->dbConfig['port'].';charset=utf8';
 
         // try connecting
         $this->dbConn = new \PDO($dsn, $this->dbConfig['username'], $this->dbConfig['password'], $opts);
+    }
+
+    public function runQuery()
+    {
+        /*
+         *  Purpose: run query with option values using db conn
+         *
+         *  Params: NONE
+         *
+         *  Returns: array
+         *
+         */
+
+        $dbStmt = $this->dbConn->prepare($this->dbQueryOptions['query']);
+        $dbStmt->execute($this->dbQueryOptions['optionVals']);
+        return $dbStmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 }
