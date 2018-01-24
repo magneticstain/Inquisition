@@ -43,7 +43,7 @@ class Alerts
          */
 
         // check constraint var validity
-        if(!empty($constraintVal) || ((int)$constraintVal === 0 && $allowZero))
+        if(!empty($constraintVal) || (!is_null($constraintVal) && (int)$constraintVal === 0 && $allowZero))
         {
             if($this->alertDBQueryConstraintData['query'] != '')
             {
