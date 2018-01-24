@@ -119,11 +119,13 @@ class Alerts
         // append order by and limit clauses if needed
         if(!empty($queryOptions['orderBy']))
         {
-            $this->dbConn->dbQueryOptions['query'] .= ' ORDER BY '.$queryOptions['orderBy'];
+            $this->dbConn->dbQueryOptions['query'] .= ' ORDER BY ?';
+            $this->dbConn->dbQueryOptions['optionVals'][] = $queryOptions['orderBy'];
         }
         if(!empty($queryOptions['limit']) && 0 < $queryOptions['limit'])
         {
-            $this->dbConn->dbQueryOptions['query'] .= ' LIMIT '.$queryOptions['limit'];
+            $this->dbConn->dbQueryOptions['query'] .= ' LIMIT ?';
+            $this->dbConn->dbQueryOptions['optionVals'][] = $queryOptions['limit'];
         }
 
         // get results
