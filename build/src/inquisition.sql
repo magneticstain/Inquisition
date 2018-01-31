@@ -77,6 +77,31 @@ DELIMITER ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
+-- Table structure for table `AlertTypeMapping`
+--
+
+DROP TABLE IF EXISTS `AlertTypeMapping`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `AlertTypeMapping` (
+  `type_id` tinyint(1) NOT NULL AUTO_INCREMENT,
+  `type_name` varchar(20) NOT NULL,
+  PRIMARY KEY (`type_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `AlertTypeMapping`
+--
+
+LOCK TABLES `AlertTypeMapping` WRITE;
+/*!40000 ALTER TABLE `AlertTypeMapping` DISABLE KEYS */;
+INSERT INTO `AlertTypeMapping` VALUES (1,'Host Anomaly'),(2,'Traffic Node Anomaly'),(3,'Network Threat');
+/*!40000 ALTER TABLE `AlertTypeMapping` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+--
 -- Table structure for table `FieldTemplateRegex`
 --
 

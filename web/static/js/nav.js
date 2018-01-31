@@ -20,4 +20,10 @@ $(document).ready(function() {
             width: navMenuOrigWidth
         });
     });
+
+    // set loading trigger for nav options
+    $('.navOption').click(function () {
+        var contentKey = $(this).parent().attr('class');
+        Mystic.prototype.loadContent($('#contentWrapper'), contentKey);
+    });
 });

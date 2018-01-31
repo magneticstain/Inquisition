@@ -90,7 +90,7 @@ class Sage(Destiny):
                 logData = list(self.logStore)[idx]
 
                 # model detected this as a threat, raise alert
-                self.alertNode.addAlert(timestamp=int(time()), alertType=2, alertDetails='Network threat detected!',
+                self.alertNode.addAlert(timestamp=int(time()), alertType=3, alertDetails='Network threat detected!',
                                         logData=logData)
 
     def startNetworkThreatEngine(self):

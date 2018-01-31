@@ -86,13 +86,13 @@ class Revelation(Inquisit):
             finally:
                 dbCursor.close()
 
-    def addAlert(self, timestamp=0, alertType=0, status=0, host='127.0.0.1', srcNode='0.0.0.0', dstNode='0.0.0.0',
+    def addAlert(self, timestamp=0, alertType=1, status=0, host='127.0.0.1', srcNode='0.0.0.0', dstNode='0.0.0.0',
                  alertDetails='', logData=None, serializeLogData=True, addAlertToDb=True):
         """
         Generate an alert with given parameters and make it persistent
 \
         :param timestamp: timestamp that alert was generated, in epoch time
-        :param alertType: type of alert: 0 = host anomaly, 1 = traffic node anomaly, 2 = threat
+        :param alertType: type of alert: 1 = host anomaly, 2 = traffic node anomaly, 3 = threat
         :param status: status of alert: 0 = NEW, 1 = ACKNOWLEDGED, 2 = RESOLVED
         :param host: host that generated the alert
         :param srcNode: source host that generated the alert
@@ -107,7 +107,7 @@ class Revelation(Inquisit):
         if timestamp < 0:
             raise ValueError('invalid alert timestamp provided :: [ ' + str(timestamp) + ' ]')
 
-        if alertType < 0 or 2 < alertType:
+        if alertType < 1 or 3 < alertType:
             raise ValueError('invalid alert type provided :: [ ' + str(alertType) + ' ]')
 
         if status < 0 or 2 < status:

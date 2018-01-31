@@ -104,18 +104,24 @@ class View
             <div id="mainWrapper">
                 <nav>
                     <div id="navContainer">
-                        <div class="navOption selected">
-                            <img src="static/imgs/icons/alerts.svg" alt="View Current Alerts">
-                            <span>Alerts</span>
-                        </div>
-                        <div class="navOption">
-                            <img src="static/imgs/icons/stats.svg" alt="View Current Alerts">
-                            <span>Stats</span>
-                        </div>
-                        <div class="navOption">
-                            <img src="static/imgs/icons/tuning.svg" alt="View Current Alerts">
-                            <span>Tuning</span>
-                        </div>
+                        <a class="alerts" href="#alerts">
+                            <div class="alerts navOption selected">
+                                <img src="static/imgs/icons/alerts.svg" alt="View Current Alerts">
+                                <span>Alerts</span>
+                            </div>
+                        </a>
+                        <a class="stats" href="#stats">
+                            <div class="stats navOption">
+                                <img src="static/imgs/icons/stats.svg" alt="View Current Alerts">
+                                <span>Stats</span>
+                            </div>
+                        </a>
+                        <a class="tuning" href="#tuning">
+                            <div class="tuning navOption">
+                                <img src="static/imgs/icons/tuning.svg" alt="View Current Alerts">
+                                <span>Tuning</span>
+                            </div>
+                        </a>
                     </div>
                 </nav>
                 <div id="contentWrapper">
@@ -130,6 +136,7 @@ class View
         </footer>
         <script src="static/js/jquery-3.2.1.min.js"></script>
         <script src="static/js/pace.min.js"></script>
+        <script src="static/js/mystic.js"></script>
         <script src="static/js/nav.js"></script>
         <script src="static/js/main.js"></script>
     </body>

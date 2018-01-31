@@ -33,3 +33,7 @@ nav {
     margin: 0 18px;
     vertical-align: middle;
 }
+
+#navContainer a {
+    padding: 0;
+}

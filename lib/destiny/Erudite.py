@@ -277,7 +277,7 @@ class Erudite(Destiny):
                 if not self.getCfgValue(section='learning', name='enableBaselineMode', defaultVal=False, dataType=bool):
                     # not in baseline mode, generate alert(s)
                     for hostData in unknownHosts:
-                        self.alertNode.addAlert(timestamp=int(time()), alertType=0, host=hostData['host'],
+                        self.alertNode.addAlert(timestamp=int(time()), alertType=1, host=hostData['host'],
                                                 alertDetails='Host anomaly detected!',
                                                 logData=self.logStore[hostData['logIndex']])
 
@@ -504,7 +504,7 @@ class Erudite(Destiny):
                         # nodes and alert metadata set, add alert if required
                         if not self.getCfgValue(section='learning', name='enableBaselineMode', defaultVal=False,
                                                 dataType=bool):
-                            self.alertNode.addAlert(timestamp=int(time()), alertType=1, srcNode=srcNode, dstNode=dstNode,
+                            self.alertNode.addAlert(timestamp=int(time()), alertType=2, srcNode=srcNode, dstNode=dstNode,
                                                 alertDetails=alertDetails, logData=logData)
 
     def updateNodeOPSRecordInDB(self, nodeVal, nodeType):
