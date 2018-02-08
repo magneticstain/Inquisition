@@ -15,7 +15,7 @@
 }
 
 #contentWrapper .large.loadingModule {
-    margin: 150px auto;
+    margin: 135px auto;
     padding: 24px;
 }
 
@@ -44,7 +44,7 @@
 
 #primaryContentData {
     background: #E8E8E8;
-    height: 65%;
+    height: 80%;
     margin-top: 28px;
     max-height: 85%;
     min-height: 25%;
@@ -52,30 +52,46 @@
 }
 
 .contentTable {
-    display: table;
     font: 18px 'Work Sans', sans-serif;
     text-align: center;
     width: 100%;
 }
 
-.contentTable .contentRow {
-    display: table-row;
+.contentHeader {
+    background: #25AAE1;
+    color: #E8E8E8;
+    font-size: 22px;
 }
 
-.contentTable .contentRow:nth-child(even) {
+.contentTable .alert {
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.contentTable .alert:nth-child(4n+2) {
     background: #C8C8C8;
 }
 
-.contentTable .contentHeader {
-    background: #25AAE1;
-    color: #E8E8E8;
+.contentTable .alert:hover, .contentTable .alert.activeAlert {
+    background: #ACACAC;
 }
 
-.contentRow span {
+.contentTable .alertLogDetails {
+    background: #0E3E52;
+    display: none;
+}
+
+.contentTable .logDetail {
+    background: #E5E5E5;
+    border: #A33C1D dashed 2px;
+    color: #333;
+    font: 12px 'PT Mono', serif;
+    margin: 6px;
+    padding: 12px;
+    text-align: left;
+}
+
+.contentTable td {
     display: table-cell;
-    padding: 8px 2px;
-}
-
-.contentTable .contentRow:not(:first-child) {
-    font-size: 14px;
+    padding: 8px;
 }

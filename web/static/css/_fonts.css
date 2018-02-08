@@ -20,6 +20,11 @@
 }
 
 @font-face {
+    font-family: 'PT Mono';
+    src: url('/static/fonts/PT-Mono.ttf');
+}
+
+@font-face {
     font-family: 'Pacifico';
     src: url('/static/fonts/Pacifico-Regular.ttf');
 }
