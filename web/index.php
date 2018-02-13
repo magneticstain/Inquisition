@@ -9,11 +9,8 @@ $BASE_URL = $_SERVER['DOCUMENT_ROOT'];
 require $BASE_URL.'/lib/Autoloader.php';
 
 $contentHTML = '    
-                    <div class="loadingContainer">
-                        <div class="large loadingModule">
-                            <img src="static/imgs/icons/loading.svg" alt="Loading content..." title="Loading content, please wait...">
-                            <p>loading, please wait...</p>
-                        </div>
+                    <div id="loadingContainer">
+                    
                     </div>
 ';
 

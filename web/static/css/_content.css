@@ -63,35 +63,10 @@
     font-size: 22px;
 }
 
-.contentTable .alert {
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.contentTable .alert:nth-child(4n+2) {
-    background: #C8C8C8;
-}
-
-.contentTable .alert:hover, .contentTable .alert.activeAlert {
-    background: #ACACAC;
-}
-
-.contentTable .alertLogDetails {
-    background: #0E3E52;
-    display: none;
-}
-
-.contentTable .logDetail {
-    background: #E5E5E5;
-    border: #A33C1D dashed 2px;
-    color: #333;
-    font: 12px 'PT Mono', serif;
-    margin: 6px;
-    padding: 12px;
-    text-align: left;
+.contentHeader th {
+    padding: 6px;
 }
 
 .contentTable td {
-    display: table-cell;
     padding: 8px;
 }

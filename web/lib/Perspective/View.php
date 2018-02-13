@@ -104,19 +104,19 @@ class View
             <div id="mainWrapper">
                 <nav>
                     <div id="navContainer">
-                        <a class="alerts" href="#alerts">
+                        <a class="alerts" href="?content=alerts">
                             <div class="alerts navOption selected">
                                 <img src="static/imgs/icons/alerts.svg" alt="View Current Alerts">
                                 <span>Alerts</span>
                             </div>
                         </a>
-                        <a class="stats" href="#stats">
+                        <a class="stats" href="?content=stats">
                             <div class="stats navOption">
                                 <img src="static/imgs/icons/stats.svg" alt="View Current Alerts">
                                 <span>Stats</span>
                             </div>
                         </a>
-                        <a class="tuning" href="#tuning">
+                        <a class="tuning" href="?content=tuning">
                             <div class="tuning navOption">
                                 <img src="static/imgs/icons/tuning.svg" alt="View Current Alerts">
                                 <span>Tuning</span>
@@ -134,10 +134,15 @@ class View
                 <a href="https://opensource.org/licenses/MIT">MIT License</a> // <a href="https://github.com/magneticstain/Inquisition">Project on GitHub</a>
             </div>
         </footer>
-        <script src="static/js/jquery-3.2.1.min.js"></script>
-        <script src="static/js/pace.min.js"></script>
-        <script src="static/js/mystic.js"></script>
-        <script src="static/js/nav.js"></script>
+        <script src="static/js/plugins/jquery-3.2.1.min.js"></script>
+        <script src="static/js/plugins/jquery.cookie.js"></script>
+        <script src="static/js/plugins/pace.min.js"></script>
+        <script src="static/js/lib/global.js"></script>
+        <script src="static/js/lib/errorbot.js"></script>
+        <script src="static/js/lib/mystic.js"></script>
+        <script src="static/js/lib/alerts.js"></script>
+        <script src="static/js/lib/controller.js"></script>
+        <script src="static/js/lib/nav.js"></script>
         <script src="static/js/main.js"></script>
     </body>
 </html>';

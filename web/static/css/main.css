@@ -16,7 +16,9 @@
 
 @import "_header.css";
 
-@import "_nav.css";
+@import "libs/_nav.css";
+
+@import "libs/_alerts.css";
 
 @import "_content.css";
 

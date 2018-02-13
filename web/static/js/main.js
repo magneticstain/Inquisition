@@ -10,8 +10,10 @@ $(document).ready(function () {
         $('#mainLoadingProgressBar').show()
     });
 
-    var mystic = new Mystic();
+    // prep page
+    Nav.prepNavMenu();
+    Controller.initLoadingModal($('#loadingContainer'), 'large');
 
     // load content based on content key
-    mystic.loadContent($('#contentWrapper'), window.location.hash.substr(1));
+    Controller.initContent(false, $('#contentWrapper'), Global.fetchGETVar('content'));
 });

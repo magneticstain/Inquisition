@@ -1,10 +1,16 @@
 /*
     Inquisition // Celestial // Nav.css
 
-    - navigation menu related jquery functionality
+    - lib for navigation menu related functionality
  */
 
-$(document).ready(function() {
+var Nav = function () {};
+
+Nav.prepNavMenu = function () {
+    /*
+        Setup all needed functionality for navigation menu
+     */
+
     // nav menu
     var navMenu = $('nav');
 
@@ -24,6 +30,6 @@ $(document).ready(function() {
     // set loading trigger for nav options
     $('.navOption').click(function () {
         var contentKey = $(this).parent().attr('class');
-        Mystic.prototype.loadContent($('#contentWrapper'), contentKey);
+        Controller.initContent(false, $('#contentWrapper'), contentKey);
     });
-});
+};

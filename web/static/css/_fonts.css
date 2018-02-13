@@ -4,26 +4,31 @@
     - where all font collections are imported for use
  */
 
+/* Nav Menu Options */
 @font-face {
     font-family: 'Roboto';
     src: url('/static/fonts/Roboto-Regular.ttf');
 }
 
+/* Content Title */
 @font-face {
     font-family: 'Noto Sans';
     src: url('/static/fonts/NotoSans-Regular.ttf');
 }
 
+/* Alerts */
 @font-face {
     font-family: 'Work Sans';
     src: url('/static/fonts/WorkSans-Regular.ttf');
 }
 
+/* Alert Details */
 @font-face {
     font-family: 'PT Mono';
     src: url('/static/fonts/PT-Mono.ttf');
 }
 
+/* Loading Message */
 @font-face {
     font-family: 'Pacifico';
     src: url('/static/fonts/Pacifico-Regular.ttf');

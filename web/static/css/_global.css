@@ -9,6 +9,10 @@ html, body {
     width: 100%;
 }
 
+.blockCenter {
+    text-align: center;
+}
+
 #mainLoadingProgressBar {
     background: #DD4D21;
     display: none;
@@ -42,7 +46,7 @@ a:hover {
     border-bottom: 2px solid #25AAE1;
 }
 
-.loadingContainer {
+#loadingContainer {
     height: 100%;
     text-align: center;
 }

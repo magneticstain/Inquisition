@@ -1,9 +1,9 @@
 /**
- *  Inquisition // Errorbot.js
+ *  Inquisition // Celestial // Errorbot.js
  *
- *  A JS library for displaying and delivering errors
+ *  - A JS library for displaying and delivering errors
  *
- *  SRC: https://github.com/magneticstain/CLTools/blob/master/CLWeb/static/js/errorbot.js
+ *  - SRC: https://github.com/magneticstain/CLTools/blob/master/CLWeb/static/js/errorbot.js
  */
 
 var errorModal = $('#errorModal');

@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# ignore if not a relevant filetype
+RewriteCond %{SCRIPT_FILENAME} !-d
+RewriteCond %{SCRIPT_FILENAME} !-f
+RewriteCond %{REQUEST_URI} !(\.css|\.js|\.png|\.jpg|\.gif|robots\.txt)$ [NC]
+
+RewriteRule ^([^/]*)/$ /$1 [L,QSA]
