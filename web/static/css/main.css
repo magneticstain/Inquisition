@@ -14,6 +14,8 @@
 
 @import "_global.css";
 
+@import "libs/_errorbot.css";
+
 @import "_header.css";
 
 @import "libs/_nav.css";

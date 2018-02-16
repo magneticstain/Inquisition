@@ -42,7 +42,7 @@ Global.setActiveElement = function (baseClass, contentKeyClass) {
 
 Global.fetchGETVar = function (varName) {
     /*
-        Retrive given GET variable via browser URL
+        Retrieve given GET variable via browser URL
      */
 
     var GETVars = window.location.search.substring(1).split('&');

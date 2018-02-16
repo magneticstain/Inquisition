@@ -6,11 +6,12 @@
  *  - SRC: https://github.com/magneticstain/CLTools/blob/master/CLWeb/static/js/errorbot.js
  */
 
-var errorModal = $('#errorModal');
+var errorModal = $('#mainErrorModal');
 
 var errorSeverities = [
     'INFO',
     'ERROR',
+    'WARN',
     'CRIT',
     'FATAL'
 ];
@@ -19,7 +20,13 @@ var ErrorBot = function(sev, msg){
     this.setError(sev, msg);
 };
 
-ErrorBot.prototype.setError = function(severity, msg){
+ErrorBot.prototype.setErrorModalHTML = function () {
+    errorModal.html('' +
+        '<img src="static/imgs/icons/error.svg" alt="ERROR - ' + errorSeverities[this.severity] + '">' +
+        '<p>' + this.msg + '</p>');
+};
+
+ErrorBot.prototype.setError = function (severity, msg) {
     // sets characteristics of error
     // severity
     if(typeof severity === 'undefined')
@@ -39,21 +46,15 @@ ErrorBot.prototype.setError = function(severity, msg){
     else
     {
         // set default msg
-        this.msg = '|-- NO MSG SET --|';
+        this.msg = '| NO MSG SET |';
     }
 
     this.setErrorModalHTML();
 };
 
-ErrorBot.prototype.setErrorModalHTML = function(){
-    errorModal.html('' +
-        '<img src="/CLTools/CLWeb/static/media/icons/status/' + errorSeverities[this.severity].toLowerCase() + '.png" title="' + errorSeverities[this.severity] + '" alt="' + errorSeverities[this.severity] + ' status icon">' +
-        '<p>' + this.msg + '</p>');
-};
-
-ErrorBot.prototype.displayError = function(delayTimeMS){
+ErrorBot.prototype.displayError = function (delayTimeMS) {
     // check for persistent display
-    if(delayTimeMS === 0 || 2 <= this.severity)
+    if(delayTimeMS === 0 || 3 <= this.severity)
     {
         // keep slid down/enable persistent display until user clicks the error modal
         // NOTE: ( we always enable persistent display with CRIT errors )
@@ -84,7 +85,14 @@ ErrorBot.prototype.displayError = function(delayTimeMS){
     });
 };
 
-ErrorBot.prototype.logErrorToConsole = function(){
+ErrorBot.prototype.logErrorToConsole = function () {
     // logs detailed error message to js console
     console.log('[ ' + errorSeverities[this.severity] + ' ] ' + this.msg);
+};
+
+ErrorBot.prototype.generateError = function (severity, msg, errorDisplayDelayTime) {
+    // abstract function for setting an error, displaying it, and writing a log to the console
+    this.setError(severity, 'Uh oh! Looks like we ' + msg);
+    this.logErrorToConsole();
+    this.displayError(errorDisplayDelayTime);
 };

@@ -1,0 +1,31 @@
+/*
+    Inquisition // Celestial // _errorbot.css
+
+    Stylesheet including all styles used alongside errorbot.js library
+
+    ORIG SRC: https://github.com/magneticstain/CLTools/blob/master/CLWeb/static/css/_errorbot.css
+*/
+
+#mainErrorModal {
+    background: #E64747;
+    color: #333;
+    display: none;
+    min-height: 25px;
+    padding: 8px;
+    text-align: center;
+}
+
+#mainErrorModal * {
+    display: inline-block;
+    margin: 5px;
+    vertical-align: middle;
+}
+
+#mainErrorModal img {
+    height: 32px;
+    width: 32px;
+}
+
+#mainErrorModal p {
+    font: 18px 'Noto Sans', sans-serif;
+}

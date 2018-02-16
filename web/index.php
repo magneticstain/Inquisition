@@ -8,17 +8,23 @@ namespace Inquisition\Web;
 $BASE_URL = $_SERVER['DOCUMENT_ROOT'];
 require $BASE_URL.'/lib/Autoloader.php';
 
-$contentHTML = '    
-                    <div id="loadingContainer">
-                    
-                    </div>
-';
+$contentHTML = '<div id="loadingContainer"></div>';
 
 // try to generate web page
 try {
     \Perspective\View::setHTTPHeaders();
 
-    $view = new \Perspective\View($contentHTML);
+    if(isset($_GET['content']))
+    {
+        $contentParam = $_GET['content'];
+
+        $contentSubtitle = htmlentities($contentParam, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        // format content as title
+        $normalizedContentTitle = ucwords($contentSubtitle);
+    }
+
+    $view = new \Perspective\View($contentHTML, $normalizedContentTitle);
 
     echo $view;
 } catch(\Exception $e) {

@@ -117,6 +117,9 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
             // update cookie setting
             $.cookie('content_limit', limit);
 
+            // update url with new limit val
+            history.pushState('Alerts', 'Alerts - Inquisition', '?content=alerts&limit=' + limit);
+
             Global.setActiveElement('.option', '.alertShow' + limit);
 
             var priContentContainerPointer = $('#primaryContentData');

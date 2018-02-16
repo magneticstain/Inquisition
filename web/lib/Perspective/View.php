@@ -87,6 +87,7 @@ class View
         <title>'.$this->subTitle.' - Inquisition</title>
     </head>
     <body id="'.strtolower($this->subTitle).'">
+        <div id="mainErrorModal"></div>
         <div id="mainLoadingProgressBar"></div>
         <header>
             <div class="headerWrapper">
