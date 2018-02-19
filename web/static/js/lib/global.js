@@ -40,6 +40,25 @@ Global.setActiveElement = function (baseClass, contentKeyClass) {
     $(baseClass + contentKeyClass).addClass(selectionDesignationClass);
 };
 
+Global.getContentKeyFromCleanURL = function () {
+    /*
+        Get content key when using clean URLs
+
+            - when not using clean URLs, you should use fetGETVar on 'content'
+     */
+
+    var contentKey = window.location.pathname.match('\/([A-Za-z0-9]+)\/?');
+
+    if(contentKey === null) {
+        // no match found, set default
+        contentKey = 'alerts';
+    } else {
+        contentKey = contentKey[1];
+    }
+
+    return contentKey;
+};
+
 Global.fetchGETVar = function (varName) {
     /*
         Retrieve given GET variable via browser URL

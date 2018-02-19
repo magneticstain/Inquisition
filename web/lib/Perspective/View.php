@@ -79,10 +79,10 @@ class View
         <meta charset="UTF-8">
         <meta name=viewport content="width=device-width, initial-scale=1">
         
-        <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
+        <link rel="shortcut icon" href="/favicon.png" type="image/x-icon">
         
         <!-- css -->
-        <link rel="stylesheet" href="static/css/main.css" media="all">
+        <link rel="stylesheet" href="/static/css/main.css" media="all">
         
         <title>'.$this->subTitle.' - Inquisition</title>
     </head>
@@ -92,8 +92,8 @@ class View
         <header>
             <div class="headerWrapper">
                 <div id="titleLogoWrapper">
-                    <a href="./" title="Go to Inquisition homepage">
-                        <img src="static/imgs/title_logo.png" alt="Welcome to Inquisition">
+                    <a href="/" title="Go to Inquisition homepage">
+                        <img src="/static/imgs/title_logo.png" alt="Welcome to Inquisition">
                     </a>
                 </div>
                 <!--<div id="loginModule">-->
@@ -105,21 +105,21 @@ class View
             <div id="mainWrapper">
                 <nav>
                     <div id="navContainer">
-                        <a class="alerts" href="?content=alerts">
+                        <a class="alerts" href="/alerts/">
                             <div class="alerts navOption selected">
-                                <img src="static/imgs/icons/alerts.svg" alt="View Current Alerts">
+                                <img src="/static/imgs/icons/alerts.svg" alt="View Current Alerts">
                                 <span>Alerts</span>
                             </div>
                         </a>
-                        <a class="stats" href="?content=stats">
+                        <a class="stats" href="/stats/">
                             <div class="stats navOption">
-                                <img src="static/imgs/icons/stats.svg" alt="View Current Alerts">
+                                <img src="/static/imgs/icons/stats.svg" alt="View Current Alerts">
                                 <span>Stats</span>
                             </div>
                         </a>
-                        <a class="tuning" href="?content=tuning">
+                        <a class="tuning" href="/tuning/">
                             <div class="tuning navOption">
-                                <img src="static/imgs/icons/tuning.svg" alt="View Current Alerts">
+                                <img src="/static/imgs/icons/tuning.svg" alt="View Current Alerts">
                                 <span>Tuning</span>
                             </div>
                         </a>
@@ -135,16 +135,16 @@ class View
                 <a href="https://opensource.org/licenses/MIT">MIT License</a> // <a href="https://github.com/magneticstain/Inquisition">Project on GitHub</a>
             </div>
         </footer>
-        <script src="static/js/plugins/jquery-3.2.1.min.js"></script>
-        <script src="static/js/plugins/jquery.cookie.js"></script>
-        <script src="static/js/plugins/pace.min.js"></script>
-        <script src="static/js/lib/global.js"></script>
-        <script src="static/js/lib/errorbot.js"></script>
-        <script src="static/js/lib/mystic.js"></script>
-        <script src="static/js/lib/alerts.js"></script>
-        <script src="static/js/lib/controller.js"></script>
-        <script src="static/js/lib/nav.js"></script>
-        <script src="static/js/main.js"></script>
+        <script src="/static/js/plugins/jquery-3.2.1.min.js"></script>
+        <script src="/static/js/plugins/jquery.cookie.js"></script>
+        <script src="/static/js/plugins/pace.min.js"></script>
+        <script src="/static/js/lib/global.js"></script>
+        <script src="/static/js/lib/errorbot.js"></script>
+        <script src="/static/js/lib/mystic.js"></script>
+        <script src="/static/js/lib/alerts.js"></script>
+        <script src="/static/js/lib/controller.js"></script>
+        <script src="/static/js/lib/nav.js"></script>
+        <script src="/static/js/main.js"></script>
     </body>
 </html>';
     }

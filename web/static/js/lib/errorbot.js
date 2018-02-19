@@ -22,7 +22,7 @@ var ErrorBot = function(sev, msg){
 
 ErrorBot.prototype.setErrorModalHTML = function () {
     errorModal.html('' +
-        '<img src="static/imgs/icons/error.svg" alt="ERROR - ' + errorSeverities[this.severity] + '">' +
+        '<img src="/static/imgs/icons/error.svg" alt="ERROR - ' + errorSeverities[this.severity] + '">' +
         '<p>' + this.msg + '</p>');
 };
 
@@ -90,9 +90,19 @@ ErrorBot.prototype.logErrorToConsole = function () {
     console.log('[ ' + errorSeverities[this.severity] + ' ] ' + this.msg);
 };
 
-ErrorBot.prototype.generateError = function (severity, msg, errorDisplayDelayTime) {
+ErrorBot.generateError = function (severity, msg, silent, errorDisplayDelayTime) {
     // abstract function for setting an error, displaying it, and writing a log to the console
-    this.setError(severity, 'Uh oh! Looks like we ' + msg);
-    this.logErrorToConsole();
-    this.displayError(errorDisplayDelayTime);
+    var eb = new ErrorBot();
+
+    if(typeof silent === 'undefined')
+    {
+        // set to default delay time
+        silent = false;
+    }
+
+    eb.setError(severity, msg);
+    eb.logErrorToConsole();
+    if (! silent) {
+        eb.displayError(errorDisplayDelayTime);
+    }
 };

@@ -8,6 +8,7 @@ namespace Inquisition\Web;
 $BASE_URL = $_SERVER['DOCUMENT_ROOT'];
 require $BASE_URL.'/lib/Autoloader.php';
 
+$normalizedContentTitle = null;
 $contentHTML = '<div id="loadingContainer"></div>';
 
 // try to generate web page

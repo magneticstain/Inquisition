@@ -16,7 +16,7 @@ Controller.initLoadingModal = function (container, modalSize) {
     var moduleHTML = '' +
         '<div class="loadingModuleContainer blockCenter">' +
         '   <div class="' + modalSize + ' loadingModule">' +
-        '       <img src="static/imgs/icons/loading.svg" alt="Loading content..." title="Loading content, please wait...">' +
+        '       <img src="/static/imgs/icons/loading.svg" alt="Loading content..." title="Loading content, please wait...">' +
         '       <p>loading, please wait...</p>' +
         '   </div>' +
         '</div>';
@@ -34,7 +34,7 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
         // GET var overrides cookie val, so check for that first
         var GETVarContentLimit = Global.fetchGETVar('limit');
         if(GETVarContentLimit !== '') {
-            contentLimit = GETVarContentLimit;
+            contentLimit = parseInt(GETVarContentLimit);
         } else {
             // try checking for cookie val that's set
             var cookieContentLimit = $.cookie('content_limit');
@@ -80,10 +80,10 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
                 // see if this option should be selected as the current limit
                 var selectedClass = '';
                 if(alertLimit === contentLimit) {
-                    selectedClass = 'selected';
+                    selectedClass = ' selected';
                 }
 
-                optionsHTML += '<p class="option alertShow' + alertLimit + ' ' + selectedClass + '">';
+                optionsHTML += '<p class="option alertShow' + alertLimit + selectedClass + '">';
                 if(alertLimit === 0) {
                     optionsHTML += 'All';
                 } else {

@@ -8,8 +8,6 @@
 
 var Mystic = function () {};
 
-var localErrorBot = new ErrorBot();
-
 Mystic.queryAPI = function (httpMethod, apiURL, timeout, data,
                             successFunction, errorFunction, beforeSendFunction) {
     /*
@@ -38,16 +36,16 @@ Mystic.initAPILoad = function (onlyContent, contentWrapper, httpMethod, apiUrl, 
             try {
                 fadeOutFunct(onlyContent, apiData, contentWrapper, initialHtml);
             } catch (e) {
-                localErrorBot.generateError(3, e);
+                ErrorBot.generateError(3, e);
             }
         }).fadeIn(250, function () {
             try {
                 fadeInFunct(onlyContent);
             } catch (e) {
-                localErrorBot.generateError(3, e);
+                ErrorBot.generateError(3, e);
             }
         });
     }, function () {
-        localErrorBot.generateError(4, 'could not load data from the Inquisition API :: [ REQUEST DETAILS: { ' + httpMethod + ' ' + apiUrl + ' } ]');
+        ErrorBot.generateError(4, 'could not load data from the Inquisition API :: [ REQUEST DETAILS: { ' + httpMethod + ' ' + apiUrl + ' } ]');
     });
 };
