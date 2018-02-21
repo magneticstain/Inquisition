@@ -10,8 +10,6 @@ use Perspective\View;
 $BASE_URL = $_SERVER['DOCUMENT_ROOT'];
 require $BASE_URL.'/lib/Autoloader.php';
 
-// CONF
-
 // set http headers
 // cache time is currently set to 120 seconds in order to balance caching w/ listing freshness
 \Perspective\View::setHTTPHeaders('Content-Type: application/json', 120);
@@ -83,7 +81,7 @@ try
     $alertsHandler = new \API\Alerts();
 } catch(\PDOException $e)
 {
-    error_log('could not connect to Inquisition database :: [ SEV: FATAL ] :: [ '.$e->getMessage().' ]');
+    error_log('could not start alerts handler :: [ SEV: FATAL ] :: [ '.$e->getMessage().' ]');
 
     http_response_code(503);
 }

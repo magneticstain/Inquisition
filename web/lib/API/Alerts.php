@@ -8,6 +8,7 @@ namespace API;
 
 class Alerts
 {
+    private $config = [];
     public $dbConn = null;
     public $alertStore = [];
     public $alertDBQueryConstraintData = [
@@ -15,8 +16,13 @@ class Alerts
         'vals' => []
     ];
 
-    public function __construct($dbConn = null)
+    public function __construct($config = null, $dbConn = null)
     {
+        if(is_null($config))
+        {
+            $this->config = new \Config();
+        }
+
         if(is_null($dbConn))
         {
             // no db handler provided; try creating one w/ default options
@@ -58,7 +64,7 @@ class Alerts
 
     public function getAlerts($alertID = 0, $alertType = null, $timeOptions = [ 'startTime' => null, 'endTime' => null ],
                               $nodeOptions = [ 'host' => null, 'src_node' => null, 'dst_node' => null ],
-                              $queryOptions = ['orderBy' => 'created', 'limit' => 5])
+                              $queryOptions = [ 'orderBy' => 'created', 'limit' => 5 ])
     {
         /*
          *  Purpose: fetch alerts from Inquisition db using given constraints
