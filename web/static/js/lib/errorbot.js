@@ -53,6 +53,13 @@ ErrorBot.prototype.setError = function (severity, msg) {
 };
 
 ErrorBot.prototype.displayError = function (delayTimeMS) {
+    // update any loading modules that are running
+    $('#loadingContainer').replaceWith('' +
+        '<div class="errorContainer">' +
+        '   <img src="/static/imgs/robot.svg">' +
+        '   <p class="fancyHeading">Uh oh - looks like we encountered an error!</p>' +
+        '</div>');
+
     // check for persistent display
     if(delayTimeMS === 0 || 3 <= this.severity)
     {

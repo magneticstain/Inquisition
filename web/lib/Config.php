@@ -30,7 +30,7 @@ class Config
 
         if(file_exists($configFilename))
         {
-            if($this->configVals =parse_ini_file($configFilename, true))
+            if($this->configVals =parse_ini_file($configFilename, true, INI_SCANNER_RAW))
             {
                 return true;
             }

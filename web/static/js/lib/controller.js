@@ -17,7 +17,7 @@ Controller.initLoadingModal = function (container, modalSize) {
         '<div class="loadingModuleContainer blockCenter">' +
         '   <div class="' + modalSize + ' loadingModule">' +
         '       <img src="/static/imgs/icons/loading.svg" alt="Loading content..." title="Loading content, please wait...">' +
-        '       <p>loading, please wait...</p>' +
+        '       <p class="fancyHeading">loading, please wait...</p>' +
         '   </div>' +
         '</div>';
 

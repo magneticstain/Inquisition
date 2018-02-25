@@ -8,13 +8,13 @@
 
 var Mystic = function () {};
 
-Mystic.queryAPI = function (httpMethod, apiURL, timeout, data,
-                            successFunction, errorFunction, beforeSendFunction) {
+Mystic.queryAPI = function (httpMethod, apiURL, timeout, data, successFunction, errorFunction, beforeSendFunction) {
     /*
         Make AJAX request to Inquisition API with given params
      */
 
     $.ajax({
+        dataType: 'json',
         type: httpMethod,
         url: apiURL,
         data: data,
@@ -36,13 +36,13 @@ Mystic.initAPILoad = function (onlyContent, contentWrapper, httpMethod, apiUrl, 
             try {
                 fadeOutFunct(onlyContent, apiData, contentWrapper, initialHtml);
             } catch (e) {
-                ErrorBot.generateError(3, e);
+                ErrorBot.generateError(3, 'issue initiating data call :: [ ' + e + ' ]');
             }
         }).fadeIn(250, function () {
             try {
                 fadeInFunct(onlyContent);
             } catch (e) {
-                ErrorBot.generateError(3, e);
+                ErrorBot.generateError(3, 'issue processing fetched data :: [ ' + e + ' ]');
             }
         });
     }, function () {

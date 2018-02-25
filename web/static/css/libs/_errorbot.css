@@ -29,3 +29,15 @@
 #mainErrorModal p {
     font: 18px 'Noto Sans', sans-serif;
 }
+
+.errorContainer {
+    text-align: center;
+}
+
+.errorContainer img {
+    max-height: 512px;
+    max-width: 512px;
+    min-height: 64px;
+    min-width: 64px;
+    margin: 64px;
+}

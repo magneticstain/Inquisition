@@ -1,8 +1,7 @@
 <?php
-namespace API;
 
 /**
- *  API/DB.php - class for database connections, queries, etc
+ *  DB.php - class for database connections, queries, etc
  */
 
 class DB

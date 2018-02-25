@@ -5,10 +5,21 @@ namespace Inquisition\Web;
  *  Alerts API - endpoint for alert-related functionality
  */
 
-use Perspective\View;
+//use Perspective\View;
 
 $BASE_URL = $_SERVER['DOCUMENT_ROOT'];
 require $BASE_URL.'/lib/Autoloader.php';
+
+$cfg = new \Config();
+$dbConn = new \DB(
+    $cfg->configVals['mysql_database']['db_host'],
+    $cfg->configVals['mysql_database']['db_port'],
+    $cfg->configVals['mysql_database']['db_name'],
+    $cfg->configVals['mysql_database']['db_user'],
+    $cfg->configVals['mysql_database']['db_pass']
+);
+
+$alertsHandler = new \API\Alerts($dbConn);
 
 // set http headers
 // cache time is currently set to 120 seconds in order to balance caching w/ listing freshness
@@ -74,16 +85,6 @@ foreach($_GET as $key => $val)
             $resultLimit = $val;
             break;
     }
-}
-
-try
-{
-    $alertsHandler = new \API\Alerts();
-} catch(\PDOException $e)
-{
-    error_log('could not start alerts handler :: [ SEV: FATAL ] :: [ '.$e->getMessage().' ]');
-
-    http_response_code(503);
 }
 
 try

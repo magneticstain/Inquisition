@@ -27,6 +27,12 @@ main {
     height: 100%;
 }
 
+.fancyHeading {
+    color: #403F4C;
+    font: 48px Pacifico, sans-serif;
+    letter-spacing: 2px;
+}
+
 #mainWrapper {
     height: 100%;
 }
@@ -54,8 +60,4 @@ a:hover {
 .loadingModule {
     display: inline-block;
     margin: 0 auto;
-}
-
-.loadingModule p {
-    font-family: Pacifico, sans-serif;
 }
