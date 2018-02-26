@@ -21,7 +21,7 @@ class Config
 
     public function readConfigFile($configFilename)
     {
-        /*
+        /*         *
          *  Params:
          *      * $configFileName :: STR :: filename of config file to read in
          *

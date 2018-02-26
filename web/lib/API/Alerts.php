@@ -8,6 +8,7 @@ namespace API;
 
 class Alerts
 {
+    private $cache = null;
     public $dbConn = null;
     public $alertStore = [];
     public $alertDBQueryConstraintData = [
@@ -15,7 +16,7 @@ class Alerts
         'vals' => []
     ];
 
-    public function __construct($dbConn = null)
+    public function __construct($dbConn = null, $cache = null)
     {
         if(is_null($dbConn))
         {
@@ -25,6 +26,15 @@ class Alerts
         else
         {
             $this->dbConn = $dbConn;
+        }
+
+        if(is_null($cache))
+        {
+            $this->cache = new \Cache();
+        }
+        else
+        {
+            $this->cache = $cache;
         }
     }
 
@@ -139,7 +149,19 @@ class Alerts
         }
 
         // get results
-        $this->alertStore = $this->dbConn->runQuery();
+        // check cache first
+        $cacheKey = $this->cache->generateCacheKey($this->dbConn->dbQueryOptions, 'alerts');
+        $cacheResults = $this->cache->readFromCache($cacheKey);
+        if(!empty($cacheResults))
+        {
+            $this->alertStore = $cacheResults;
+        }
+        else
+        {
+            // cache miss, fetch the results and write them to the cache for later
+            $this->alertStore = $this->dbConn->runQuery();
+            $this->cache->writeToCache($cacheKey, $this->alertStore, 120);
+        }
 
         return $this->alertStore;
     }

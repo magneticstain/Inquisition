@@ -32,3 +32,8 @@ You can find instructions on how to install Inquisition by visiting the [install
 
 # Usage
 After installing the software, we're now ready to start using it. For information on how to use Inquisition, visit the [user guide](https://github.com/magneticstain/Inquisition/wiki/Inquisition-User-Guide).
+
+# Credits
+## Third-Party Libraries
+* [predis](https://github.com/nrk/predis)
+* [pygtail](https://github.com/bgreenlee/pygtail)

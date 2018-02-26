@@ -5,8 +5,6 @@ namespace Inquisition\Web;
  *  Alerts API - endpoint for alert-related functionality
  */
 
-//use Perspective\View;
-
 $BASE_URL = $_SERVER['DOCUMENT_ROOT'];
 require $BASE_URL.'/lib/Autoloader.php';
 
@@ -18,8 +16,17 @@ $dbConn = new \DB(
     $cfg->configVals['mysql_database']['db_user'],
     $cfg->configVals['mysql_database']['db_pass']
 );
+try
+{
+    $cache = new \Cache();
+//    echo $cache->generateCacheHash('abc', [ 'test' => 'string' ]);
+}
+catch(\Exception $e)
+{
+    error_log('[ ERROR ] could not start caching engine :: [ MSG: '.$e.' ]');
+}
 
-$alertsHandler = new \API\Alerts($dbConn);
+$alertsHandler = new \API\Alerts($dbConn, $cache);
 
 // set http headers
 // cache time is currently set to 120 seconds in order to balance caching w/ listing freshness
