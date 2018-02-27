@@ -38,7 +38,7 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
         '       <tbody>';
 
     // concatonate data rows
-    apiData.forEach(function (alert) {
+    apiData.data.forEach(function (alert) {
         contentHTML += '' +
             '       <tr class="alert">' +
             '           <td>' + alert.alert_type_name + '</td>' +

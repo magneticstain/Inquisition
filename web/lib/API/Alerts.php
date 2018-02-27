@@ -88,14 +88,22 @@ class Alerts
          *      * $src_node :: STR :: source IP or hostname to filter alerts by
          *      * $dst_node :: STR :: destination IP or hostname to filter alerts by
          *      * $limit :: INT :: maximum amount of alerts to display (0 = unlimited)
-         *      * $orderBy :: STR :: fieldname to order results by :: DEFAULT: created timestamp
+         *      * $orderBy :: STR :: field name to order results by :: DEFAULT: created timestamp
          *
          *  Returns: NONE
          *
          */
 
+        // API response format framework: https://labs.omniti.com/labs/jsend
+        $alertDataset = [
+            'status' => 'success',
+            'data_source' => 'default',
+            'data' => []
+        ];
+
         $this->dbConn->dbQueryOptions['query'] =
             "
+              /* Celestial // Alerts.php // Fetch alerts */
               SELECT 
                alert_id, created, updated, ATM.type_name as alert_type_name, host, src_node, dst_node, alert_detail, log_data 
               FROM Alerts 
@@ -154,15 +162,17 @@ class Alerts
         $cacheResults = $this->cache->readFromCache($cacheKey);
         if(!empty($cacheResults))
         {
-            $this->alertStore = $cacheResults;
+            $alertDataset['data_source'] = 'cache';
+            $alertDataset['data'] = $this->alertStore = $cacheResults;
         }
         else
         {
             // cache miss, fetch the results and write them to the cache for later
-            $this->alertStore = $this->dbConn->runQuery();
+            $alertDataset['data_source'] = 'data_store';
+            $alertDataset['data'] = $this->alertStore = $this->dbConn->runQuery();
             $this->cache->writeToCache($cacheKey, $this->alertStore, 120);
         }
 
-        return $this->alertStore;
+        return $alertDataset;
     }
 }

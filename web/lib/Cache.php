@@ -91,7 +91,8 @@ class Cache
 
         if(empty($cacheKey) || empty($cacheVal))
         {
-            error_log('[ WARN ] missing data provided for cache writing :: [ KEY: '.$cacheKey.' || VALUE: '.$cacheVal.' ]');
+            error_log('[ WARN ] missing data provided for cache writing :: [ KEY: '.$cacheKey.' || VALUE: '
+                .json_encode($cacheVal).' ]');
 
             return false;
         }
