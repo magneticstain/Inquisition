@@ -10,6 +10,16 @@ class Autoloader
     {
         $baseUrl = $_SERVER['DOCUMENT_ROOT'];
 
+        // declare third-party libraries that should be excluded
+        $thirdPartyLibs = [ 'Predis' ];
+        foreach($thirdPartyLibs as $libName)
+        {
+            if(strpos($className, $libName) !== false)
+            {
+                return;
+            }
+        }
+
         // format full class name as directory structure
         $classDirStructure = str_replace('\\', '/', $className);
 

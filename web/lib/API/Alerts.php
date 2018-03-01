@@ -11,31 +11,51 @@ class Alerts
     private $cache = null;
     public $dbConn = null;
     public $alertStore = [];
-    public $alertDBQueryConstraintData = [
+    public $alertDBQueryData = [
         'query' => '',
+        'whereClause' => '',
         'vals' => []
     ];
 
     public function __construct($dbConn = null, $cache = null)
     {
+        if(is_null($cache))
+        {
+            try
+            {
+                $this->cache = new \Cache();
+            }
+            catch(\Exception $e)
+            {
+                // caching isn't absolutely required, so we can let it fail if needed
+            }
+        }
+        else
+        {
+            $this->cache = $cache;
+        }
+
         if(is_null($dbConn))
         {
             // no db handler provided; try creating one w/ default options
-            $this->dbConn = new \DB();
+            try
+            {
+                $this->dbConn = new \DB();
+            }
+            catch(\Exception $e)
+            {
+                // a database connection may not be needed if we have access to the cache
+                if(is_null($this->cache))
+                {
+                    throw new \Exception('no data sources available (cache or data store)');
+                }
+            }
         }
         else
         {
             $this->dbConn = $dbConn;
         }
 
-        if(is_null($cache))
-        {
-            $this->cache = new \Cache();
-        }
-        else
-        {
-            $this->cache = $cache;
-        }
     }
 
     public function addSQLQueryConstraints($sqlColumnName, $constraintVal, $sqlComparisonOperator = '=',
@@ -59,14 +79,14 @@ class Alerts
         // check constraint var validity
         if(!empty($constraintVal) || (!is_null($constraintVal) && (int)$constraintVal === 0 && $allowZero))
         {
-            if($this->alertDBQueryConstraintData['query'] != '')
+            if($this->alertDBQueryData['whereClause'] != '')
             {
                 // not initial constraint, append 'and' keyword before constraint clause
-                $this->alertDBQueryConstraintData['query'] .= ' AND ';
+                $this->alertDBQueryData['whereClause'] .= ' AND ';
             }
 
-            $this->alertDBQueryConstraintData['query'] .= $sqlColumnName.' '.$sqlComparisonOperator.' ?';
-            $this->alertDBQueryConstraintData['vals'][] = $constraintVal;
+            $this->alertDBQueryData['whereClause'] .= $sqlColumnName.' '.$sqlComparisonOperator.' ?';
+            $this->alertDBQueryData['vals'][] = $constraintVal;
         }
     }
 
@@ -97,11 +117,11 @@ class Alerts
         // API response format framework: https://labs.omniti.com/labs/jsend
         $alertDataset = [
             'status' => 'success',
-            'data_source' => 'default',
+            'data_source' => 'cache',
             'data' => []
         ];
 
-        $this->dbConn->dbQueryOptions['query'] =
+         $this->alertDBQueryData['query'] =
             "
               /* Celestial // Alerts.php // Fetch alerts */
               SELECT 
@@ -137,40 +157,54 @@ class Alerts
             $this->addSQLQueryConstraints($key, $node);
         }
 
-        // set db query data
-        if(!empty($this->alertDBQueryConstraintData['query']))
+        // set db query where clause and associated data
+        if(!empty($this->alertDBQueryData['whereClause']))
         {
-            $this->dbConn->dbQueryOptions['query'] .= ' WHERE '.$this->alertDBQueryConstraintData['query'];
-            $this->dbConn->dbQueryOptions['optionVals'] = $this->alertDBQueryConstraintData['vals'];
+            $this->alertDBQueryData['query'] .= ' WHERE '.$this->alertDBQueryData['whereClause'];
         }
 
         // append order by and limit clauses if needed
         if(!empty($queryOptions['orderBy']))
         {
-            $this->dbConn->dbQueryOptions['query'] .= ' ORDER BY ?';
-            $this->dbConn->dbQueryOptions['optionVals'][] = $queryOptions['orderBy'];
+            $this->alertDBQueryData['query'] .= ' ORDER BY ?';
+            $this->alertDBQueryData['vals'][] = $queryOptions['orderBy'];
         }
         if(!empty($queryOptions['limit']) && 0 < $queryOptions['limit'])
         {
-            $this->dbConn->dbQueryOptions['query'] .= ' LIMIT ?';
-            $this->dbConn->dbQueryOptions['optionVals'][] = $queryOptions['limit'];
+            $this->alertDBQueryData['query'] .= ' LIMIT ?';
+            $this->alertDBQueryData['vals'][] = $queryOptions['limit'];
         }
 
         // get results
         // check cache first
-        $cacheKey = $this->cache->generateCacheKey($this->dbConn->dbQueryOptions, 'alerts');
-        $cacheResults = $this->cache->readFromCache($cacheKey);
+        $cacheResults = [];
+        if(!is_null($this->cache))
+        {
+            $cacheKey = $this->cache->generateCacheKey($this->alertDBQueryData, 'alerts');
+            $cacheResults = $this->cache->readFromCache($cacheKey);
+        }
+
         if(!empty($cacheResults))
         {
-            $alertDataset['data_source'] = 'cache';
             $alertDataset['data'] = $this->alertStore = $cacheResults;
         }
         else
         {
-            // cache miss, fetch the results and write them to the cache for later
-            $alertDataset['data_source'] = 'data_store';
-            $alertDataset['data'] = $this->alertStore = $this->dbConn->runQuery();
-            $this->cache->writeToCache($cacheKey, $this->alertStore, 120);
+            // cache miss, try to fetch the results and write them to the cache for later
+            if(!is_null($this->dbConn))
+            {
+                // set query and opts in dbConn obj
+                $this->dbConn->dbQueryOptions['query'] = $this->alertDBQueryData['query'];
+                $this->dbConn->dbQueryOptions['optionVals'] = $this->alertDBQueryData['vals'];
+
+                $alertDataset['data_source'] = 'data_store';
+                $alertDataset['data'] = $this->alertStore = $this->dbConn->runQuery();
+                // write to cache if possible
+                if(!is_null($this->cache))
+                {
+                    $this->cache->writeToCache($cacheKey, $this->alertStore, 120);
+                }
+            }
         }
 
         return $alertDataset;

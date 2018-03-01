@@ -102,3 +102,5 @@ notes.txt
 
 # Sample Logs Used for Testing
 /build/src/test_logs/
+
+/vendor/

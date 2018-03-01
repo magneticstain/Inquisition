@@ -4,7 +4,7 @@
  *  Cache.php - library for caching-related logic
  */
 
-require 'predis/autoload.php';
+require $_SERVER['DOCUMENT_ROOT'].'/../vendor/predis/predis/autoload.php';
 Predis\Autoloader::register();
 
 class Cache

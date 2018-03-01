@@ -5,32 +5,84 @@ namespace Inquisition\Web;
  *  Alerts API - endpoint for alert-related functionality
  */
 
-$BASE_URL = $_SERVER['DOCUMENT_ROOT'];
-require $BASE_URL.'/lib/Autoloader.php';
-
-$cfg = new \Config();
-$dbConn = new \DB(
-    $cfg->configVals['mysql_database']['db_host'],
-    $cfg->configVals['mysql_database']['db_port'],
-    $cfg->configVals['mysql_database']['db_name'],
-    $cfg->configVals['mysql_database']['db_user'],
-    $cfg->configVals['mysql_database']['db_pass']
-);
-try
-{
-    $cache = new \Cache();
-//    echo $cache->generateCacheHash('abc', [ 'test' => 'string' ]);
-}
-catch(\Exception $e)
-{
-    error_log('[ ERROR ] could not start caching engine :: [ MSG: '.$e.' ]');
-}
-
-$alertsHandler = new \API\Alerts($dbConn, $cache);
+require $_SERVER['DOCUMENT_ROOT'].'/lib/Autoloader.php';
 
 // set http headers
 // cache time is currently set to 120 seconds in order to balance caching w/ listing freshness
 \Perspective\View::setHTTPHeaders('Content-Type: application/json', 120);
+
+$errorMsg = '';
+$publicErrorMsg = '';
+$dbConn = null;
+$cache = null;
+$alertsHandler = null;
+
+$cfg = new \Config();
+try
+{
+    $dbConn = new \DB(
+        $cfg->configVals['mysql_database']['db_host'],
+        $cfg->configVals['mysql_database']['db_port'],
+        $cfg->configVals['mysql_database']['db_name'],
+        $cfg->configVals['mysql_database']['db_user'],
+        $cfg->configVals['mysql_database']['db_pass']
+    );
+}
+catch(\PDOException $e)
+{
+    $errorMsg = 'could not create database connection';
+
+    error_log($errorMsg.' :: [ DETAILS: { '.$e.' } ]');
+    $publicErrorMsg = $errorMsg;
+}
+
+try
+{
+    $cache = new \Cache();
+}
+catch(\Exception $e)
+{
+    $errorMsg = 'could not start caching engine';
+
+    error_log($errorMsg.' :: [ DETAILS: { '.$e.' } ]');
+    if(!empty($publicErrorMsg))
+    {
+        $publicErrorMsg .= '; ';
+    }
+    $publicErrorMsg .= $errorMsg;
+}
+
+try
+{
+    $alertsHandler = new \API\Alerts($dbConn, $cache);
+}
+catch(\Exception $e)
+{
+    $errorMsg = 'could not start alerts engine';
+
+    error_log($errorMsg.' :: [ DETAILS: { '.$e.' } ]');
+    if(!empty($publicErrorMsg))
+    {
+        $publicErrorMsg .= '; ';
+    }
+    $publicErrorMsg .= $errorMsg;
+}
+
+// check if error was generated and both cache and DB is not available
+if(!empty($errorMsg))
+{
+    // error was generated
+    if((is_null($dbConn) && is_null($cache)) || is_null($alertsHandler))
+    {
+        // no chance of grabbing the data - die
+        echo json_encode([
+            'status' => 'fail',
+            'error' => $publicErrorMsg
+        ]);
+
+        exit(1);
+    }
+}
 
 // process incoming get vars
 $alertID = null;
@@ -98,10 +150,12 @@ try
 {
     // try to fetch alerts, serialize them, and return to the user
     $fetchedAlerts = $alertsHandler->getAlerts($alertID, $alertType,
-        [ 'startTime' => $startTime, 'endTime' => $endTime ], [ 'host' => $host, 'src_node' => $src, 'dst_node' => $dst ],
+        [ 'startTime' => $startTime, 'endTime' => $endTime ],
+        [ 'host' => $host, 'src_node' => $src, 'dst_node' => $dst ],
         [ 'orderBy' => $orderBy, 'limit' => $resultLimit ]
     );
-    if(count($fetchedAlerts) === 0)
+
+    if(count($fetchedAlerts['data']) === 0)
     {
         // no results found
         http_response_code(404);
@@ -109,7 +163,8 @@ try
     else {
         echo json_encode($fetchedAlerts);
     }
-} catch(\PDOException $e)
+}
+catch(\PDOException $e)
 {
     error_log('could not fetch alerts from Inquisition database :: [ SEV: CRIT ] :: [ QUERY: { '
         .$alertsHandler->dbConn->dbQueryOptions['query'].' } :: MSG: [ '.$e->getMessage().' ]');
