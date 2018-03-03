@@ -29,6 +29,10 @@
     color: #333;
 }
 
+.contentHeader th {
+    cursor: pointer;
+}
+
 .contentTable .alert {
     cursor: pointer;
     font-size: 16px;

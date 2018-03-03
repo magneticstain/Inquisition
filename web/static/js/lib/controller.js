@@ -24,26 +24,48 @@ Controller.initLoadingModal = function (container, modalSize) {
     container.html(moduleHTML);
 };
 
-Controller.initContent = function (onlyContent, contentWrapper, contentKey, contentLimit) {
+Controller.getContentConstraints = function (GETVarKey, defaultVal, cookieKey) {
+    /*
+        Load content constraint from key
+     */
+
+    var constraintVal = '';
+
+    if(cookieKey == null)
+    {
+        cookieKey = GETVarKey;
+    }
+
+    // GET var overrides cookie val, so check for that first
+    var constraintGETVar = Global.fetchGETVar(GETVarKey);
+    if(constraintGETVar !== '') {
+        constraintVal = constraintGETVar;
+    } else {
+        // try checking for cookie val that's set
+        var constraintCookie = $.cookie(cookieKey);
+        if(constraintCookie != null) {
+            constraintVal = constraintCookie;
+        } else {
+            constraintVal = defaultVal;
+        }
+    }
+
+    return constraintVal;
+};
+
+Controller.initContent = function (onlyContent, contentWrapper, contentKey, contentLimit, contentSortField) {
     /*
         Load HTML for content based on given content key
      */
 
-    if(contentLimit === undefined)
+    if(contentLimit == null)
     {
-        // GET var overrides cookie val, so check for that first
-        var GETVarContentLimit = Global.fetchGETVar('limit');
-        if(GETVarContentLimit !== '') {
-            contentLimit = parseInt(GETVarContentLimit);
-        } else {
-            // try checking for cookie val that's set
-            var cookieContentLimit = $.cookie('content_limit');
-            if(cookieContentLimit !== undefined) {
-                contentLimit = parseInt(cookieContentLimit);
-            } else {
-                contentLimit = 50;
-            }
-        }
+        contentLimit = parseInt(this.getContentConstraints('limit', 50, 'content_limit'));
+    }
+
+    if(contentSortField == null)
+    {
+        contentSortField = this.getContentConstraints('order_by', 'alert_id');
     }
 
     var normalizedContentKey = contentKey.toLowerCase();
@@ -66,7 +88,7 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
             normalizedContentKey = 'alerts';
 
             // set API endpoint
-            apiEndpointAndParams = 'alerts/?l=' + contentLimit;
+            apiEndpointAndParams = 'alerts/?o=' + contentSortField + '&l=' + contentLimit;
 
             var availableAlertLimits = [50, 250, 500, 0];
             optionsHTML = '' +

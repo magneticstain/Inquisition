@@ -93,6 +93,7 @@ $host = null;
 $src = null;
 $dst = null;
 $orderBy = 'created';
+$placement = 'ASC';
 $resultLimit = 5;
 
 foreach($_GET as $key => $val)
@@ -139,6 +140,11 @@ foreach($_GET as $key => $val)
             $orderBy = $val;
             break;
 
+        case 'placement':
+        case 'p':
+            $placement = $val;
+            break;
+
         case 'limit':
         case 'l':
             $resultLimit = $val;
@@ -152,7 +158,7 @@ try
     $fetchedAlerts = $alertsHandler->getAlerts($alertID, $alertType,
         [ 'startTime' => $startTime, 'endTime' => $endTime ],
         [ 'host' => $host, 'src_node' => $src, 'dst_node' => $dst ],
-        [ 'orderBy' => $orderBy, 'limit' => $resultLimit ]
+        [ 'orderBy' => $orderBy, 'placement' => $placement, 'limit' => $resultLimit ]
     );
 
     if(count($fetchedAlerts['data']) === 0)

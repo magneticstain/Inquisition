@@ -92,7 +92,7 @@ class Alerts
 
     public function getAlerts($alertID = 0, $alertType = null, $timeOptions = [ 'startTime' => null, 'endTime' => null ],
                               $nodeOptions = [ 'host' => null, 'src_node' => null, 'dst_node' => null ],
-                              $queryOptions = [ 'orderBy' => 'created', 'limit' => 5 ])
+                              $queryOptions = [ 'orderBy' => 'alert_id', 'placement' => 'ASC', 'limit' => 5 ])
     {
         /*
          *  Purpose: fetch alerts from Inquisition db using given constraints
@@ -125,7 +125,7 @@ class Alerts
             "
               /* Celestial // Alerts.php // Fetch alerts */
               SELECT 
-               alert_id, created, updated, ATM.type_name as alert_type_name, host, src_node, dst_node, alert_detail, log_data 
+               alert_id, created, updated, ATM.type_name as alert_type, host, src_node, dst_node, alert_detail, log_data 
               FROM Alerts 
               JOIN AlertTypeMapping ATM
               ON (Alerts.alert_type=ATM.type_id)
@@ -166,8 +166,26 @@ class Alerts
         // append order by and limit clauses if needed
         if(!empty($queryOptions['orderBy']))
         {
-            $this->alertDBQueryData['query'] .= ' ORDER BY ?';
-            $this->alertDBQueryData['vals'][] = $queryOptions['orderBy'];
+            // check order by option is allowed since using identifiers with paramaterized sql is not possible
+            // see: https://stackoverflow.com/a/2543144/2625915
+            $normalizedOrderByField = strtolower($queryOptions['orderBy']);
+            $availableOrderByFields = ['alert_id', 'created', 'updated', 'alert_type', 'host', 'src_node', 'dst_node',
+                                        'alert_detail', 'log_data'];
+            if(!in_array($normalizedOrderByField, $availableOrderByFields, true))
+            {
+                // not an acceptable order by field, use default
+                $normalizedOrderByField = 'alert_id';
+            }
+
+            // check placement is valid
+            $normalizedPlacement = strtoupper($queryOptions['placement']);
+            if($normalizedPlacement != 'ASC' && $normalizedPlacement != 'DESC')
+            {
+                // overwrite with default val
+                $normalizedPlacement = 'ASC';
+            }
+
+            $this->alertDBQueryData['query'] .= ' ORDER BY '.$normalizedOrderByField.' '.$normalizedPlacement;
         }
         if(!empty($queryOptions['limit']) && 0 < $queryOptions['limit'])
         {

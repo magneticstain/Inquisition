@@ -41,7 +41,7 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
     apiData.data.forEach(function (alert) {
         contentHTML += '' +
             '       <tr class="alert">' +
-            '           <td>' + alert.alert_type_name + '</td>' +
+            '           <td>' + alert.alert_type + '</td>' +
             '           <td>' + alert.alert_id + '</td>' +
             '           <td>' + alert.created + '</td>' +
             '           <td>' + alert.host + '</td>' +
@@ -83,6 +83,8 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
         Should only be used after running loadAlerts()
      */
 
+    var priContentContainerPointer = $('#primaryContentData');
+
     // set event listener for alert details
     $('.alert').click(function () {
         var selectedAlertClass = 'activeAlert';
@@ -96,6 +98,14 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
 
         // add event listener to display alert log details
         $(this).next().toggle();
+    });
+
+    // add listener for sorting by headers
+    $('.contentHeader th').click(function () {
+        var alertFieldName = $(this).text();
+
+        Controller.initLoadingModal(priContentContainerPointer, 'large');
+        Controller.initContent(true, priContentContainerPointer, 'alerts');
     });
 
     // add listener for limit options if needed
@@ -122,7 +132,6 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
 
             Global.setActiveElement('.option', '.alertShow' + limit);
 
-            var priContentContainerPointer = $('#primaryContentData');
             Controller.initLoadingModal(priContentContainerPointer, 'large');
             Controller.initContent(true, priContentContainerPointer, 'alerts', limit);
         });
