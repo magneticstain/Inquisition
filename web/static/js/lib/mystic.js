@@ -26,7 +26,7 @@ Mystic.queryAPI = function (httpMethod, apiURL, timeout, data, successFunction, 
 };
 
 Mystic.initAPILoad = function (onlyContent, contentWrapper, httpMethod, apiUrl, fadeOutFunct, fadeInFunct,
-                               timeout, initialHtml, postData) {
+                               timeout, initialHtml, orderByFieldName, postData) {
     /*
         Abstraction class for making API call and performing before and after functionality
      */
@@ -34,7 +34,7 @@ Mystic.initAPILoad = function (onlyContent, contentWrapper, httpMethod, apiUrl, 
     Mystic.queryAPI(httpMethod, apiUrl, timeout, postData, function (apiData) {
         contentWrapper.fadeOut(250, function () {
             try {
-                fadeOutFunct(onlyContent, apiData, contentWrapper, initialHtml);
+                fadeOutFunct(onlyContent, apiData, contentWrapper, initialHtml, orderByFieldName);
             } catch (e) {
                 ErrorBot.generateError(3, 'issue initiating data call :: [ ' + e + ' ]');
             }

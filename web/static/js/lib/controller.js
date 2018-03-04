@@ -90,6 +90,7 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
             // set API endpoint
             apiEndpointAndParams = 'alerts/?o=' + contentSortField + '&l=' + contentLimit;
 
+            // build alert limit options html
             var availableAlertLimits = [50, 250, 500, 0];
             optionsHTML = '' +
                 '<div class="alertListingOptions contentModule">' +
@@ -132,5 +133,5 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
         '</div>';
 
     Mystic.initAPILoad(onlyContent, contentWrapper, 'GET', '/api/v1/' + apiEndpointAndParams, fadeOutFunct, fadeInFunct,
-        20000, titleHTML + optionsHTML);
+        20000, titleHTML + optionsHTML, contentSortField);
 };

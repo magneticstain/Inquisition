@@ -8,12 +8,21 @@
 
 var Alerts = function () {};
 
-Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, contentHTMLTop) {
+Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, contentHTMLTop, orderByField) {
     /*
         Fetch alert data and insert it into given content wrapper
      */
 
     var contentHTML = '';
+    var availableAlertFieldNames = [
+            ['alert_type', 'TYPE'],
+            ['alert_id', 'ALERT ID'],
+            ['created', 'CREATED'],
+            ['host', 'HOST'],
+            ['src_node', 'SOURCE'],
+            ['dst_node', 'DESTINATION'],
+            ['alert_detail', 'SUMMARY']
+        ];
 
     if(!onlyContent)
     {
@@ -25,14 +34,22 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
     contentHTML += '' +
         '   <table class="contentTable">' +
         '       <thead>' +
-        '       <tr class="contentHeader">' +
-        '           <th>TYPE</th>' +
-        '           <th>ALERT ID</th>' +
-        '           <th>CREATED</th>' +
-        '           <th>HOST</th>' +
-        '           <th>SOURCE</th>' +
-        '           <th>DESTINATION</th>' +
-        '           <th>SUMMARY</th>' +
+        '       <tr class="contentHeader">';
+
+    // generate alerts header html
+    availableAlertFieldNames.forEach(function (fieldNameData) {
+        // check if currently selected order by field
+        var addlClasses = '';
+        if(fieldNameData[0] === orderByField)
+        {
+            addlClasses = ' selected';
+        }
+
+        contentHTML += '' +
+        '           <th data-sort-field-name="' + fieldNameData[0] + '" class="alertField-' + fieldNameData[0] + addlClasses + '">' + fieldNameData[1] + '</th>';
+    });
+
+    contentHTML += '' +
         '       </tr>' +
         '       </thead>' +
         '       <tbody>';
@@ -76,14 +93,32 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
     contentWrapper.html(contentHTML);
 };
 
+Alerts.performPostAlertLoadOptionProcessing = function (cookieKey, newValue, orderBy, limit,
+                                                        elmntBaseClass, elmntSelectedClass) {
+    /*
+        Perform post-processing when user has initiated clicks on alerts option selectors
+     */
+
+    var priContentContainerPointer = $('#primaryContentData');
+
+    // update cookie setting
+    $.cookie(cookieKey, newValue);
+
+    // update url with new limit val
+    history.pushState('Alerts', 'Alerts - Inquisition', '/alerts/?o=' + orderBy + '&l=' + limit);
+
+    Global.setActiveElement(elmntBaseClass, elmntSelectedClass);
+
+    Controller.initLoadingModal(priContentContainerPointer, 'large');
+    Controller.initContent(true, priContentContainerPointer, 'alerts', limit, orderBy);
+};
+
 Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
     /*
         Sets various event listeners, etc for after alerts have been loaded
 
         Should only be used after running loadAlerts()
      */
-
-    var priContentContainerPointer = $('#primaryContentData');
 
     // set event listener for alert details
     $('.alert').click(function () {
@@ -100,15 +135,7 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
         $(this).next().toggle();
     });
 
-    // add listener for sorting by headers
-    $('.contentHeader th').click(function () {
-        var alertFieldName = $(this).text();
-
-        Controller.initLoadingModal(priContentContainerPointer, 'large');
-        Controller.initContent(true, priContentContainerPointer, 'alerts');
-    });
-
-    // add listener for limit options if needed
+    // add listener for limit and sort options if needed
     if(!onlyContent) {
         $('.option').click(function () {
             // check to see if already selected
@@ -117,23 +144,25 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
                 return;
             }
 
-            var limit = $(this).text();
+            var alertFieldName = $('.contentHeader th.selected').attr('data-sort-field-name');
+            var alertLimit = $(this).text();
             // convert 'All' option to int representation
-            if(limit === 'All')
+            if(alertLimit === 'All')
             {
-                limit = 0;
+                alertLimit = 0;
             }
 
-            // update cookie setting
-            $.cookie('content_limit', limit);
-
-            // update url with new limit val
-            history.pushState('Alerts', 'Alerts - Inquisition', '/alerts/?limit=' + limit);
-
-            Global.setActiveElement('.option', '.alertShow' + limit);
-
-            Controller.initLoadingModal(priContentContainerPointer, 'large');
-            Controller.initContent(true, priContentContainerPointer, 'alerts', limit);
+            Alerts.performPostAlertLoadOptionProcessing('content_limit', alertLimit, alertFieldName, alertLimit,
+                '.option', '.alertShow' + alertLimit)
         });
     }
+
+    // add listener for sorting by headers
+    $('.contentHeader th').click(function () {
+        var alertFieldName = $(this).attr('data-sort-field-name');
+        var alertLimit = $('.alertListingOptions .option.selected').text();
+
+        Alerts.performPostAlertLoadOptionProcessing('order_by', alertFieldName, alertFieldName, alertLimit,
+            '.contentHeader th', '.alertField-' + alertFieldName);
+    });
 };
