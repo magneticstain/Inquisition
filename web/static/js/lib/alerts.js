@@ -180,22 +180,24 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
 
     // add listener for sorting by headers
     $('.contentHeader th').click(function () {
-        var alertFieldName = $(this).attr('data-sort-field-name');
+        var newAlertFieldName = $(this).attr('data-sort-field-name');
+        var currentAlertFieldName = $('.contentHeader th.selected').attr('data-sort-field-name');
         var alertLimit = $('.alertListingOptions .option.selected').text();
 
         // check order placement and switch it
         var alertOrderPlacement = $('#primaryContentData').data('alert_order_placement');
-        if(alertOrderPlacement === 'asc')
+        if(newAlertFieldName === currentAlertFieldName)
         {
-            alertOrderPlacement = 'desc';
-        }
-        else
-        {
-            // if here, we're either switching desc or setting the default
-            alertOrderPlacement = 'asc';
+            if (alertOrderPlacement === 'asc') {
+                alertOrderPlacement = 'desc';
+            }
+            else {
+                // if here, we're either switching desc or setting the default
+                alertOrderPlacement = 'asc';
+            }
         }
 
-        Alerts.performPostAlertLoadOptionProcessing('order_by', alertFieldName, alertFieldName, alertOrderPlacement,
-            alertLimit, '.contentHeader th', '.alertField-' + alertFieldName);
+        Alerts.performPostAlertLoadOptionProcessing('order_by', newAlertFieldName, newAlertFieldName, alertOrderPlacement,
+            alertLimit, '.contentHeader th', '.alertField-' + newAlertFieldName);
     });
 };
