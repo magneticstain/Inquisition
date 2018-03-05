@@ -9,7 +9,7 @@ require $_SERVER['DOCUMENT_ROOT'].'/lib/Autoloader.php';
 
 // set http headers
 // cache time is currently set to 120 seconds in order to balance caching w/ listing freshness
-\Perspective\View::setHTTPHeaders('Content-Type: application/json', 120);
+\Perspective\View::setHTTPHeaders('Content-Type: application/json', 15);
 
 $errorMsg = '';
 $publicErrorMsg = '';
