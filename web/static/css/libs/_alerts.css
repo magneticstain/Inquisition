@@ -31,10 +31,16 @@
 
 .contentHeader th {
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .contentHeader th.selected {
     color: #DD4D21;
+}
+
+.contentHeader th.selected .placementIcon, .contentHeader th.selected span {
+    margin: 0 4px;
+    vertical-align: middle;
 }
 
 .contentTable .alert {

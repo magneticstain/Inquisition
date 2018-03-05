@@ -53,7 +53,7 @@ Controller.getContentConstraints = function (GETVarKey, defaultVal, cookieKey) {
     return constraintVal;
 };
 
-Controller.initContent = function (onlyContent, contentWrapper, contentKey, contentLimit, contentSortField) {
+Controller.initContent = function (onlyContent, contentWrapper, contentKey, contentLimit, contentSortFieldOpts) {
     /*
         Load HTML for content based on given content key
      */
@@ -63,9 +63,10 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
         contentLimit = parseInt(this.getContentConstraints('limit', 50, 'content_limit'));
     }
 
-    if(contentSortField == null)
+    if(contentSortFieldOpts == null)
     {
-        contentSortField = this.getContentConstraints('order_by', 'alert_id');
+        contentSortFieldOpts = [ this.getContentConstraints('order_by', 'alert_id'),
+            this.getContentConstraints('placement', 'asc', 'alert_order_placement') ];
     }
 
     var normalizedContentKey = contentKey.toLowerCase();
@@ -88,7 +89,8 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
             normalizedContentKey = 'alerts';
 
             // set API endpoint
-            apiEndpointAndParams = 'alerts/?o=' + contentSortField + '&l=' + contentLimit;
+            apiEndpointAndParams = 'alerts/?o=' + contentSortFieldOpts[0]
+                + '&p=' + contentSortFieldOpts[1] + '&l=' + contentLimit;
 
             // build alert limit options html
             var availableAlertLimits = [50, 250, 500, 0];
@@ -133,5 +135,5 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
         '</div>';
 
     Mystic.initAPILoad(onlyContent, contentWrapper, 'GET', '/api/v1/' + apiEndpointAndParams, fadeOutFunct, fadeInFunct,
-        20000, titleHTML + optionsHTML, contentSortField);
+        20000, titleHTML + optionsHTML, contentSortFieldOpts);
 };

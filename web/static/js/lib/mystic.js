@@ -26,7 +26,7 @@ Mystic.queryAPI = function (httpMethod, apiURL, timeout, data, successFunction, 
 };
 
 Mystic.initAPILoad = function (onlyContent, contentWrapper, httpMethod, apiUrl, fadeOutFunct, fadeInFunct,
-                               timeout, initialHtml, orderByFieldName, postData) {
+                               timeout, initialHtml, orderByFieldOpts, postData) {
     /*
         Abstraction class for making API call and performing before and after functionality
      */
@@ -34,7 +34,8 @@ Mystic.initAPILoad = function (onlyContent, contentWrapper, httpMethod, apiUrl, 
     Mystic.queryAPI(httpMethod, apiUrl, timeout, postData, function (apiData) {
         contentWrapper.fadeOut(250, function () {
             try {
-                fadeOutFunct(onlyContent, apiData, contentWrapper, initialHtml, orderByFieldName);
+                fadeOutFunct(onlyContent, apiData, contentWrapper, initialHtml, orderByFieldOpts[0],
+                    orderByFieldOpts[1]);
             } catch (e) {
                 ErrorBot.generateError(3, 'issue initiating data call :: [ ' + e + ' ]');
             }
@@ -46,6 +47,7 @@ Mystic.initAPILoad = function (onlyContent, contentWrapper, httpMethod, apiUrl, 
             }
         });
     }, function () {
-        ErrorBot.generateError(4, 'could not load data from the Inquisition API :: [ REQUEST DETAILS: { ' + httpMethod + ' ' + apiUrl + ' } ]');
+        ErrorBot.generateError(4, 'could not load data from the Inquisition API :: [ REQUEST DETAILS: { ' + httpMethod
+            + ' ' + apiUrl + ' } ]');
     });
 };

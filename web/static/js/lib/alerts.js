@@ -6,9 +6,12 @@
 
 "use strict";
 
-var Alerts = function () {};
+var Alerts = function () {
+    this.primaryDataWrapperElmt = $('#primaryContentData');
+};
 
-Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, contentHTMLTop, orderByField) {
+Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, contentHTMLTop, orderByField,
+                                        orderByPlacement) {
     /*
         Fetch alert data and insert it into given content wrapper
      */
@@ -40,13 +43,25 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
     availableAlertFieldNames.forEach(function (fieldNameData) {
         // check if currently selected order by field
         var addlClasses = '';
+        var orderByIconHTML = '';
         if(fieldNameData[0] === orderByField)
         {
             addlClasses = ' selected';
+
+            // check order of results to see which arrow to use
+            if(orderByPlacement === 'asc')
+            {
+                orderByIconHTML = '<img class="placementIcon" src="/static/imgs/icons/up_arrow.png">';
+            }
+            else
+            {
+                orderByIconHTML = '<img class="placementIcon" src="/static/imgs/icons/down_arrow.png">';
+            }
         }
 
         contentHTML += '' +
-        '           <th data-sort-field-name="' + fieldNameData[0] + '" class="alertField-' + fieldNameData[0] + addlClasses + '">' + fieldNameData[1] + '</th>';
+        '           <th data-sort-field-name="' + fieldNameData[0] + '" class="alertField-' + fieldNameData[0]
+            + addlClasses + '">' + orderByIconHTML + '<span>' + fieldNameData[1] + '</span></th>';
     });
 
     contentHTML += '' +
@@ -91,26 +106,31 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
 
     // update content container with html data
     contentWrapper.html(contentHTML);
+
+    // set global data var for order by placement val
+    $('#primaryContentData').data('alert_order_placement', orderByPlacement);
 };
 
-Alerts.performPostAlertLoadOptionProcessing = function (cookieKey, newValue, orderBy, limit,
+Alerts.performPostAlertLoadOptionProcessing = function (cookieKey, newValue, orderBy, orderByPlacement, limit,
                                                         elmntBaseClass, elmntSelectedClass) {
     /*
         Perform post-processing when user has initiated clicks on alerts option selectors
      */
 
-    var priContentContainerPointer = $('#primaryContentData');
+    var primaryDataWrapperElmt = $('#primaryContentData');
 
-    // update cookie setting
+    // update cookie settings
     $.cookie(cookieKey, newValue);
+    $.cookie('alert_order_placement', orderByPlacement);
 
     // update url with new limit val
-    history.pushState('Alerts', 'Alerts - Inquisition', '/alerts/?o=' + orderBy + '&l=' + limit);
+    history.pushState('Alerts', 'Alerts - Inquisition', '/alerts/?o=' + orderBy + '&p=' + orderByPlacement
+        + '&l=' + limit);
 
     Global.setActiveElement(elmntBaseClass, elmntSelectedClass);
 
-    Controller.initLoadingModal(priContentContainerPointer, 'large');
-    Controller.initContent(true, priContentContainerPointer, 'alerts', limit, orderBy);
+    Controller.initLoadingModal(primaryDataWrapperElmt, 'large');
+    Controller.initContent(true, primaryDataWrapperElmt, 'alerts', limit, [orderBy, orderByPlacement]);
 };
 
 Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
@@ -145,6 +165,7 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
             }
 
             var alertFieldName = $('.contentHeader th.selected').attr('data-sort-field-name');
+            var alertOrderPlacement = $('#primaryContentData').data('alert_order_placement');
             var alertLimit = $(this).text();
             // convert 'All' option to int representation
             if(alertLimit === 'All')
@@ -152,8 +173,8 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
                 alertLimit = 0;
             }
 
-            Alerts.performPostAlertLoadOptionProcessing('content_limit', alertLimit, alertFieldName, alertLimit,
-                '.option', '.alertShow' + alertLimit)
+            Alerts.performPostAlertLoadOptionProcessing('content_limit', alertLimit, alertFieldName,
+                alertOrderPlacement, alertLimit, '.option', '.alertShow' + alertLimit)
         });
     }
 
@@ -162,7 +183,19 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
         var alertFieldName = $(this).attr('data-sort-field-name');
         var alertLimit = $('.alertListingOptions .option.selected').text();
 
-        Alerts.performPostAlertLoadOptionProcessing('order_by', alertFieldName, alertFieldName, alertLimit,
-            '.contentHeader th', '.alertField-' + alertFieldName);
+        // check order placement and switch it
+        var alertOrderPlacement = $('#primaryContentData').data('alert_order_placement');
+        if(alertOrderPlacement === 'asc')
+        {
+            alertOrderPlacement = 'desc';
+        }
+        else
+        {
+            // if here, we're either switching desc or setting the default
+            alertOrderPlacement = 'asc';
+        }
+
+        Alerts.performPostAlertLoadOptionProcessing('order_by', alertFieldName, alertFieldName, alertOrderPlacement,
+            alertLimit, '.contentHeader th', '.alertField-' + alertFieldName);
     });
 };
