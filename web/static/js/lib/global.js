@@ -18,7 +18,7 @@ Global.normalizeTitle = function (contentTitle) {
     var titleClauses = contentTitle.toLowerCase().split(' ');
 
     titleClauses.forEach(function (clause) {
-        if(!title)
+        if(title)
         {
             title += ' ';
         }
@@ -57,6 +57,23 @@ Global.getContentKeyFromCleanURL = function () {
     }
 
     return contentKey;
+};
+
+Global.getIdentifierFromURL = function () {
+    /*
+        Fetches and returns the unique identifier from the browser URL
+     */
+
+    var identifier = window.location.pathname.match('\/([0-9]+)\/?$');
+
+    if(identifier == null)
+    {
+        identifier = 0;
+    } else {
+        identifier = identifier[1];
+    }
+
+    return identifier;
 };
 
 Global.fetchGETVar = function (varName) {

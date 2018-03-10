@@ -135,17 +135,18 @@ class View
                 <a href="https://opensource.org/licenses/MIT">MIT License</a> // <a href="https://github.com/magneticstain/Inquisition">Project on GitHub</a>
             </div>
         </footer>
-        <script src="/static/js/plugins/jquery-3.2.1.min.js"></script>
-        <script src="/static/js/plugins/jquery.cookie.js"></script>
-        <script src="/static/js/plugins/pace.min.js"></script>
-        <script src="/static/js/lib/global.js"></script>
-        <script src="/static/js/lib/errorbot.js"></script>
-        <script src="/static/js/lib/mystic.js"></script>
-        <script src="/static/js/lib/alerts.js"></script>
-        <script src="/static/js/lib/controller.js"></script>
-        <script src="/static/js/lib/nav.js"></script>
-        <script src="/static/js/main.js"></script>
     </body>
+    <script defer src="/static/js/plugins/jquery-3.2.1.min.js"></script>
+    <script defer src="/static/js/plugins/jquery.cookie.js"></script>
+    <script defer src="/static/js/plugins/pace.min.js"></script>
+    <script defer src="/static/js/plugins/jquery.timeago.js"></script>
+    <script defer src="/static/js/lib/global.js"></script>
+    <script defer src="/static/js/lib/errorbot.js"></script>
+    <script defer src="/static/js/lib/mystic.js"></script>
+    <script defer src="/static/js/lib/alerts.js"></script>
+    <script defer src="/static/js/lib/controller.js"></script>
+    <script defer src="/static/js/lib/nav.js"></script>
+    <script defer src="/static/js/main.js"></script>
 </html>';
     }
 

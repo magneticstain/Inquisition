@@ -58,25 +58,37 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
         Load HTML for content based on given content key
      */
 
+    var alerts = new Alerts();
+    var normalizedContentKey = contentKey.toLowerCase();
+    var apiEndpointAndParams = '';
+    var titleHTML = '';
+    var optionsHTML = '';
+    var fadeOutFunct = function () {};
+    var fadeInFunct = function () {};
     if(contentLimit == null)
     {
-        contentLimit = parseInt(this.getContentConstraints('limit', 50, 'content_limit'));
+        contentLimit = parseInt(this.getContentConstraints('l', 50, 'content_limit'));
     }
 
     if(contentSortFieldOpts == null)
     {
-        contentSortFieldOpts = [ this.getContentConstraints('order_by', 'alert_id'),
-            this.getContentConstraints('placement', 'asc', 'alert_order_placement') ];
+        contentSortFieldOpts = [ this.getContentConstraints('o', 'alert_id', 'order_by'),
+            this.getContentConstraints('p', 'asc', 'alert_order_placement') ];
     }
-
-    var normalizedContentKey = contentKey.toLowerCase();
-    var apiEndpointAndParams = '';
-    var optionsHTML = '';
-    var fadeOutFunct = function () {};
-    var fadeInFunct = function () {};
 
     // set vars based on type of content we have to load
     switch (normalizedContentKey) {
+        case 'alert':
+            // get alert ID
+            var alertID = parseInt(Global.getIdentifierFromURL());
+
+            // format api call
+            apiEndpointAndParams = 'alerts/?i=' + alertID + '&l=1';
+
+            fadeOutFunct = alerts.loadSingleAlert;
+            fadeInFunct = alerts.setPostStandalonAlertLoadOpts;
+
+            break;
         case 'stats':
             // TODO
             break;
@@ -116,11 +128,11 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
                 }
                 optionsHTML += '</p>';
             });
-            optionsHTML += '</span>' +
+            optionsHTML += '' +
+                '   </span>' +
                 '</div>';
 
             // set fade out and fade in callback functions
-            var alerts = new Alerts();
             fadeOutFunct = alerts.loadAlerts;
             fadeInFunct = alerts.setPostAlertLoadingOptions;
 
@@ -129,10 +141,14 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
 
     Global.setActiveElement('.navOption', '.' + normalizedContentKey);
 
-    var titleHTML = ' ' +
-        '<div id="contentTitleWrapper" class="contentModule">' +
-        '   <h1>' + Global.normalizeTitle(normalizedContentKey) + '</h1>' +
-        '</div>';
+    if(titleHTML === '')
+    {
+        // set title HTML to default format
+        titleHTML = ' ' +
+            '<div id="contentTitleWrapper" class="contentModule">' +
+            '   <h1>' + Global.normalizeTitle(normalizedContentKey) + '</h1>' +
+            '</div>';
+    }
 
     Mystic.initAPILoad(onlyContent, contentWrapper, 'GET', '/api/v1/' + apiEndpointAndParams, fadeOutFunct, fadeInFunct,
         20000, titleHTML + optionsHTML, contentSortFieldOpts);

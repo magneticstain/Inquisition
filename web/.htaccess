@@ -4,5 +4,10 @@ RewriteEngine On
 RewriteCond %{SCRIPT_FILENAME} !-d
 RewriteCond %{SCRIPT_FILENAME} !-f
 RewriteCond %{REQUEST_URI} !(\.css|\.js|\.png|\.jpg|\.gif|robots\.txt)$ [NC]
+RewriteRule ^([\w]+)/?\??(\S+) /?content=$1&$2
 
-RewriteRule ^(\w+)/?\??(\S+) /?content=$1&$2
+# static asset caching
+# currently 1 month
+<filesMatch ".(css|png|svg|ttf|js|ico)$">
+Header set Cache-Control "max-age=2592000, public"
+</filesMatch>

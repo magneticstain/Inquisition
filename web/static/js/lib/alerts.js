@@ -6,8 +6,65 @@
 
 "use strict";
 
-var Alerts = function () {
-    this.primaryDataWrapperElmt = $('#primaryContentData');
+var Alerts = function () {};
+
+Alerts.prototype.loadSingleAlert = function (onlyContent, alertData, contentWrapper, contentHTMLTop) {
+    /*
+        Process details to generate html for and load single alert
+     */
+
+    var alert = alertData.data[0];
+
+    var contentHTML = ' ' +
+        '<div id="contentTitleWrapper" class="contentModule">' +
+        '   <h1>' + Global.normalizeTitle('Alert #' + alert.alert_id) + '</h1>' +
+        '</div>' +
+        '<div class="standaloneAlertOpts contentModule">' +
+        '   <a href="/alerts/">&larr; Back to Alerts</a>' +
+        '</div>' +
+        '<div id="primaryContentData" class="contentModule standaloneAlertContainerWrapper">' +
+        '   <div id="standaloneAlertContainer">';
+
+    // alert details present; generate html
+    var alertDetailDataset = [
+        [ 'Summary', Global.normalizeTitle(alert.alert_detail) ],
+        [ 'Created', '<time class="fuzzyTimestamp" title="' + alert.created + '" datetime="' + alert.created + '">' + alert.created + '</time>' ],
+        [ 'Last Updated', '<time class="fuzzyTimestamp" title="' + alert.updated + '" datetime="' + alert.updated + '">' + alert.updated + '</time>' ],
+        [ 'Host', alert.host ],
+        [ 'Source IP/Hostname', alert.src_node ],
+        [ 'Destination IP/Hostname', alert.dst_node ]
+    ];
+    alertDetailDataset.forEach(function (detail) {
+        contentHTML += '' +
+            '       <div class="wrapperAlertDetail">' +
+            '           <p class="alertDetailFieldName">' + detail[0] + ':</p>' +
+            '           <p class="alertDetailVal">' + detail[1] + '</p>' +
+            '       </div>';
+    });
+
+    // append log details as it's a special case
+    contentHTML += '' +
+        '       <div class="wrapperAlertDetail">' +
+        '           <p class="alertDetailFieldName">Log Details:</p>' +
+        '           <div class="alertDetailVal logDetail">' + alert.log_data + '</div>' +
+        '       </div>';
+
+    contentHTML += '' +
+        '   </div>'  +
+        '</div>';
+
+    // update content container with html data
+    contentWrapper.html(contentHTML);
+};
+
+Alerts.prototype.setPostStandalonAlertLoadOpts = function () {
+    /*
+        Perform any post-processing logic; meant to be performed after the standalone alert details have been loaded
+     */
+
+    // update page title with alert ID
+    var alertID = Global.getIdentifierFromURL();
+    document.title = 'Alert #' + alertID + ' - Inquisition';
 };
 
 Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, contentHTMLTop, orderByField,
@@ -18,13 +75,14 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
 
     var contentHTML = '';
     var availableAlertFieldNames = [
-            ['alert_type', 'TYPE'],
-            ['alert_id', 'ALERT ID'],
-            ['created', 'CREATED'],
-            ['host', 'HOST'],
-            ['src_node', 'SOURCE'],
-            ['dst_node', 'DESTINATION'],
-            ['alert_detail', 'SUMMARY']
+        ['alert_type', 'TYPE'],
+        ['alert_id', 'ALERT ID'],
+        ['created', 'CREATED'],
+        ['updated', 'LAST UPDATED'],
+        ['host', 'HOST'],
+        ['src_node', 'SOURCE'],
+        ['dst_node', 'DESTINATION'],
+        ['alert_detail', 'SUMMARY']
         ];
 
     if(!onlyContent)
@@ -75,19 +133,25 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
             '       <tr class="alert">' +
             '           <td>' + alert.alert_type + '</td>' +
             '           <td>' + alert.alert_id + '</td>' +
-            '           <td>' + alert.created + '</td>' +
+            '           <td><time class="fuzzyTimestamp" title="' + alert.created + '" datetime="' + alert.created + '"></time></td>' +
+            '           <td><time class="fuzzyTimestamp" title="' + alert.updated + '" datetime="' + alert.updated + '"></time></td>' +
             '           <td>' + alert.host + '</td>' +
             '           <td>' + alert.src_node + '</td>' +
             '           <td>' + alert.dst_node + '</td>' +
             '           <td>' + alert.alert_detail + '</td>' +
             '       </tr>' +
             '       <tr class="alertLogDetails">' +
-            '           <td colspan="7">' +
-            '               <div class="logDetailHeading">' +
-            '                   <p>Log Details</p>' +
-            '               </div>' +
-            '               <div class="logDetail">' +
-            '                    ' + alert.log_data +
+            '           <td colspan="' + availableAlertFieldNames.length + '">' +
+            '               <div class="logDetailsWrapper">' +
+            '                   <div class="logDetailHeading">' +
+            '                       <p>Log Details</p>' +
+            '                   </div>' +
+            '                   <div class="logDetail">' +
+            '                       ' + alert.log_data +
+            '                   </div>' +
+        '                   </div>' +
+            '               <div class="viewAlertWrapper">' +
+            '                   <a href="/alert/' + alert.alert_id + '" title="View full alert details">View Alert Details &rarr;</a>' +
             '               </div>' +
             '           </td>' +
             '       </tr>';
@@ -139,6 +203,9 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
 
         Should only be used after running loadAlerts()
      */
+
+    // init timeago fuzzy timestamps
+    $('time.fuzzyTimestamp').timeago();
 
     // set event listener for alert details
     $('.alert').click(function () {
