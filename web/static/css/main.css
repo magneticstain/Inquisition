@@ -7,20 +7,22 @@
 /* CSS Reset */
 @import "_reset.css";
 
-/* Third-Party Library Reqs */
-@import "pace.css";
+/* Third-Party Librarys */
+@import "libs/third-party/pace.css";
 
+/* Local JS Libs */
+@import "libs/_errorbot.css";
+
+@import "libs/_alerts.css";
+
+/* Base Pages */
 @import "_fonts.css";
 
 @import "_global.css";
 
-@import "libs/_errorbot.css";
-
 @import "_header.css";
 
-@import "libs/_nav.css";
-
-@import "libs/_alerts.css";
+@import "_nav.css";
 
 @import "_content.css";
 

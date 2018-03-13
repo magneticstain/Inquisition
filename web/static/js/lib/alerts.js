@@ -8,13 +8,14 @@
 
 var Alerts = function () {};
 
-Alerts.prototype.loadSingleAlert = function (onlyContent, alertData, contentWrapper, contentHTMLTop) {
+Alerts.prototype.loadSingleAlert = function (onlyContent, alertData, contentWrapper) {
     /*
         Process details to generate html for and load single alert
      */
 
     var alert = alertData.data[0];
 
+    // generate header and opts html
     var contentHTML = ' ' +
         '<div id="contentTitleWrapper" class="contentModule">' +
         '   <h1>' + Global.normalizeTitle('Alert #' + alert.alert_id) + '</h1>' +
@@ -22,29 +23,31 @@ Alerts.prototype.loadSingleAlert = function (onlyContent, alertData, contentWrap
         '<div class="standaloneAlertOpts contentModule">' +
         '   <a href="/alerts/">&larr; Back to Alerts</a>' +
         '</div>' +
-        '<div id="primaryContentData" class="contentModule standaloneAlertContainerWrapper">' +
-        '   <div id="standaloneAlertContainer">';
+        '<div id="primaryContentData" class="contentModule standaloneAlertWrapper">' +
+        '   <div id="standaloneAlertContents">';
 
-    // alert details present; generate html
+    // generate html for details of alert
     var alertDetailDataset = [
         [ 'Summary', Global.normalizeTitle(alert.alert_detail) ],
-        [ 'Created', '<time class="fuzzyTimestamp" title="' + alert.created + '" datetime="' + alert.created + '">' + alert.created + '</time>' ],
-        [ 'Last Updated', '<time class="fuzzyTimestamp" title="' + alert.updated + '" datetime="' + alert.updated + '">' + alert.updated + '</time>' ],
+        [ 'Created', '<time class="fuzzyTimestamp" title="' + alert.created + '" datetime="' + alert.created + '">'
+            + alert.created + '</time>' ],
+        [ 'Last Updated', '<time class="fuzzyTimestamp" title="' + alert.updated + '" datetime="' + alert.updated + '">'
+            + alert.updated + '</time>' ],
         [ 'Host', alert.host ],
         [ 'Source IP/Hostname', alert.src_node ],
         [ 'Destination IP/Hostname', alert.dst_node ]
     ];
     alertDetailDataset.forEach(function (detail) {
         contentHTML += '' +
-            '       <div class="wrapperAlertDetail">' +
+            '       <div class="alertKeyValWrapper">' +
             '           <p class="alertDetailFieldName">' + detail[0] + ':</p>' +
             '           <p class="alertDetailVal">' + detail[1] + '</p>' +
             '       </div>';
     });
 
-    // append log details as it's a special case
+    // append log detail html
     contentHTML += '' +
-        '       <div class="wrapperAlertDetail">' +
+        '       <div class="alertKeyValWrapper">' +
         '           <p class="alertDetailFieldName">Log Details:</p>' +
         '           <div class="alertDetailVal logDetail">' + alert.log_data + '</div>' +
         '       </div>';
@@ -59,12 +62,93 @@ Alerts.prototype.loadSingleAlert = function (onlyContent, alertData, contentWrap
 
 Alerts.prototype.setPostStandalonAlertLoadOpts = function () {
     /*
-        Perform any post-processing logic; meant to be performed after the standalone alert details have been loaded
+        Perform any post-processing logic; meant to be performed after loadSingleAlert() has been ran
      */
 
-    // update page title with alert ID
+    // update page title with alert ID noted
     var alertID = Global.getIdentifierFromURL();
     document.title = 'Alert #' + alertID + ' - Inquisition';
+};
+
+Alerts.prototype.generateAlertsTableHeaderHTML = function (availableAlertFieldNames, orderByField, orderByPlacement) {
+    /*
+        - generate and return HTML for the header row of the Alerts listings table
+     */
+
+    var headerHTML = '';
+
+    availableAlertFieldNames.forEach(function (fieldNameData) {
+        // check if currently selected order by field
+        var addlClasses = '';
+        var orderByIconHTML = '';
+        var alertFieldKey = fieldNameData[0];
+        var alertFieldVal = fieldNameData[1];
+        if(alertFieldKey === orderByField)
+        {
+            addlClasses = ' selected';
+
+            // check order of results to see which arrow to use
+            if(orderByPlacement === 'asc')
+            {
+                orderByIconHTML = '<img class="placementIcon" src="/static/imgs/icons/up_arrow.png">';
+            }
+            else
+            {
+                orderByIconHTML = '<img class="placementIcon" src="/static/imgs/icons/down_arrow.png">';
+            }
+        }
+
+        headerHTML += '' +
+            '           <th data-sort-field-name="' + alertFieldKey + '" class="alertField-' + alertFieldKey
+            + addlClasses + '">' + orderByIconHTML + '<span>' + alertFieldVal + '</span></th>';
+    });
+
+    return headerHTML;
+};
+
+Alerts.prototype.generateAlertsTableListingHTML = function (alertData, availableAlertFieldNames) {
+    /*
+        - generate and return HTML for the listings included in the actual alerts listings table
+     */
+
+    var listingHTML = '';
+
+    alertData.data.forEach(function (alert) {
+        listingHTML += '' +
+            '       <tr class="alert">' +
+            '           <td>' + alert.alert_type + '</td>' +
+            '           <td>' + alert.alert_id + '</td>' +
+            '           <td>' +
+            '               <time class="fuzzyTimestamp" title="' + alert.created + '" datetime="' + alert.created
+                                + '"></time>' +
+            '           </td>' +
+            '           <td>' +
+            '               <time class="fuzzyTimestamp" title="' + alert.updated + '" datetime="' + alert.updated
+                                + '"></time>' +
+            '           </td>' +
+            '           <td>' + alert.host + '</td>' +
+            '           <td>' + alert.src_node + '</td>' +
+            '           <td>' + alert.dst_node + '</td>' +
+            '           <td>' + alert.alert_detail + '</td>' +
+            '       </tr>' +
+            '       <tr class="alertLogDetails">' +
+            '           <td colspan="' + availableAlertFieldNames.length + '">' +
+            '               <div class="logDetailsWrapper">' +
+            '                   <div class="logDetailHeading">' +
+            '                       <p>Log Details</p>' +
+            '                   </div>' +
+            '                   <div class="logDetail">' +
+            '                       ' + alert.log_data +
+            '                   </div>' +
+            '               </div>' +
+            '               <div class="viewAlertWrapper">' +
+            '                   <a href="/alert/' + alert.alert_id + '" title="View full alert details">View Alert Details &rarr;</a>' +
+            '               </div>' +
+            '           </td>' +
+            '       </tr>';
+    });
+
+    return listingHTML;
 };
 
 Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, contentHTMLTop, orderByField,
@@ -93,69 +177,20 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
 
     // data table header
     contentHTML += '' +
-        '   <table class="contentTable">' +
+        '   <table class="alertTable">' +
         '       <thead>' +
-        '       <tr class="contentHeader">';
+        '           <tr class="alertTableHeader">';
 
-    // generate alerts header html
-    availableAlertFieldNames.forEach(function (fieldNameData) {
-        // check if currently selected order by field
-        var addlClasses = '';
-        var orderByIconHTML = '';
-        if(fieldNameData[0] === orderByField)
-        {
-            addlClasses = ' selected';
-
-            // check order of results to see which arrow to use
-            if(orderByPlacement === 'asc')
-            {
-                orderByIconHTML = '<img class="placementIcon" src="/static/imgs/icons/up_arrow.png">';
-            }
-            else
-            {
-                orderByIconHTML = '<img class="placementIcon" src="/static/imgs/icons/down_arrow.png">';
-            }
-        }
-
-        contentHTML += '' +
-        '           <th data-sort-field-name="' + fieldNameData[0] + '" class="alertField-' + fieldNameData[0]
-            + addlClasses + '">' + orderByIconHTML + '<span>' + fieldNameData[1] + '</span></th>';
-    });
+    contentHTML += Alerts.prototype.generateAlertsTableHeaderHTML(availableAlertFieldNames, orderByField,
+        orderByPlacement);
 
     contentHTML += '' +
-        '       </tr>' +
+        '           </tr>' +
         '       </thead>' +
         '       <tbody>';
 
-    // concatonate data rows
-    apiData.data.forEach(function (alert) {
-        contentHTML += '' +
-            '       <tr class="alert">' +
-            '           <td>' + alert.alert_type + '</td>' +
-            '           <td>' + alert.alert_id + '</td>' +
-            '           <td><time class="fuzzyTimestamp" title="' + alert.created + '" datetime="' + alert.created + '"></time></td>' +
-            '           <td><time class="fuzzyTimestamp" title="' + alert.updated + '" datetime="' + alert.updated + '"></time></td>' +
-            '           <td>' + alert.host + '</td>' +
-            '           <td>' + alert.src_node + '</td>' +
-            '           <td>' + alert.dst_node + '</td>' +
-            '           <td>' + alert.alert_detail + '</td>' +
-            '       </tr>' +
-            '       <tr class="alertLogDetails">' +
-            '           <td colspan="' + availableAlertFieldNames.length + '">' +
-            '               <div class="logDetailsWrapper">' +
-            '                   <div class="logDetailHeading">' +
-            '                       <p>Log Details</p>' +
-            '                   </div>' +
-            '                   <div class="logDetail">' +
-            '                       ' + alert.log_data +
-            '                   </div>' +
-        '                   </div>' +
-            '               <div class="viewAlertWrapper">' +
-            '                   <a href="/alert/' + alert.alert_id + '" title="View full alert details">View Alert Details &rarr;</a>' +
-            '               </div>' +
-            '           </td>' +
-            '       </tr>';
-    });
+    // listings html
+    contentHTML += Alerts.prototype.generateAlertsTableListingHTML(apiData, availableAlertFieldNames);
 
     // cap existing html containers
     contentHTML += '' +
@@ -222,7 +257,7 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
         $(this).next().toggle();
     });
 
-    // add listener for limit and sort options if needed
+    // add listener for limit option if needed
     if(!onlyContent) {
         $('.option').click(function () {
             // check to see if already selected
@@ -231,7 +266,7 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
                 return;
             }
 
-            var alertFieldName = $('.contentHeader th.selected').attr('data-sort-field-name');
+            var alertFieldName = $('.alertTableHeader th.selected').attr('data-sort-field-name');
             var alertOrderPlacement = $('#primaryContentData').data('alert_order_placement');
             var alertLimit = $(this).text();
             // convert 'All' option to int representation
@@ -240,18 +275,19 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
                 alertLimit = 0;
             }
 
+            // perform post-click logic
             Alerts.performPostAlertLoadOptionProcessing('content_limit', alertLimit, alertFieldName,
                 alertOrderPlacement, alertLimit, '.option', '.alertShow' + alertLimit)
         });
     }
 
     // add listener for sorting by headers
-    $('.contentHeader th').click(function () {
+    $('.alertTableHeader th').click(function () {
         var newAlertFieldName = $(this).attr('data-sort-field-name');
-        var currentAlertFieldName = $('.contentHeader th.selected').attr('data-sort-field-name');
-        var alertLimit = $('.alertListingOptions .option.selected').text();
+        var currentAlertFieldName = $('.alertTableHeader th.selected').attr('data-sort-field-name');
+        var alertLimit = $('.contentOptions .option.selected').text();
 
-        // check order placement and switch it
+        // check current order placement and switch it if needed
         var alertOrderPlacement = $('#primaryContentData').data('alert_order_placement');
         if(newAlertFieldName === currentAlertFieldName)
         {
@@ -264,7 +300,8 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
             }
         }
 
-        Alerts.performPostAlertLoadOptionProcessing('order_by', newAlertFieldName, newAlertFieldName, alertOrderPlacement,
-            alertLimit, '.contentHeader th', '.alertField-' + newAlertFieldName);
+        // perform post-click logic
+        Alerts.performPostAlertLoadOptionProcessing('order_by', newAlertFieldName, newAlertFieldName,
+            alertOrderPlacement, alertLimit, '.alertTableHeader th', '.alertField-' + newAlertFieldName);
     });
 };

@@ -4,31 +4,58 @@
     - styles for main content container
  */
 
-.contentModule {
-    margin: 20px auto;
-    width: 90%;
-}
-
 #contentWrapper {
     height: 100%;
     overflow: auto;
 }
 
-#contentWrapper .large.loadingModule {
+.contentModule {
+    margin: 20px auto;
+    width: 90%;
+}
+
+/* Options */
+.contentOptions {
+    text-align: right;
+}
+
+.contentOptions span {
+    margin: 0 12px;
+}
+
+.contentOptions .option {
+    color: #DD4D21;
+    display: inline;
+    padding: 5px;
+}
+
+.contentOptions .option:hover {
+    border-bottom: 2px solid #25AAE1;
+    cursor: pointer;
+}
+
+.contentOptions .option.selected {
+    background: #DD4D21;
+    border-radius: 4px;
+    color: #333;
+}
+
+/* Loading Module */
+.large.loadingModule {
     margin: 135px auto;
     padding: 24px;
 }
 
-#contentWrapper .large.loadingModule p {
+.large.loadingModule p {
     margin-top: 64px;
 }
 
-#contentWrapper .large.loadingModule img {
+.large.loadingModule img {
     height: 230px;
 }
 
+/* Post-Loaded Content */
 #contentTitleWrapper {
-    background: transparent;
     border-bottom: 2px dotted #25AAE1;
 }
 
@@ -46,24 +73,4 @@
     max-height: 85%;
     min-height: 25%;
     overflow: auto;
-}
-
-.contentTable {
-    font: 18px 'Work Sans', sans-serif;
-    text-align: center;
-    width: 100%;
-}
-
-.contentHeader {
-    background: #25AAE1;
-    color: #E8E8E8;
-    font-size: 22px;
-}
-
-.contentHeader th {
-    padding: 6px;
-}
-
-.contentTable td {
-    padding: 12px;
 }

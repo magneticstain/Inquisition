@@ -1,7 +1,7 @@
 /*
-    Inquisition // Celestial // Main.css
+    Inquisition // Celestial // Main.js
 
-    - main jquery functionality
+    - main js-related functionality
  */
 
 $(document).ready(function () {

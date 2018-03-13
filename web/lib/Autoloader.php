@@ -30,7 +30,7 @@ class Autoloader
         }
         else
         {
-            error_log('could not load class :: [ '.$classFilename.' ]');
+            error_log('[ CRIT ] could not load class :: [ '.$classFilename.' ]');
         }
     }
 }

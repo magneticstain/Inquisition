@@ -28,6 +28,7 @@ class Alerts
             catch(\Exception $e)
             {
                 // caching isn't absolutely required, so we can let it fail if needed
+                error_log('[ SEV: ERROR ] could not start cache for Alerts submodule :: [ MSG: '.$e->getMessage().' ]');
             }
         }
         else
@@ -44,7 +45,8 @@ class Alerts
             }
             catch(\Exception $e)
             {
-                // a database connection may not be needed if we have access to the cache
+                // a database connection may not be completely needed if we have access to the cache,
+                // though functionality will be degraded
                 if(is_null($this->cache))
                 {
                     throw new \Exception('no data sources available (cache or data store)');
@@ -62,7 +64,7 @@ class Alerts
                                            $allowZero = false)
     {
         /*
-         *  Purpose: Append incoming constraint options for alert-related SQL queries
+         *  Purpose: Append incoming constraint options for alert-related SQL queries to applicable obj vars
          *
          *  Params:
          *      * $sqlColumnName :: STR :: column name that the constraint is being placed on
@@ -81,7 +83,7 @@ class Alerts
         {
             if($this->alertDBQueryData['whereClause'] != '')
             {
-                // not initial constraint, append 'and' keyword before constraint clause
+                // not initial constraint; append 'and' keyword before constraint clause
                 $this->alertDBQueryData['whereClause'] .= ' AND ';
             }
 
@@ -100,21 +102,26 @@ class Alerts
          *  Params:
          *      * $alertId :: INT :: ID of alert to fetch :: NOTE: all other parameters are not considered when an
          *          alert ID is specified
-         *      * $startTime :: DateTime :: earliest time to show alerts for
-         *      * $endTime :: DateTime :: oldest time to show alerts for
          *      * $alertType :: INT :: type of alert to search for ::
          *          ALERT_TYPE: 1 = host anomaly, 2 = traffic node anomaly, 3 = threat
-         *      * $host :: STR :: host IP or hostname to filter alerts by
-         *      * $src_node :: STR :: source IP or hostname to filter alerts by
-         *      * $dst_node :: STR :: destination IP or hostname to filter alerts by
-         *      * $limit :: INT :: maximum amount of alerts to display (0 = unlimited)
-         *      * $orderBy :: STR :: field name to order results by :: DEFAULT: created timestamp
+         *      * $timeOptions
+         *          startTime :: DateTime :: earliest time to show alerts for
+         *          endTime :: DateTime :: oldest time to show alerts for
+         *      * $nodeOptions
+         *          host :: STR :: host IP or hostname to filter alerts by
+         *          src_node :: STR :: source IP or hostname to filter alerts by
+         *          dst_node :: STR :: destination IP or hostname to filter alerts by
+         *      * $queryOptions
+         *          orderBy :: STR :: field name to order results by
+         *          placement :: STR :: direction to order alerts in :: ASC or DESC
+         *          limit :: INT :: maximum amount of alerts to display (0 = unlimited)
          *
          *  Returns: NONE
          *
          */
 
         // API response format framework: https://labs.omniti.com/labs/jsend
+        // TODO: document this in the project wiki
         $alertDataset = [
             'status' => 'success',
             'data_source' => 'cache',
@@ -131,7 +138,7 @@ class Alerts
               ON (Alerts.alert_type=ATM.type_id)
             ";
 
-        // convert epoch timestamp if needed
+        // convert epoch timestamp to SQL timestamp if needed
         foreach($timeOptions as $key => $timestamp)
         {
             if((string)(int)$timestamp === $timestamp && PHP_INT_MIN <= $timestamp and $timestamp <= PHP_INT_MAX)
@@ -157,7 +164,7 @@ class Alerts
             $this->addSQLQueryConstraints($key, $node);
         }
 
-        // set db query where clause and associated data
+        // set db query where clause if applicable
         if(!empty($this->alertDBQueryData['whereClause']))
         {
             $this->alertDBQueryData['query'] .= ' WHERE '.$this->alertDBQueryData['whereClause'];
@@ -217,6 +224,7 @@ class Alerts
 
                 $alertDataset['data_source'] = 'data_store';
                 $alertDataset['data'] = $this->alertStore = $this->dbConn->runQuery();
+
                 // write to cache if possible
                 if(!is_null($this->cache))
                 {

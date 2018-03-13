@@ -9,7 +9,7 @@ require $_SERVER['DOCUMENT_ROOT'].'/lib/Autoloader.php';
 
 // set http headers
 // cache time is currently set to 120 seconds in order to balance caching w/ listing freshness
-\Perspective\View::setHTTPHeaders('Content-Type: application/json', 15);
+\Perspective\View::setHTTPHeaders('application/json', 15);
 
 $errorMsg = '';
 $publicErrorMsg = '';
@@ -18,6 +18,7 @@ $cache = null;
 $alertsHandler = null;
 
 $cfg = new \Config();
+// try to start and create needed engines and connections
 try
 {
     $dbConn = new \DB(
@@ -32,7 +33,7 @@ catch(\PDOException $e)
 {
     $errorMsg = 'could not create database connection';
 
-    error_log($errorMsg.' :: [ DETAILS: { '.$e.' } ]');
+    error_log($errorMsg.' :: [ MSG: { '.$e.' } ]');
     $publicErrorMsg = $errorMsg;
 }
 
@@ -44,7 +45,7 @@ catch(\Exception $e)
 {
     $errorMsg = 'could not start caching engine';
 
-    error_log($errorMsg.' :: [ DETAILS: { '.$e.' } ]');
+    error_log($errorMsg.' :: [ MSG: { '.$e.' } ]');
     if(!empty($publicErrorMsg))
     {
         $publicErrorMsg .= '; ';
@@ -60,7 +61,7 @@ catch(\Exception $e)
 {
     $errorMsg = 'could not start alerts engine';
 
-    error_log($errorMsg.' :: [ DETAILS: { '.$e.' } ]');
+    error_log($errorMsg.' :: [ MSG: { '.$e.' } ]');
     if(!empty($publicErrorMsg))
     {
         $publicErrorMsg .= '; ';
@@ -152,9 +153,9 @@ foreach($_GET as $key => $val)
     }
 }
 
+// try to fetch alerts, serialize them, and return to the user
 try
 {
-    // try to fetch alerts, serialize them, and return to the user
     $fetchedAlerts = $alertsHandler->getAlerts($alertID, $alertType,
         [ 'startTime' => $startTime, 'endTime' => $endTime ],
         [ 'host' => $host, 'src_node' => $src, 'dst_node' => $dst ],
@@ -172,7 +173,7 @@ try
 }
 catch(\PDOException $e)
 {
-    error_log('could not fetch alerts from Inquisition database :: [ SEV: CRIT ] :: [ QUERY: { '
+    error_log('[ SEV: CRIT ] could not fetch alerts from Inquisition database :: [ QUERY: { '
         .$alertsHandler->dbConn->dbQueryOptions['query'].' } :: MSG: [ '.$e->getMessage().' ]');
 
     http_response_code(500);

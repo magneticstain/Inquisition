@@ -4,76 +4,68 @@
     - styles for Alerts content module/lib
  */
 
-.alertListingOptions {
-    text-align: right;
+.alertTable {
+    font: 18px 'Work Sans', sans-serif;
+    text-align: center;
+    width: 100%;
 }
 
-.alertListingOptions span {
-    margin: 0 12px;
+/* Alert Table Header */
+.alertTableHeader {
+    background: #25AAE1;
+    color: #E8E8E8;
+    font-size: 22px;
 }
 
-.alertListingOptions .option {
-    color: #DD4D21;
-    display: inline;
-    padding: 5px;
-}
-
-.alertListingOptions .option:hover {
-    border-bottom: 2px solid #25AAE1;
+.alertTableHeader th {
     cursor: pointer;
-}
-
-.alertListingOptions .option.selected {
-    background: #DD4D21;
-    border-radius: 4px;
-    color: #333;
-}
-
-.contentHeader th {
-    cursor: pointer;
+    padding: 6px;
     white-space: nowrap;
 }
 
-.contentHeader th:hover {
+.alertTableHeader th:hover {
     color: #626073;
 }
 
-.contentHeader th.selected {
+.alertTableHeader th.selected {
     color: #DD4D21;
 }
 
-.contentHeader th.selected .placementIcon, .contentHeader th.selected span {
+.alertTableHeader th.selected .placementIcon, .alertTableHeader th.selected span {
     margin: 0 4px;
     vertical-align: middle;
 }
 
-.contentTable .alert {
+/* Alert Listings */
+.alert {
+    border: 1px solid #403F4C;
     cursor: pointer;
     font-size: 16px;
 }
 
-.contentTable tr {
-    border: 1px solid #403F4C;
-}
-
-.contentTable .alert:hover, .contentTable .alert.activeAlert {
+.alert:hover, .alert.activeAlert {
     background: #ACACAC;
 }
 
-.contentTable .alertLogDetails {
+.alert td {
+    padding: 12px;
+}
+
+/* Alert Log Details */
+.alertLogDetails {
     background: #0E3E52;
     display: none;
 }
 
-.contentTable .alertLogDetails td {
+.alertLogDetails td {
     padding: 0;
 }
 
-.contentTable .logDetailsWrapper {
+.logDetailsWrapper {
     margin: 30px 15px;
 }
 
-.logDetail, .logDetailHeading {
+.logDetailHeading, .logDetail {
     text-align: left;
 }
 
@@ -94,38 +86,41 @@
     padding: 12px;
 }
 
-.contentTable .logDetail {
+.alertTable .logDetail {
     margin: 12px 6px;
 }
 
-.contentTable .viewAlertWrapper {
+/* Alert Log Details View Link */
+.viewAlertWrapper {
     background: #A33C1D;
     padding: 15px;
 }
 
-.contentTable .viewAlertWrapper a {
+.viewAlertWrapper a, .viewAlertWrapper a:visited, .viewAlertWrapper a:link {
     color: #C8C8C8;
     padding-bottom: 5px;
 }
 
-.contentTable .viewAlertWrapper a:hover {
+.viewAlertWrapper a:hover {
     border-bottom: 3px solid #25AAE1;
 }
 
-.standaloneAlertContainerWrapper {
+/* Standalone Alert */
+/* needs to be a class so as not to interfere with the primary content container ID (currently primaryContentData) */
+.standaloneAlertWrapper {
     border: 4px solid #403F4C;
 }
 
-#standaloneAlertContainer {
+#standaloneAlertContents {
     padding: 1% 4%;
 }
 
-.wrapperAlertDetail {
+.alertKeyValWrapper {
     font: 32px 'Roboto', sans-serif;
     margin: 25px 0;
 }
 
-.wrapperAlertDetail p {
+.alertKeyValWrapper p {
     display: inline;
     line-height: 1.4;
     margin-right: 15px;

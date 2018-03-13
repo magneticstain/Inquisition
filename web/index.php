@@ -2,11 +2,10 @@
 namespace Inquisition\Web;
 
 /**
- * Index.php - main page of inquisition's web component
+ * Index.php - main page of inquisition's web component, Celestial
  */
 
-$BASE_URL = $_SERVER['DOCUMENT_ROOT'];
-require $BASE_URL.'/lib/Autoloader.php';
+require $_SERVER['DOCUMENT_ROOT'].'/lib/Autoloader.php';
 
 $normalizedContentTitle = null;
 $contentHTML = '<div id="loadingContainer"></div>';
@@ -17,19 +16,15 @@ try {
 
     if(isset($_GET['content']))
     {
-        $contentParam = $_GET['content'];
-
-        $contentSubtitle = htmlentities($contentParam, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-
         // format content as title
-        $normalizedContentTitle = ucwords($contentSubtitle);
+        $normalizedContentTitle = \Perspective\View::sanatizeDataForView(ucwords($_GET['content']));
     }
 
     $view = new \Perspective\View($contentHTML, $normalizedContentTitle);
 
     echo $view;
 } catch(\Exception $e) {
-    error_log('Inquisition :: [ SEV: FATAL ] :: could not start web engine :: [ MSG: '.$e->getMessage().' ]');
+    error_log('[ SEV: FATAL ] could not start web engine :: [ MSG: '.$e->getMessage().' ]');
 
     // throw 503 status
     http_response_code(503);

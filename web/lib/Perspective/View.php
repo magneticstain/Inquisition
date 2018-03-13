@@ -2,7 +2,7 @@
 namespace Perspective;
 
 /**
- * View.php - the "view"portion of Celestial's MVC framework
+ * View.php - the view portion of Celestial's MVC framework
  */
 
 class View
@@ -16,23 +16,36 @@ class View
         $this->content = $content;
     }
 
-    // OTHER FUNCTIONS
+    public static function sanatizeDataForView($originalData)
+    {
+        /*
+         *  Purpose: sanatize incoming data for use within browser html; should be used to protect against XSS
+         *
+         *  Params:
+         * 		* $originalData :: ANY :: content that needs to be sanatized
+         *
+         *  Returns: ANY
+         */
+
+        return htmlentities($originalData, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
     public static function setHTTPHeaders($contentType = '', $cacheTime = 3600)
     {
         /*
          *  Purpose: set necessary HTTP headers; usually includes security and cache headers
          *
          *  Params:
-         * 		* $contentType :: string :: content-type header value to be used to specify what type of content is
+         * 		* $contentType :: STR :: content-type header value to be used to specify what type of content is
          *          being served
-         * 		* $cacheTime :: int :: amount of time to store data for, in seconds (default = 3600s = 1 hour)
+         * 		* $cacheTime :: INT :: amount of time to store data for, in seconds (default = 3600s = 1 hour)
          *
          *  Returns: NONE
          */
 
         // SECURITY
         // HSTS
-        header('strict-transport-security: max-age=86400');
+        header('strict-transport-security: max-age=86400; includeSubDomains');
 
         // X-Frame-Options
         header('X-Frame-Options: sameorigin');
@@ -44,7 +57,9 @@ class View
         header('X-Content-Type-Options: nosniff');
 
         // CSP
-        header('Content-Security-Policy: default-src https:; style-src https: \'unsafe-inline\'');
+        // this has been set to only allow content to be loaded from the current subdomain EXCEPT XHR requests,
+        // i.e. to the API, just in case the client wants to host the api on its own subdomain
+        header('Content-Security-Policy: default-src \'self\'; connect-src https:;');
 
         // Cross-Domain Policies
         header('X-Permitted-Cross-Domain-Policies: none');
@@ -54,11 +69,11 @@ class View
         $cacheTime = (int) $cacheTime;
         header('Cache-Control: max-age='.$cacheTime);
 
-        // OTHER
+        // PAYLOAD
         // Content-Type
         if(!empty($contentType))
         {
-            header($contentType);
+            header('Content-Type: '.$contentType);
         }
     }
 
@@ -81,7 +96,6 @@ class View
         
         <link rel="shortcut icon" href="/favicon.png" type="image/x-icon">
         
-        <!-- css -->
         <link rel="stylesheet" href="/static/css/main.css" media="all">
         
         <title>'.$this->subTitle.' - Inquisition</title>
@@ -90,7 +104,7 @@ class View
         <div id="mainLoadingProgressBar"></div>
         <div id="mainErrorModal"></div>
         <header>
-            <div class="headerWrapper">
+            <div id="headerWrapper">
                 <div id="titleLogoWrapper">
                     <a href="/" title="Go to Inquisition homepage">
                         <img src="/static/imgs/title_logo.png" alt="Welcome to Inquisition">

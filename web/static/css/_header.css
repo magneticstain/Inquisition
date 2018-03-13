@@ -4,11 +4,11 @@
     - header-specific styles
  */
 
-header .headerWrapper {
+#headerWrapper {
     background: #E8E8E8;
 }
 
-header .headerWrapper #titleLogoWrapper {
+#titleLogoWrapper {
     display: inline-block;
 }
 

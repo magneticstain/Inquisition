@@ -11,9 +11,8 @@ Nav.prepNavMenu = function () {
         Setup all needed functionality for navigation menu
      */
 
-    // nav menu
+    // nav menu extension
     var navMenu = $('nav');
-
     // get original width
     var navMenuOrigWidth = navMenu.width();
 
@@ -27,7 +26,7 @@ Nav.prepNavMenu = function () {
         });
     });
 
-    // set loading trigger for nav options
+    // loading trigger for nav options
     $('.navOption').click(function () {
         var contentKey = $(this).parent().attr('class');
         Controller.initContent(false, $('#contentWrapper'), contentKey);

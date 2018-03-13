@@ -1,7 +1,7 @@
 /*
     Inquisition // Celestial // Global.js
 
-    - JS lib for globally used functions
+    - JS lib for globally-used functions
  */
 
 "use strict";

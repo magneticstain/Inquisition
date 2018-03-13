@@ -107,7 +107,7 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
             // build alert limit options html
             var availableAlertLimits = [50, 250, 500, 0];
             optionsHTML = '' +
-                '<div class="alertListingOptions contentModule">' +
+                '<div class="contentOptions contentModule">' +
                 '   <span>Show: ';
             availableAlertLimits.forEach(function (alertLimit, idx) {
                 if(idx !== 0) {
@@ -132,7 +132,6 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
                 '   </span>' +
                 '</div>';
 
-            // set fade out and fade in callback functions
             fadeOutFunct = alerts.loadAlerts;
             fadeInFunct = alerts.setPostAlertLoadingOptions;
 
