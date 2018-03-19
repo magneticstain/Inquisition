@@ -45,7 +45,7 @@ class View
 
         // SECURITY
         // HSTS
-        header('strict-transport-security: max-age=86400; includeSubDomains');
+        header('strict-transport-security: max-age=2592000; includeSubDomains');
 
         // X-Frame-Options
         header('X-Frame-Options: sameorigin');
@@ -63,6 +63,10 @@ class View
 
         // Cross-Domain Policies
         header('X-Permitted-Cross-Domain-Policies: none');
+
+        // Referer Policy
+        // https://scotthelme.co.uk/a-new-security-header-referrer-policy/
+        header('Referrer-Policy: no-referrer');
 
         // CACHING
         // Cache-Control
