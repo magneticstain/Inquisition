@@ -16,7 +16,10 @@ class Config
         }
 
         // try to read in configs
-        $this->readConfigFile($configFile);
+        if(!$this->readConfigFile($configFile))
+        {
+            throw new \Exception('could not read configuration file');
+        }
     }
 
     public function readConfigFile($configFilename)

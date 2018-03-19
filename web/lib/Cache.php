@@ -12,7 +12,7 @@ class Cache
     public $cachingServerConn = null;
     public $cacheKeyHashAlgo = 'sha256';
 
-    public function __construct($cachingServerConn = null, $cachingServerHost = '127.0.0.1', $cachingServerPort = '6379')
+    public function __construct($cachingServerConn = null, $cachingServerHost = '127.0.0.1', $cachingServerPort = 6379)
     {
         if(!is_null($cachingServerConn))
         {
@@ -21,12 +21,29 @@ class Cache
         else
         {
             // predis project repo: https://github.com/nrk/predis
-            $this->cachingServerConn = new Predis\Client([
-                'scheme' => 'tcp',
-                'host' => $cachingServerHost,
-                'port' => $cachingServerPort
-            ]);
+            $this->cachingServerConn = Cache::generateRedisConn($cachingServerHost, $cachingServerPort);
         }
+    }
+
+    public static function generateRedisConn($redisServerHost = '127.0.0.1', $redisServerPort = 6379)
+    {
+        /*
+         *  Purpose:
+         *      * generate a connection to a Redis database
+         *
+         *  Params:
+         *      * $redisServerHost :: STR :: IP or hostname of redis db server
+         *      * $redisServerPort :: INT :: port to connect to Redis server on
+         *
+         *  Returns: Predis obj
+         *
+         */
+
+        return new Predis\Client([
+            'scheme' => 'tcp',
+            'host' => $redisServerHost,
+            'port' => $redisServerPort
+        ]);
     }
 
     public function generateCacheKey($queryData, $srcModule = 'any')

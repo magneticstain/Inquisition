@@ -94,7 +94,7 @@ ErrorBot.prototype.displayError = function (delayTimeMS) {
 
 ErrorBot.prototype.logErrorToConsole = function () {
     // logs detailed error message to js console
-    console.log('[ ' + errorSeverities[this.severity] + ' ] ' + this.msg);
+    console.error('[ ' + errorSeverities[this.severity] + ' ] ' + this.msg);
 };
 
 ErrorBot.generateError = function (severity, msg, silent, errorDisplayDelayTime) {

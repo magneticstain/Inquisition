@@ -8,7 +8,6 @@ namespace Inquisition\Web;
 require $_SERVER['DOCUMENT_ROOT'].'/lib/Autoloader.php';
 
 // set http headers
-// cache time is currently set to 120 seconds in order to balance caching w/ listing freshness
 \Perspective\View::setHTTPHeaders('application/json', 15);
 
 $errorMsg = '';
@@ -39,7 +38,11 @@ catch(\PDOException $e)
 
 try
 {
-    $cache = new \Cache();
+    $cache = new \Cache(
+        null,
+        $cfg->configVals['log_database']['host'],
+        $cfg->configVals['log_database']['port']
+    );
 }
 catch(\Exception $e)
 {
