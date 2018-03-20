@@ -33,7 +33,7 @@ class Tuning
         $bannedCfgKeys = [ 'db_pass' ];
         if(in_array($cfgKey, $bannedCfgKeys))
         {
-            throw new \Exception('banned configuration key provided; cannot show value for security purposes');
+            throw new \Exception('invalid configuration key provided; cannot show value for security purposes');
         }
 
         // API response format framework: https://labs.omniti.com/labs/jsend
