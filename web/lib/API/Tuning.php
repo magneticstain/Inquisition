@@ -52,13 +52,17 @@ class Tuning
         return $cfgValDataset;
     }
 
-    public function setCfgVal()
+    public function setCfgVal($cfgFilename = '/opt/inquisition/conf/main.cfg', $cfgSection, $cfgKey, $cfgVal)
     {
         /*
          *  Purpose:
          *      * set config value using class vars as params
          *
-         *  Params: NONE
+         *  Params:
+         *      * $cfgFilename :: STR :: filename of config file to read in
+         *      * $cfgSection :: STR :: section config is in
+         *      * $cfgKey :: STR :: config key to update
+         *      * $cfgVal :: STR :: value to update config to
          *
          *  Returns: BOOL
          *
@@ -67,8 +71,24 @@ class Tuning
         $cfgValSetResultDataset = [
             'status' => 'success',
             'data_source' => 'default',
-            'data' => []
+            'data' => [ 'configuration value updated successfully' ]
         ];
+
+        // open config file
+        if(file_exists($cfgFilename))
+        {
+            // try updating config
+            if(!$this->cfgHandler->updateToConfigFile($cfgFilename, $cfgSection, $cfgKey, $cfgVal))
+            {
+                // update failed :(
+                $cfgValSetResultDataset['status'] = 'fail';
+                $cfgValSetResultDataset['data'] = 'failed to update configuration file';
+            }
+        }
+        else
+        {
+            throw new \Exception('config file not found :: [ FILENAME: '.$cfgFilename.' ]');
+        }
 
         return $cfgValSetResultDataset;
     }

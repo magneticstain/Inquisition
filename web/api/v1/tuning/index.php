@@ -95,7 +95,22 @@ try
     }
     else
     {
-        $tuningResults = $tuningHandler->setCfgVal();
+        try
+        {
+            $tuningResults = $tuningHandler->setCfgVal('/opt/inquisition/conf/main.cfg', $tuningCfgSect, $tuningCfgKey,
+                $tuningCfgVal);
+        }
+        catch(\Exception $e)
+        {
+            http_response_code(403);
+
+            echo json_encode([
+                'status' => 'fail',
+                'error' => $e->getMessage()
+            ]);
+
+            exit(1);
+        }
     }
 
     if(count($tuningResults['data']) === 0)
