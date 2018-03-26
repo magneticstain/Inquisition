@@ -12,13 +12,32 @@ require $_SERVER['DOCUMENT_ROOT'].'/lib/Autoloader.php';
 // set http headers
 \Perspective\View::setHTTPHeaders('application/json', 30);
 
-$errorMsg = '';
 $publicErrorMsg = '';
-$tuningHandler = null;
+$dbConn = $tuningHandler = null;
+
+$cfg = new \Config();
+// try to start and create needed engines and connections
+try
+{
+    $dbConn = new \DB(
+        $cfg->configVals['mysql_database']['db_host'],
+        $cfg->configVals['mysql_database']['db_port'],
+        $cfg->configVals['mysql_database']['db_name'],
+        $cfg->configVals['mysql_database']['db_user'],
+        $cfg->configVals['mysql_database']['db_pass']
+    );
+}
+catch(\PDOException $e)
+{
+    $errorMsg = 'could not create database connection';
+
+    error_log($errorMsg.' :: [ MSG: { '.$e.' } ]');
+    $publicErrorMsg = $errorMsg;
+}
 
 try
 {
-    $tuningHandler = new Tuning();
+    $tuningHandler = new Tuning($cfg, $dbConn);
 }
 catch(\Exception $e)
 {
@@ -32,54 +51,55 @@ catch(\Exception $e)
     $publicErrorMsg .= $errorMsg;
 }
 
-// process incoming get and post vars
-$httpMethod = $tuningCfgSect = $tuningCfgKey = $tuningCfgVal = null;
-foreach($_GET as $key => $val)
+// check if error was generated
+if(!empty($errorMsg))
 {
-    $httpMethod = 'GET';
-    switch(strtolower($key))
-    {
-        case 'section':
-        case 's':
-            $tuningCfgSect = $val;
-            break;
+    echo json_encode([
+        'status' => 'fail',
+        'error' => $publicErrorMsg
+    ]);
 
-        case 'key':
-        case 'k':
-            $tuningCfgKey = $val;
-            break;
-    }
-}
-foreach($_POST as $key => $val)
-{
-    $httpMethod = 'POST';
-    switch(strtolower($key))
-    {
-        case 'section':
-        case 's':
-            $tuningCfgSect = $val;
-            break;
-
-        case 'key':
-        case 'k':
-            $tuningCfgKey = $val;
-            break;
-
-        case 'value':
-        case 'v':
-            $tuningCfgVal = $val;
-            break;
-    }
+    exit(1);
 }
 
 // try to perform tuning request, serialize results, and return to the user
 try
 {
-    if($httpMethod === 'GET')
+    if(!empty($_GET))
     {
+        // user is requesting data
+        $tuningHandler->setTuningValues($_GET);
         try
         {
-            $tuningResults = $tuningHandler->getCfgVal($tuningCfgSect, $tuningCfgKey);
+            if(isset($tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx])
+                && $tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx] != 'cfg')
+            {
+                // user is requesting inquisition metadata
+                $tuningHandler->getInquisitionMetadata();
+            }
+            else
+            {
+                $tuningHandler->getCfgVal();
+            }
+        } catch(\Exception $e)
+        {
+            http_response_code(403);
+
+            echo json_encode([
+                'status' => 'fail',
+                'error' => $e->getMessage()
+            ]);
+
+            exit(1);
+        }
+    }
+    elseif(!empty($_POST))
+    {
+        // user is trying to update data
+        $tuningHandler->setTuningValues($_POST);
+        try
+        {
+            $tuningHandler->setCfgVal('/opt/inquisition/conf/main.cfg');
         }
         catch(\Exception $e)
         {
@@ -95,31 +115,23 @@ try
     }
     else
     {
-        try
-        {
-            $tuningResults = $tuningHandler->setCfgVal('/opt/inquisition/conf/main.cfg', $tuningCfgSect, $tuningCfgKey,
-                $tuningCfgVal);
-        }
-        catch(\Exception $e)
-        {
-            http_response_code(403);
-
-            echo json_encode([
-                'status' => 'fail',
-                'error' => $e->getMessage()
-            ]);
-
-            exit(1);
-        }
+        // no params set - just list available options and current config
+        // read in current config as dataset first
+        // then use those results as the config values in new result dataset
+        $tuningHandler->getCfgVal();
+        $tuningHandler->resultDataset['data'] = [
+            'metadata' => $tuningHandler->possibleMetadataVals,
+            'cfg' => $tuningHandler->resultDataset['data']
+        ];
     }
 
-    if(count($tuningResults['data']) === 0)
+    if(count($tuningHandler->resultDataset['data']) === 0)
     {
         // no results found
         http_response_code(404);
     }
     else {
-        echo json_encode($tuningResults);
+        echo $tuningHandler;
     }
 }
 catch(\Exception $e)

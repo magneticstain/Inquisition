@@ -69,6 +69,7 @@ class Config
          *
          */
 
+        $configChanged = false;
         $blankLineRegex = '/^$/';
         $commentRegex = '/^;[\S ]+/';
         $sectionNameRegex = '/^\[([\S]+)\]$/';
@@ -113,6 +114,12 @@ class Config
                             // config key matches
                             // overwrite config line with new value (make sure to include the newline !!!)
                             $cfgFileContents[$lineNum] = $matchedCfgKey[1].' = '.$configVal."\n";
+
+                            // set updated flag
+                            $configChanged = true;
+
+                            // break since we've already found our value
+                            break;
                         }
                     }
                 }
@@ -123,6 +130,12 @@ class Config
 //        var_dump($cfgFileContents);
         file_put_contents($configFileName, $cfgFileContents);
 
-        return true;
+        if(!$configChanged)
+        {
+            error_log('[ WARN ] no config found for Tuning API update request :: [ SECTION: '.$configSection.' // KEY: '
+                .$configKey.' // NEW VAL: '.$configVal.' ]');
+        }
+
+        return $configChanged;
     }
 }
