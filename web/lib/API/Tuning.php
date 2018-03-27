@@ -35,7 +35,7 @@ class Tuning
     ];
     public $metadataTypeIdx = 0;
     public $metadataID = 0;
-    public $key = 0;
+    public $key = null;
     public $val = null;
 //    public $metadataSearchOpts = [
 //        'field' => '',
@@ -322,6 +322,17 @@ class Tuning
             // get table name
             $sqlQueryData = $this->getSqlInfoForMetadataType($metadataType);
 
+            // check for field names (keys)
+            if(!is_null($this->key))
+            {
+                $columnNameClause = $this->key;
+            }
+            else
+            {
+                // no column names set to fetch so we'll get all columns
+                $columnNameClause = '*';
+            }
+
             // check if identifier is set; if not, try search params
             if(0 < $this->metadataID)
             {
@@ -332,7 +343,7 @@ class Tuning
             $this->dbConn->dbQueryOptions['query'] = "
                   /* Celestial // Tuning.php // Fetch Metadata */
                   SELECT 
-                    *
+                    ".$columnNameClause."
                   FROM ".$sqlQueryData['tableName']."
                    ".$sqlWhereClause." 
             ";
