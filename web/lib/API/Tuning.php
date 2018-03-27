@@ -14,7 +14,6 @@ class Tuning
     ];
     private $cfgHandler = null;
     public $cfgSection = '';
-    public $cfgKey = '';
     public $cfgVal = null;
     public $possibleMetadataVals = [
         'types' => [
@@ -36,10 +35,12 @@ class Tuning
     ];
     public $metadataTypeIdx = 0;
     public $metadataID = 0;
-    public $metadataSearchOpts = [
-        'field' => '',
-        'search_query' => ''
-    ];
+    public $key = 0;
+    public $val = null;
+//    public $metadataSearchOpts = [
+//        'field' => '',
+//        'search_query' => ''
+//    ];
 
 
     public function __construct($cfg = null, $dbConn = null, $opts = null)
@@ -105,27 +106,24 @@ class Tuning
                     $this->cfgSection = $optVal;
                     break;
 
-                case 'key':
-                case 'k':
-                    $this->cfgKey = $optVal;
-                    break;
-
-                case 'val':
-                case 'v':
-                    $this->cfgVal = $optVal;
-                    break;
-
                 case 'type':
                 case 't':
+                    $typeFound = false;
                     foreach($this->possibleMetadataVals['types'] as $typeIdx => $type)
                     {
                         if($type === strtolower($optVal))
                         {
                             // type is valid, set index
                             $this->metadataTypeIdx = $typeIdx;
+                            $typeFound = true;
 
                             break;
                         }
+                    }
+
+                    if(!$typeFound)
+                    {
+                        throw new \Exception('invalid type provided');
                     }
 
                     break;
@@ -135,7 +133,7 @@ class Tuning
                     $this->metadataID = $optVal;
                     break;
 
-                case 'field':
+                case 'search_field':
                 case 'f':
                     $this->metadataSearchOpts['field'] = $optVal;
                     break;
@@ -143,6 +141,16 @@ class Tuning
                 case 'search_query':
                 case 'q':
                     $this->metadataSearchOpts['search_query'] = $optVal;
+                    break;
+
+                case 'key':
+                case 'k':
+                    $this->key = $optVal;
+                    break;
+
+                case 'val':
+                case 'v':
+                    $this->val = $optVal;
                     break;
             }
         }
@@ -163,13 +171,13 @@ class Tuning
 
         // define list of keys we should not return values for
         $bannedCfgKeys = [ 'sentry_api_key', 'db_pass' ];
-        if(in_array($this->cfgKey, $bannedCfgKeys))
+        if(in_array($this->key, $bannedCfgKeys))
         {
             throw new \Exception('invalid configuration key provided; cannot show value for security purposes');
         }
 
         // check if no params were set; if so, return all configs
-        if(empty($this->cfgSection) && empty($this->cfgKey))
+        if(empty($this->cfgSection) && empty($this->key))
         {
             $this->resultDataset['data'] = $this->cfgHandler->configVals;
 
@@ -188,9 +196,9 @@ class Tuning
         else
         {
             // try to find the cfg val if allowed
-            if(isset($this->cfgHandler->configVals[$this->cfgSection][$this->cfgKey]))
+            if(isset($this->cfgHandler->configVals[$this->cfgSection][$this->key]))
             {
-                $this->resultDataset['data'] = $this->cfgHandler->configVals[$this->cfgSection][$this->cfgKey];
+                $this->resultDataset['data'] = $this->cfgHandler->configVals[$this->cfgSection][$this->key];
             }
         }
     }
@@ -214,7 +222,7 @@ class Tuning
         if(file_exists($cfgFilename))
         {
             // try updating config
-            if(!$this->cfgHandler->updateToConfigFile($cfgFilename, $this->cfgSection, $this->cfgKey, $this->cfgVal))
+            if(!$this->cfgHandler->updateToConfigFile($cfgFilename, $this->cfgSection, $this->key, $this->val))
             {
                 // update failed :(
                 $this->resultDataset['status'] = 'fail';
@@ -295,7 +303,7 @@ class Tuning
     {
         /*
          *  Purpose:
-         *      * get specifed data from Inquisition DB
+         *      * get specified data from Inquisition DB
          *
          *  Params: NONE
          *
@@ -322,7 +330,7 @@ class Tuning
             }
 
             $this->dbConn->dbQueryOptions['query'] = "
-                  /* Celestial // Tuning.php // Fetch metadata */
+                  /* Celestial // Tuning.php // Fetch Metadata */
                   SELECT 
                     *
                   FROM ".$sqlQueryData['tableName']."
@@ -330,8 +338,70 @@ class Tuning
             ";
             $this->dbConn->dbQueryOptions['optionVals'] = $sqlInputData;
 
-            $this->resultDataset['data'] = $this->alertStore = $this->dbConn->runQuery();
+            $this->resultDataset['data'] = $this->dbConn->runQuery();
         }
+    }
+
+    public function updateInquisitionMetadata()
+    {
+        /*
+         *  Purpose:
+         *      * set specified data in Inquisition DB
+         *
+         *  Params: NONE
+         *
+         *  Returns: BOOL
+         *
+         */
+
+        $updateSuccessful = false;
+
+        $metadataType = $this->possibleMetadataVals['types'][$this->metadataTypeIdx];
+        // key is automatically added since this is the value we're updating to
+        $sqlInputData = [
+            $this->val
+        ];
+
+        // generate sql query
+        if($metadataType != 'cfg')
+        {
+            // not setup for configuration queries, so we're good
+            // get table name
+            $sqlQueryData = $this->getSqlInfoForMetadataType($metadataType);
+
+            // make sure key is valid column name
+            $columnNames = $this->dbConn->getColumnNamesOfTable($sqlQueryData['tableName']);
+            if(!in_array($this->key, $columnNames))
+            {
+                throw new \Exception('key not found as column name in table for given type');
+            }
+            else
+            {
+                // check if identifier is set
+                if(0 < $this->metadataID)
+                {
+                    $sqlWhereClause = 'WHERE ' . $sqlQueryData['idFieldName'] . ' = ?';
+                    array_push($sqlInputData, $this->metadataID);
+                }
+                else
+                {
+                    throw new \Exception('no metadata identifier provided; value required');
+                }
+
+                $this->dbConn->dbQueryOptions['query'] = "
+                      /* Celestial // Tuning.php // Update Metadata */
+                      UPDATE ".$sqlQueryData['tableName']." 
+                      SET ".$this->key." = ?
+                      ".$sqlWhereClause."
+                      LIMIT 1";
+                $this->dbConn->dbQueryOptions['optionVals'] = $sqlInputData;
+
+                $this->resultDataset['data'] = $this->dbConn->runQuery('update');
+                $updateSuccessful = true;
+            }
+        }
+
+        return $updateSuccessful;
     }
 
     // OTHER FUNCTIONS

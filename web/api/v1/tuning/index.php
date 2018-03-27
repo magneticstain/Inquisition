@@ -96,10 +96,20 @@ try
     elseif(!empty($_POST))
     {
         // user is trying to update data
-        $tuningHandler->setTuningValues($_POST);
         try
         {
-            $tuningHandler->setCfgVal('/opt/inquisition/conf/main.cfg');
+            $tuningHandler->setTuningValues($_POST);
+
+            if(isset($tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx])
+                && $tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx] != 'cfg')
+            {
+                // user is requesting inquisition metadata
+                $tuningHandler->updateInquisitionMetadata();
+            }
+            else
+            {
+                $tuningHandler->setCfgVal('/opt/inquisition/conf/main.cfg');
+            }
         }
         catch(\Exception $e)
         {

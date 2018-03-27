@@ -58,19 +58,59 @@ class DB
         $this->dbConn = new \PDO($dsn, $this->dbConfig['username'], $this->dbConfig['password'], $opts);
     }
 
-    public function runQuery()
+    public function getColumnNamesOfTable($tblName)
+    {
+        /*
+         *  Purpose: get list of column names for given table
+         *
+         *  Params:
+         *      * $tblName :: STR :: name of table to list column names for
+         *
+         *  Returns: ARRAY
+         *
+         *  Addl. Info: ** DO NOT use this with untrusted data as the table name as this value is not escaped before
+         *      running the query **
+         *
+         */
+
+        $dbStmt = $this->dbConn->prepare("DESCRIBE ".$tblName);
+        $dbStmt->execute();
+        $fieldList = $dbStmt->fetchAll(PDO::FETCH_COLUMN);
+
+        return $fieldList;
+    }
+
+    public function runQuery($queryType = 'select')
     {
         /*
          *  Purpose: run query with option values using db conn
          *
-         *  Params: NONE
+         *  Params:
+         *      * $queryType :: STR :: type of query being ran (changes how results are returned)
          *
-         *  Returns: array
+         *  Returns: ARRAY or BOOL
          *
          */
 
         $dbStmt = $this->dbConn->prepare($this->dbQueryOptions['query']);
-        $dbStmt->execute($this->dbQueryOptions['optionVals']);
-        return $dbStmt->fetchAll(\PDO::FETCH_ASSOC);
+        if($dbStmt->execute($this->dbQueryOptions['optionVals']) === true)
+        {
+            if(strtolower($queryType) === 'select')
+            {
+                return $dbStmt->fetchAll(\PDO::FETCH_ASSOC);
+            }
+            elseif($queryType === 'insert')
+            {
+                return [ 'id' => $dbStmt->lastInsertId() ];
+            }
+            else
+            {
+                return true;
+            }
+        }
+        else
+        {
+            return false;
+        }
     }
 }
