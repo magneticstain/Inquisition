@@ -8,8 +8,8 @@ namespace API;
 class Tuning
 {
     public $resultDataset = [
-        'status' => '',
-        'data_source' => '',
+        'status' => 'success',
+        'data_source' => 'default',
         'data' => []
     ];
     private $cfgHandler = null;
@@ -37,10 +37,10 @@ class Tuning
     public $metadataID = 0;
     public $key = null;
     public $val = null;
-//    public $metadataSearchOpts = [
-//        'field' => '',
-//        'search_query' => ''
-//    ];
+    public $metadataSearchOpts = [
+        'field' => '',
+        'search_query' => ''
+    ];
 
 
     public function __construct($cfg = null, $dbConn = null, $opts = null)
@@ -81,6 +81,32 @@ class Tuning
         {
             // tuning vals provided
             $this->setTuningValues($opts);
+        }
+    }
+
+    public function validateJSON($encodedData)
+    {
+
+        /*
+         *  Purpose:
+         *      * checks to see if value is valid json; returns decoded json if it is, raw val if it isn't
+         *
+         *  Params:
+         *      * $encodedData :: $STR :: raw json data
+         *
+         *  Returns: ANY
+         *
+         */
+
+        $deserializedData = json_decode($encodedData, true);
+        if(json_last_error() != JSON_ERROR_NONE)
+        {
+            // not json
+            return $encodedData;
+        }
+        else
+        {
+            return $deserializedData;
         }
     }
 
@@ -145,12 +171,12 @@ class Tuning
 
                 case 'key':
                 case 'k':
-                    $this->key = $optVal;
+                    $this->key = $this->validateJSON($optVal);
                     break;
 
                 case 'val':
                 case 'v':
-                    $this->val = $optVal;
+                    $this->val = $this->validateJSON($optVal);
                     break;
             }
         }
@@ -353,11 +379,116 @@ class Tuning
         }
     }
 
+    public function insertInquisitionMetadata()
+    {
+        /*
+         *  Purpose:
+         *      * insert specified data into Inquisition DB
+         *
+         *  Params: NONE
+         *
+         *  Returns: INT
+         *
+         */
+
+        $insertID = false;
+
+        $metadataType = $this->possibleMetadataVals['types'][$this->metadataTypeIdx];
+        $sqlInputData = [];
+
+        // generate sql query
+        if($metadataType != 'cfg')
+        {
+            // not setup for configuration queries, so we're good
+            // get table name
+            $sqlQueryData = $this->getSqlInfoForMetadataType($metadataType);
+            // generate field and value csv string
+            $fieldCSVClause = $valueCSVClause = '';
+            if(!empty($this->key))
+            {
+                if(!is_array($this->key))
+                {
+                    // convert key to array so it can be used w/ below logic
+                    $this->key = [ 'fields' => [ $this->key ] ];
+                }
+
+                if(isset($this->key['fields']))
+                {
+                    foreach($this->key['fields'] as $idx => $columnName)
+                    {
+                        if(!empty($fieldCSVClause))
+                        {
+                            // not the first column name, prepend a comma
+                            $fieldCSVClause .= ',';
+                            $valueCSVClause .= ',';
+                        }
+
+//                            $fieldCSVClause .= "'".$columnName."'";
+                        $fieldCSVClause .= $columnName;
+                        $valueCSVClause .= '?';
+
+                        // add value to dataset sent w/ query
+                        if(!empty($this->val))
+                        {
+                            if(is_array($this->val))
+                            {
+                                if(isset($this->val['values']))
+                                {
+                                    if(isset($this->val['values'][$idx]))
+                                    {
+                                        array_push($sqlInputData, $this->val['values'][$idx]);
+                                    }
+                                    else
+                                    {
+                                        throw new \Exception('mismatch found between field names and values');
+                                    }
+                                }
+                                else
+                                {
+                                    throw new \Exception('invalid syntax used with value data');
+                                }
+                            }
+                            else
+                            {
+                                array_push($sqlInputData, $this->val);
+                            }
+                        } else
+                        {
+                            throw new \Exception('no value(s) provided on insert');
+                        }
+                    }
+                }
+                else
+                {
+                    throw new \Exception('invalid syntax used with field name data');
+                }
+            }
+            else
+            {
+                throw new \Exception('no field names provided on insert');
+            }
+
+            $this->dbConn->dbQueryOptions['query'] = "
+                  /* Celestial // Tuning.php // Insert New Metadata */
+                  INSERT INTO ".$sqlQueryData['tableName']." 
+                  (".$fieldCSVClause.")
+                  VALUES (".$valueCSVClause.")";
+            $this->dbConn->dbQueryOptions['optionVals'] = $sqlInputData;
+
+            echo $this->dbConn->dbQueryOptions['query'];
+//                var_dump($this->dbConn->dbQueryOptions['optionVals']);
+
+            $this->resultDataset['data'] = $insertID = $this->dbConn->runQuery('insert');
+        }
+
+        return $insertID;
+    }
+
     public function updateInquisitionMetadata()
     {
         /*
          *  Purpose:
-         *      * set specified data in Inquisition DB
+         *      * update specified identifier with given data in Inquisition DB
          *
          *  Params: NONE
          *
@@ -365,13 +496,10 @@ class Tuning
          *
          */
 
-        $updateSuccessful = false;
+        $successful = false;
 
         $metadataType = $this->possibleMetadataVals['types'][$this->metadataTypeIdx];
-        // key is automatically added since this is the value we're updating to
-        $sqlInputData = [
-            $this->val
-        ];
+        $sqlInputData = [];
 
         // generate sql query
         if($metadataType != 'cfg')
@@ -380,27 +508,26 @@ class Tuning
             // get table name
             $sqlQueryData = $this->getSqlInfoForMetadataType($metadataType);
 
-            // make sure key is valid column name
-            $columnNames = $this->dbConn->getColumnNamesOfTable($sqlQueryData['tableName']);
-            if(!in_array($this->key, $columnNames))
+            // check if identifier is set
+            if(0 < $this->metadataID)
             {
-                throw new \Exception('key not found as column name in table for given type');
-            }
-            else
-            {
-                // check if identifier is set
-                if(0 < $this->metadataID)
+                // assuming user is asking for an update to a record
+                array_push($sqlInputData, $this->val);
+
+                // make sure key is valid column name
+                $columnNames = $this->dbConn->getColumnNamesOfTable($sqlQueryData['tableName']);
+                if(!in_array($this->key, $columnNames))
+                {
+                    throw new \Exception('key not found as column name in table for given type');
+                }
+                else
                 {
                     $sqlWhereClause = 'WHERE ' . $sqlQueryData['idFieldName'] . ' = ?';
                     array_push($sqlInputData, $this->metadataID);
                 }
-                else
-                {
-                    throw new \Exception('no metadata identifier provided; value required');
-                }
 
                 $this->dbConn->dbQueryOptions['query'] = "
-                      /* Celestial // Tuning.php // Update Metadata */
+                      /* Celestial // Tuning.php // Update Current Metadata */
                       UPDATE ".$sqlQueryData['tableName']." 
                       SET ".$this->key." = ?
                       ".$sqlWhereClause."
@@ -408,11 +535,15 @@ class Tuning
                 $this->dbConn->dbQueryOptions['optionVals'] = $sqlInputData;
 
                 $this->resultDataset['data'] = $this->dbConn->runQuery('update');
-                $updateSuccessful = true;
+                $successful = true;
+            }
+            else
+            {
+                throw new \Exception('no identifier provided for metadata update');
             }
         }
 
-        return $updateSuccessful;
+        return $successful;
     }
 
     // OTHER FUNCTIONS

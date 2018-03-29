@@ -68,9 +68,10 @@ try
     if(!empty($_GET))
     {
         // user is requesting data
-        $tuningHandler->setTuningValues($_GET);
         try
         {
+            $tuningHandler->setTuningValues($_GET);
+
             if(isset($tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx])
                 && $tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx] != 'cfg')
             {
@@ -103,8 +104,17 @@ try
             if(isset($tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx])
                 && $tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx] != 'cfg')
             {
-                // user is requesting inquisition metadata
-                $tuningHandler->updateInquisitionMetadata();
+                // user is requesting to change inquisition metadata
+                if(0 < (int)$tuningHandler->metadataID)
+                {
+                    // data is assumed to be being updated
+                    $tuningHandler->updateInquisitionMetadata();
+                }
+                else
+                {
+                    // attempt to create new record with data
+                    $tuningHandler->insertInquisitionMetadata();
+                }
             }
             else
             {

@@ -101,7 +101,7 @@ class DB
             }
             elseif($queryType === 'insert')
             {
-                return [ 'id' => $dbStmt->lastInsertId() ];
+                return [ 'id' => $this->dbConn->lastInsertId() ];
             }
             else
             {
