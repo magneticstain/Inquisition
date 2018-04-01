@@ -53,13 +53,14 @@ class Config
         return false;
     }
 
-    public function updateToConfigFile($configFileName = '/opt/inquisition/conf/main.cfg', $configSection, $configKey,
-                                       $configVal)
+    public function updateConfigFile($action = 'set', $configFileName = '/opt/inquisition/conf/main.cfg',
+                                     $configSection, $configKey, $configVal)
     {
         /*
          *  Purpose: reads in and parses configuration file and updated given config
          *
          *  Params:
+         *      * $action :: STR :: action to take on given config; [ 'set', 'delete', 'add' ]
          *      * $configFileName :: STR :: filename of config file to read in
          *      * $configSection :: STR :: section config is in
          *      * $configKey :: STR :: config key to update
@@ -83,6 +84,7 @@ class Config
 
         // traverse lines and update where needed
         $sectionMatched = false;
+        $action = strtolower($action);
         foreach($cfgFileContents as $lineNum => $cfgFileLine)
         {
             // check for blank lines or comments
@@ -104,22 +106,43 @@ class Config
 
                 if($sectionMatched)
                 {
-                    // if section was previously matched, and this isn't a new section, we'll assume it's a name and
-                    // see if it matches
-                    if(preg_match($cfgKeyRegex, $cfgFileLine, $matchedCfgKey))
+                    if($action === 'add')
                     {
-                        // config key found
-                        if($matchedCfgKey[1] === $configKey)
+                        // insert config
+                        array_splice($cfgFileContents, $lineNum + 1, 0, $configKey.' = '.$configVal."\n");
+                        $configChanged = true;
+                        break;
+                    }
+                    else
+                    {
+                        // if section was previously matched, and this isn't a new section, we'll assume it's a name and
+                        // see if it matches
+                        if(preg_match($cfgKeyRegex, $cfgFileLine, $matchedCfgKey))
                         {
-                            // config key matches
-                            // overwrite config line with new value (make sure to include the newline !!!)
-                            $cfgFileContents[$lineNum] = $matchedCfgKey[1].' = '.$configVal."\n";
+                            // config key found
+                            if($matchedCfgKey[1] === $configKey)
+                            {
+                                // config key matches
+                                // take action based on param
+                                switch($action)
+                                {
+                                    case 'set':
+                                        // overwrite config line with new value (make sure to include the newline !!!)
+                                        $cfgFileContents[$lineNum] = $matchedCfgKey[1] . ' = ' . $configVal . "\n";
 
-                            // set updated flag
-                            $configChanged = true;
+                                        break;
+                                    case 'delete':
+                                        $cfgFileContents[$lineNum] = '';
 
-                            // break since we've already found our value
-                            break;
+                                        break;
+                                }
+
+                                // set updated flag
+                                $configChanged = true;
+
+                                // break since we've already found our value
+                                break;
+                            }
                         }
                     }
                 }
@@ -132,8 +155,10 @@ class Config
 
         if(!$configChanged)
         {
-            error_log('[ WARN ] no config found for Tuning API update request :: [ SECTION: '.$configSection.' // KEY: '
+            $priErrorMsg = 'no config found with specified parameters';
+            error_log('[ WARN ] '.$priErrorMsg.' for Tuning API configuration change request :: [ SECTION: '.$configSection.' // KEY: '
                 .$configKey.' // NEW VAL: '.$configVal.' ]');
+            throw new Exception($priErrorMsg);
         }
 
         return $configChanged;

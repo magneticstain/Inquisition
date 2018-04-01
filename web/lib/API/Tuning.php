@@ -206,17 +206,13 @@ class Tuning
         if(empty($this->cfgSection) && empty($this->key))
         {
             $this->resultDataset['data'] = $this->cfgHandler->configVals;
-
-            // redact any banned keys
-            foreach($this->resultDataset['data'] as $cfgSection => $cfgSectionData)
+        }
+        elseif(!empty($this->cfgSection) && empty($this->key))
+        {
+            // get all cfg values from given section
+            if(isset($this->cfgHandler->configVals[$this->cfgSection]))
             {
-                foreach($bannedCfgKeys as $bannedKey)
-                {
-                    if(array_key_exists($bannedKey, $cfgSectionData))
-                    {
-                        $this->resultDataset['data'][$cfgSection][$bannedKey] = '<REDACTED>';
-                    }
-                }
+                $this->resultDataset['data'] = $this->cfgHandler->configVals[$this->cfgSection];
             }
         }
         else
@@ -227,9 +223,33 @@ class Tuning
                 $this->resultDataset['data'] = $this->cfgHandler->configVals[$this->cfgSection][$this->key];
             }
         }
+
+        // redact any banned keys
+        foreach($this->resultDataset['data'] as $cfgKey => $cfgData)
+        {
+            foreach($bannedCfgKeys as $bannedKey)
+            {
+                if(is_array($cfgData))
+                {
+                    // we're looking at a full section of data, not an individual config key-val pair
+                    if(array_key_exists($bannedKey, $cfgData))
+                    {
+                        $this->resultDataset['data'][$cfgKey][$bannedKey] = '<REDACTED>';
+                    }
+                }
+                else
+                {
+                    // config key-value pair; check config key directly
+                    if($cfgKey === $bannedKey)
+                    {
+                        $this->resultDataset['data'][$cfgKey] = '<REDACTED>';
+                    }
+                }
+            }
+        }
     }
 
-    public function setCfgVal($cfgFilename = '/opt/inquisition/conf/main.cfg')
+    public function modifyCfgVal($cfgFilename = '/opt/inquisition/conf/main.cfg', $actionToTake = 'update')
     {
         /*
          *  Purpose:
@@ -237,6 +257,7 @@ class Tuning
          *
          *  Params:
          *      * $cfgFilename :: STR :: filename of config file to read in
+         *      * $actionToTake :: STR :: action to take on given config; [ 'set', 'delete', 'add' ]
          *
          *  Returns: BOOL
          *
@@ -248,7 +269,8 @@ class Tuning
         if(file_exists($cfgFilename))
         {
             // try updating config
-            if(!$this->cfgHandler->updateToConfigFile($cfgFilename, $this->cfgSection, $this->key, $this->val))
+            if(!$this->cfgHandler->updateConfigFile($actionToTake, $cfgFilename, $this->cfgSection, $this->key,
+                $this->val))
             {
                 // update failed :(
                 $this->resultDataset['status'] = 'fail';
@@ -256,7 +278,7 @@ class Tuning
             }
             else
             {
-                $cfgSetSuccessful = true;
+                $cfgSetSuccessful = $this->resultDataset['data'] = true;
             }
         }
         else
@@ -475,9 +497,6 @@ class Tuning
                   VALUES (".$valueCSVClause.")";
             $this->dbConn->dbQueryOptions['optionVals'] = $sqlInputData;
 
-            echo $this->dbConn->dbQueryOptions['query'];
-//                var_dump($this->dbConn->dbQueryOptions['optionVals']);
-
             $this->resultDataset['data'] = $insertID = $this->dbConn->runQuery('insert');
         }
 
@@ -541,6 +560,52 @@ class Tuning
             {
                 throw new \Exception('no identifier provided for metadata update');
             }
+        }
+
+        return $successful;
+    }
+
+    public function deleteInquisitionMetadata()
+    {
+        /*
+         *  Purpose:
+         *      * delete specified identifier from Inquisition DB
+         *
+         *  Params: NONE
+         *
+         *  Returns: BOOL
+         *
+         */
+
+        $metadataType = $this->possibleMetadataVals['types'][$this->metadataTypeIdx];
+        echo $metadataType;
+
+        if($metadataType != 'cfg')
+        {
+            // not setup for configuration queries, so we're good
+            // get table name to query
+            $sqlQueryData = $this->getSqlInfoForMetadataType($metadataType);
+
+            // check if identifier is set
+            if(0 < $this->metadataID)
+            {
+                $this->dbConn->dbQueryOptions['query'] = "
+                      /* Celestial // Tuning.php // Update Current Metadata */
+                      DELETE FROM ".$sqlQueryData['tableName']."
+                      WHERE ".$sqlQueryData['idFieldName']." = ?
+                      LIMIT 1";
+                $this->dbConn->dbQueryOptions['optionVals'] = [ $this->metadataID ];
+
+                $this->resultDataset['data'] = $successful = $this->dbConn->runQuery('delete');
+            }
+            else
+            {
+                throw new \Exception('no identifier provided for metadata deletion');
+            }
+        }
+        else
+        {
+            throw new \Exception('attempting delete on invalid type');
         }
 
         return $successful;

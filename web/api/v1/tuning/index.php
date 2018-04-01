@@ -63,86 +63,140 @@ if(!empty($errorMsg))
 }
 
 // try to perform tuning request, serialize results, and return to the user
+$httpMethod = $_SERVER['REQUEST_METHOD'];
 try
 {
-    if(!empty($_GET))
+    switch($httpMethod)
     {
-        // user is requesting data
-        try
-        {
-            $tuningHandler->setTuningValues($_GET);
-
-            if(isset($tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx])
-                && $tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx] != 'cfg')
+        case 'GET':
+            // user is requesting data
+            try
             {
-                // user is requesting inquisition metadata
-                $tuningHandler->getInquisitionMetadata();
-            }
-            else
-            {
-                $tuningHandler->getCfgVal();
-            }
-        } catch(\Exception $e)
-        {
-            http_response_code(403);
-
-            echo json_encode([
-                'status' => 'fail',
-                'error' => $e->getMessage()
-            ]);
-
-            exit(1);
-        }
-    }
-    elseif(!empty($_POST))
-    {
-        // user is trying to update data
-        try
-        {
-            $tuningHandler->setTuningValues($_POST);
-
-            if(isset($tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx])
-                && $tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx] != 'cfg')
-            {
-                // user is requesting to change inquisition metadata
-                if(0 < (int)$tuningHandler->metadataID)
+                if(empty($_GET))
                 {
-                    // data is assumed to be being updated
-                    $tuningHandler->updateInquisitionMetadata();
+                    // no params set - just list available options and current config
+                    // read in current config as dataset first
+                    // then use those results as the config values in new result dataset
+                    $tuningHandler->getCfgVal();
+                    $tuningHandler->resultDataset['data'] = [
+                        'available_types' => $tuningHandler->possibleMetadataVals['types'],
+                        'field_names' => $tuningHandler->possibleMetadataVals['idFieldNames'],
+                        'current_cfg' => $tuningHandler->resultDataset['data']
+                    ];
                 }
                 else
+                {
+                    $tuningHandler->setTuningValues($_GET);
+
+                    if(isset($tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx])
+                        && $tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx] != 'cfg')
+                    {
+                        // user is requesting inquisition metadata
+                        $tuningHandler->getInquisitionMetadata();
+                    } else
+                    {
+                        $tuningHandler->getCfgVal();
+                    }
+                }
+            }
+            catch(\Exception $e)
+            {
+                http_response_code(403);
+
+                echo json_encode([
+                    'status' => 'fail',
+                    'error' => $e->getMessage()
+                ]);
+
+                exit(1);
+            }
+
+            break;
+        case 'POST':
+            // user is trying to update data
+            try
+            {
+                $tuningHandler->setTuningValues($_POST);
+
+                if(isset($tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx])
+                    && $tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx] != 'cfg')
+                {
+                        // data is assumed to be being updated
+                        $tuningHandler->updateInquisitionMetadata();
+                }
+                else
+                {
+                    $tuningHandler->modifyCfgVal('/opt/inquisition/conf/main.cfg', 'set');
+                }
+            }
+            catch(\Exception $e)
+            {
+                $errorMsg = $e->getMessage();
+            }
+
+            break;
+        case 'PUT':
+            // user is trying to update data
+            try
+            {
+                parse_str(file_get_contents('php://input'), $_PUT);
+                $tuningHandler->setTuningValues($_PUT);
+
+                if(isset($tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx])
+                    && $tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx] != 'cfg')
                 {
                     // attempt to create new record with data
                     $tuningHandler->insertInquisitionMetadata();
                 }
+                else
+                {
+                    $tuningHandler->modifyCfgVal('/opt/inquisition/conf/main.cfg', 'add');
+                }
             }
-            else
+            catch(\Exception $e)
             {
-                $tuningHandler->setCfgVal('/opt/inquisition/conf/main.cfg');
+                $errorMsg = $e->getMessage();
             }
-        }
-        catch(\Exception $e)
-        {
-            http_response_code(403);
 
-            echo json_encode([
-                'status' => 'fail',
-                'error' => $e->getMessage()
-            ]);
+            break;
+        case 'DELETE':
+            // user is trying to update data
+            try
+            {
+                parse_str(file_get_contents('php://input'), $_DELETE);
+                $tuningHandler->setTuningValues($_DELETE);
 
-            exit(1);
-        }
+                if(isset($tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx])
+                    && $tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx] != 'cfg')
+                {
+                    // attempt to create new record with data
+                    $tuningHandler->deleteInquisitionMetadata();
+                }
+                else
+                {
+                    $tuningHandler->modifyCfgVal('/opt/inquisition/conf/main.cfg', 'delete');
+                }
+            }
+            catch(\Exception $e)
+            {
+                $errorMsg = $e->getMessage();
+            }
+
+            break;
+        default:
+            $errorMsg = 'unknown HTTP method provided';
     }
-    else
+
+    if(!empty($errorMsg))
     {
-        // no params set - just list available options and current config
-        // read in current config as dataset first
-        // then use those results as the config values in new result dataset
-        $tuningHandler->getCfgVal();
-        $tuningHandler->resultDataset['data'] = [
-            'metadata' => $tuningHandler->possibleMetadataVals,
-            'cfg' => $tuningHandler->resultDataset['data']
-        ];
+        http_response_code(400);
+
+        echo json_encode([
+            'status' => 'fail',
+            'error' => $errorMsg
+        ]);
+
+        exit(1);
     }
 
     if(count($tuningHandler->resultDataset['data']) === 0)
