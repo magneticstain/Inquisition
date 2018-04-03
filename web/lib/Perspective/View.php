@@ -162,6 +162,7 @@ class View
     <script defer src="/static/js/lib/errorbot.js"></script>
     <script defer src="/static/js/lib/mystic.js"></script>
     <script defer src="/static/js/lib/alerts.js"></script>
+    <script defer src="/static/js/lib/stats.js"></script>
     <script defer src="/static/js/lib/controller.js"></script>
     <script defer src="/static/js/lib/nav.js"></script>
     <script defer src="/static/js/main.js"></script>

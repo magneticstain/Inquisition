@@ -10,6 +10,7 @@ use Predis\Collection\Iterator;
 class Stats
 {
     public $inquisitionDbConn = null;
+    private $availableStatTypes = [ 'parser', 'template' ];
     public $statsDbConn = null;
 
     public function __construct($inquisitionDbConn = null, $statsDbConn = null, $statsDbServer = null, $statsDbPort = null)
@@ -77,18 +78,21 @@ class Stats
         ];
 
         // get records for specified types
+        $dbKeyStatType = $statType;
         if(!is_null($statType))
         {
             $statType = strtolower($statType);
-            if($statType === 'parser' || $statType === 'template')
+            if(in_array($statType, $this->availableStatTypes, true))
             {
-                // search for records with given key pattern
-                // see: https://stackoverflow.com/a/28545550/2625915
-                foreach(new Iterator\Keyspace($this->statsDbConn, $baseStatKey . ':' . $statType . ':*') as $hashKey)
-                {
-                    $statDataset['data'][$hashKey] = $this->statsDbConn->hgetall($hashKey);
-                }
+                $dbKeyStatType .= ':';
             }
+        }
+
+        // search for db records with given key pattern
+        // see: https://stackoverflow.com/a/28545550/2625915
+        foreach(new Iterator\Keyspace($this->statsDbConn, $baseStatKey . ':' . $dbKeyStatType . '*') as $hashKey)
+        {
+            $statDataset['data'][$hashKey] = $this->statsDbConn->hgetall($hashKey);
         }
 
         // check key
@@ -172,6 +176,9 @@ class Stats
 
             $statDataset['data'] = $localDataset;
         }
+
+        // sort dataset
+        ksort($statDataset['data']);
 
         return $statDataset;
     }

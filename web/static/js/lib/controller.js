@@ -59,6 +59,7 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
      */
 
     var alerts = new Alerts();
+    var stats = new Stats();
     var normalizedContentKey = contentKey.toLowerCase();
     var apiEndpointAndParams = '';
     var titleHTML = '';
@@ -90,7 +91,12 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
 
             break;
         case 'stats':
-            // TODO
+            // format api call
+            apiEndpointAndParams = 'stats/?i=' + alertID + '&l=1';
+
+            fadeOutFunct = stats.loadStats;
+            // fadeInFunct = alerts.setPostStandalonAlertLoadOpts;
+
             break;
         case 'tuning':
             // TODO
