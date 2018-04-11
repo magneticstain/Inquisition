@@ -18,7 +18,7 @@ Alerts.prototype.loadSingleAlert = function (onlyContent, alertData, contentWrap
     // generate header and opts html
     var contentHTML = ' ' +
         '<div id="contentTitleWrapper" class="contentModule">' +
-        '   <h1>' + Global.normalizeTitle('Alert #' + alert.alert_id) + '</h1>' +
+        '   <h1 class="title">' + Global.normalizeTitle('Alert #' + alert.alert_id) + '</h1>' +
         '</div>' +
         '<div class="standaloneAlertOpts contentModule">' +
         '   <a href="/alerts/">&larr; Back to Alerts</a>' +
@@ -134,7 +134,7 @@ Alerts.prototype.generateAlertsTableListingHTML = function (alertData, available
             '       <tr class="alertLogDetails">' +
             '           <td colspan="' + availableAlertFieldNames.length + '">' +
             '               <div class="logDetailsWrapper">' +
-            '                   <div class="logDetailHeading">' +
+            '                   <div class="title logDetailHeading">' +
             '                       <p>Log Details</p>' +
             '                   </div>' +
             '                   <div class="logDetail">' +

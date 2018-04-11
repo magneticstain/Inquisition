@@ -61,7 +61,7 @@
 
 #contentTitleWrapper h1 {
     color: #626073;
-    font: 44px 'Noto Sans', sans-serif;
+    font-size: 44px;
     letter-spacing: 5px;
     margin-bottom: 8px;
 }

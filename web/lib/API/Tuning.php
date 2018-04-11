@@ -20,6 +20,7 @@ class Tuning
             'cfg',
             'parser',
             'template',
+            'regex',
             'field',
             'ioc',
             'mapping',
@@ -220,29 +221,34 @@ class Tuning
             // try to find the cfg val if allowed
             if(isset($this->cfgHandler->configVals[$this->cfgSection][$this->key]))
             {
+                // must be set as array in order to be traversed for banned keys below
                 $this->resultDataset['data'] = $this->cfgHandler->configVals[$this->cfgSection][$this->key];
             }
         }
 
         // redact any banned keys
-        foreach($this->resultDataset['data'] as $cfgKey => $cfgData)
+        // we only have to do this for arrays since specific keys that are set get caught above
+        if(is_array($this->resultDataset['data']))
         {
-            foreach($bannedCfgKeys as $bannedKey)
+            foreach($this->resultDataset['data'] as $cfgKey => $cfgData)
             {
-                if(is_array($cfgData))
+                foreach($bannedCfgKeys as $bannedKey)
                 {
-                    // we're looking at a full section of data, not an individual config key-val pair
-                    if(array_key_exists($bannedKey, $cfgData))
+                    if(is_array($cfgData))
                     {
-                        $this->resultDataset['data'][$cfgKey][$bannedKey] = '<REDACTED>';
+                        // we're looking at a full section of data, not an individual config key-val pair
+                        if(array_key_exists($bannedKey, $cfgData))
+                        {
+                            $this->resultDataset['data'][$cfgKey][$bannedKey] = '<REDACTED>';
+                        }
                     }
-                }
-                else
-                {
-                    // config key-value pair; check config key directly
-                    if($cfgKey === $bannedKey)
+                    else
                     {
-                        $this->resultDataset['data'][$cfgKey] = '<REDACTED>';
+                        // config key-value pair; check config key directly
+                        if($cfgKey === $bannedKey)
+                        {
+                            $this->resultDataset['data'][$cfgKey] = '<REDACTED>';
+                        }
                     }
                 }
             }
@@ -318,6 +324,11 @@ class Tuning
             case 'template':
                 $typeData['tableName'] = 'FieldTemplates';
                 $typeData['idFieldName'] = 'template_id';
+
+                break;
+            case 'regex':
+                $typeData['tableName'] = 'FieldTemplateRegex';
+                $typeData['idFieldName'] = 'regex_id';
 
                 break;
             case 'field':

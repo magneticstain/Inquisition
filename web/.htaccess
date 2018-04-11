@@ -3,7 +3,7 @@ RewriteEngine On
 # ignore if not a relevant filetype
 RewriteCond %{SCRIPT_FILENAME} !-d
 RewriteCond %{SCRIPT_FILENAME} !-f
-RewriteCond %{REQUEST_URI} !(\.css|\.js|\.png|\.jpg|\.gif|robots\.txt)$ [NC]
+RewriteCond %{REQUEST_URI} !(\.css|\.js|\.png|\.jpg|\.gif|robots\.txt|\.map)$ [NC]
 RewriteRule ^([\w]+)/?\??(\S+) /?content=$1&$2
 
 # static asset caching

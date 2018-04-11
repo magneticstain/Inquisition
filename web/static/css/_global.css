@@ -33,6 +33,10 @@ main {
     letter-spacing: 2px;
 }
 
+.title {
+    font-family: 'Noto Sans', sans-serif;
+}
+
 #mainWrapper {
     height: 100%;
 }

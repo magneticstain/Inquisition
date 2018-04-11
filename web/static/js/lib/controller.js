@@ -92,10 +92,10 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
             break;
         case 'stats':
             // format api call
-            apiEndpointAndParams = 'stats/?i=' + alertID + '&l=1';
+            apiEndpointAndParams = 'stats/';
 
             fadeOutFunct = stats.loadStats;
-            // fadeInFunct = alerts.setPostStandalonAlertLoadOpts;
+            fadeInFunct = stats.prepCharts;
 
             break;
         case 'tuning':
@@ -151,7 +151,7 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
         // set title HTML to default format
         titleHTML = ' ' +
             '<div id="contentTitleWrapper" class="contentModule">' +
-            '   <h1>' + Global.normalizeTitle(normalizedContentKey) + '</h1>' +
+            '   <h1 class="title">' + Global.normalizeTitle(normalizedContentKey) + '</h1>' +
             '</div>';
     }
 

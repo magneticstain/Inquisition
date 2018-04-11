@@ -1,0 +1,29 @@
+/*
+    Inquisition // Celestial // _stats.css
+
+    - styles for Stats content module/lib and its charts
+ */
+
+#chartsWrapper {
+    padding: 25px;
+    text-align: center;
+}
+
+#chartsWrapper h2 {
+    border: 2px dashed #A33C1D;
+    color: #3B6C7F;
+    font-size: 32px;
+    padding: 5px 15px;
+}
+
+#chartsWrapper h3 {
+    color: #333;
+    font-size: 24px;
+    margin: 25px;
+}
+
+.chart {
+    height: 480px;
+    margin: 30px 0;
+    width: 640px;
+}

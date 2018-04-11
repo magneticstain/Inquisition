@@ -158,6 +158,7 @@ class View
     <script defer src="/static/js/plugins/jquery.cookie.js"></script>
     <script defer src="/static/js/plugins/pace.min.js"></script>
     <script defer src="/static/js/plugins/jquery.timeago.js"></script>
+    <script defer src="/static/js/plugins/Chart.bundle.min.js"></script>
     <script defer src="/static/js/lib/global.js"></script>
     <script defer src="/static/js/lib/errorbot.js"></script>
     <script defer src="/static/js/lib/mystic.js"></script>

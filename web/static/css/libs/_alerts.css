@@ -72,7 +72,7 @@
 .logDetailHeading {
     border-bottom: #DD4D21 solid 3px;
     color: #E8E8E8;
-    font: 16px "Noto Sans", sans-serif;
+    font-size: 16px;
     margin: 6px 6px 12px 6px;
     padding: 4px;
 }
