@@ -60,6 +60,7 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
 
     var alerts = new Alerts();
     var stats = new Stats();
+    var tuning = new Tuning();
     var normalizedContentKey = contentKey.toLowerCase();
     var apiEndpointAndParams = '';
     var titleHTML = '';
@@ -99,7 +100,12 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
 
             break;
         case 'tuning':
-            // TODO
+            // format api call
+            apiEndpointAndParams = 'tuning/?t=all';
+
+            fadeOutFunct = tuning.loadTuningConfiguration;
+            fadeInFunct = tuning.setPostConfigLoadingOptions;
+
             break;
         default:
             // default option is always alerts

@@ -179,7 +179,7 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
     contentHTML += '' +
         '   <table class="alertTable">' +
         '       <thead>' +
-        '           <tr class="alertTableHeader">';
+        '           <tr class="listingHeader">';
 
     contentHTML += Alerts.prototype.generateAlertsTableHeaderHTML(availableAlertFieldNames, orderByField,
         orderByPlacement);
@@ -266,7 +266,7 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
                 return;
             }
 
-            var alertFieldName = $('.alertTableHeader th.selected').attr('data-sort-field-name');
+            var alertFieldName = $('.listingHeader th.selected').attr('data-sort-field-name');
             var alertOrderPlacement = $('#primaryContentData').data('alert_order_placement');
             var alertLimit = $(this).text();
             // convert 'All' option to int representation
@@ -282,9 +282,9 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
     }
 
     // add listener for sorting by headers
-    $('.alertTableHeader th').click(function () {
+    $('.listingHeader th').click(function () {
         var newAlertFieldName = $(this).attr('data-sort-field-name');
-        var currentAlertFieldName = $('.alertTableHeader th.selected').attr('data-sort-field-name');
+        var currentAlertFieldName = $('.listingHeader th.selected').attr('data-sort-field-name');
         var alertLimit = $('.contentOptions .option.selected').text();
 
         // check current order placement and switch it if needed

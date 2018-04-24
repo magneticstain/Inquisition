@@ -1,0 +1,85 @@
+/*
+    Inquisition // Celestial // _tuning.css
+
+    - styles for Tuning content module/lib
+ */
+
+.enabled {
+    color: #1DA800;
+}
+
+.disabled {
+    color: #E64747;
+}
+
+.toggleSwitch {
+    margin: auto;
+    width: 50%;
+}
+
+.optWrapper {
+    margin: 15px 0 25px;
+}
+
+.optSetListing {
+    background: #F5F5F5;
+    font-family: 'Work Sans', sans-serif;
+    height: 300px;
+    margin: 0 auto;
+    min-height: 100px;
+    overflow: auto;
+    text-align: center;
+}
+
+.optWrapper .listingHeader {
+    letter-spacing: 3px;
+    padding: 15px 0;
+    text-align: center;
+}
+
+.listingData {
+    width: 100%;
+}
+
+.listingData th, .listingData td {
+    padding: 15px 5px;
+}
+
+.listingData th {
+    font-weight: bolder;
+}
+
+.listingOptButtons {
+    height: 100%;
+}
+
+.listingOptButtons img {
+    cursor: pointer;
+    margin: 0 5px;
+    vertical-align: middle;
+}
+
+.optWrapper.configs {
+    padding: 25px;
+}
+
+.optWrapper.configs td {
+    padding: 1%;
+    white-space: nowrap;
+}
+
+.optWrapper.configs label, .optWrapper.configs input {
+    font-size: 18px;
+    margin: 0 13px;
+}
+
+.optWrapper.configs label {
+    border-bottom: 2px dotted #25AAE1;
+    letter-spacing: 1px;
+    padding-bottom: 5px;
+}
+
+.optWrapper.configs input {
+    color: #333;
+    padding: 3px;
+}

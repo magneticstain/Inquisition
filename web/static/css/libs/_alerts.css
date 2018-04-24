@@ -10,28 +10,21 @@
     width: 100%;
 }
 
-/* Alert Table Header */
-.alertTableHeader {
-    background: #25AAE1;
-    color: #E8E8E8;
-    font-size: 22px;
-}
-
-.alertTableHeader th {
+.alertTable th {
     cursor: pointer;
     padding: 6px;
     white-space: nowrap;
 }
 
-.alertTableHeader th:hover {
+.alertTable th:hover {
     color: #626073;
 }
 
-.alertTableHeader th.selected {
+.alertTable th.selected {
     color: #DD4D21;
 }
 
-.alertTableHeader th.selected .placementIcon, .alertTableHeader th.selected span {
+.alertTable th.selected .placementIcon, .alertTable th.selected span {
     margin: 0 4px;
     vertical-align: middle;
 }

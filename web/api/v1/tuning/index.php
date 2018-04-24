@@ -80,21 +80,57 @@ try
                     $tuningHandler->getCfgVal();
                     $tuningHandler->resultDataset['data'] = [
                         'available_types' => $tuningHandler->possibleMetadataVals['types'],
-                        'field_names' => $tuningHandler->possibleMetadataVals['idFieldNames'],
+                        'id_field_names' => $tuningHandler->possibleMetadataVals['idFieldNames'],
                         'current_cfg' => $tuningHandler->resultDataset['data']
                     ];
                 }
                 else
                 {
                     $tuningHandler->setTuningValues($_GET);
+                    $metadataType = null;
 
-                    if(isset($tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx])
-                        && $tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx] != 'cfg')
+                    if(isset($tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx]))
                     {
-                        // user is requesting inquisition metadata
-                        $tuningHandler->getInquisitionMetadata();
-                    } else
+                        $targetMetadataType = $tuningHandler->possibleMetadataVals['types'][$tuningHandler->metadataTypeIdx];
+
+                        if($targetMetadataType === 'all')
+                        {
+                            // set append flag so each data grab doesn't overwrite old data
+                            $tuningHandler->appendNewData = true;
+
+                            // get data for all metadata types
+                            foreach($tuningHandler->possibleMetadataVals['types'] as $metadataType)
+                            {
+                                // skip if type is 'all' since it's redundant
+                                if($metadataType === 'all')
+                                {
+                                    continue;
+                                }
+
+                                // update metadata type within handler
+                                $tuningHandler->setMetadataTypeIdx($metadataType);
+
+                                // fetch data
+                                if($metadataType === 'cfg')
+                                {
+                                    $tuningHandler->getCfgVal();
+                                }
+                                else
+                                {
+                                    $tuningHandler->getInquisitionMetadata();
+                                }
+                            }
+                        }
+                        elseif($targetMetadataType != 'cfg')
+                        {
+                            // user is (at least) requesting inquisition metadata
+                            $tuningHandler->getInquisitionMetadata();
+                        }
+                    }
+
+                    if(is_null($targetMetadataType) || $targetMetadataType === 'cfg')
                     {
+                        // configs (also) requested
                         $tuningHandler->getCfgVal();
                     }
                 }

@@ -85,7 +85,7 @@ Stats.prototype.prepCharts = function () {
                 datasets: [{
                     label: datasetLabel,
                     data: statDataSet,
-                    backgroundColor: '#3B6C7F'
+                    backgroundColor: '#A33C1D'
                 }]
             };
 
@@ -109,7 +109,7 @@ Stats.prototype.generateStatDataPointHTML = function (dataPointSet) {
 
     $.each(dataPointSet, function (idx, datapointMetadata) {
         dataPointChartHTML += '' +
-            '<h3 class="title">' + datapointMetadata[0] + '</h3>' +
+            '<h3 class="title subtitle">' + datapointMetadata[0] + '</h3>' +
             '<canvas id="' + datapointMetadata[1] + '" class="chart"></canvas>';
     });
 
@@ -125,9 +125,9 @@ Stats.prototype.loadStats = function (onlyContent, statData, contentWrapper) {
 
     // generate chart html for parsers and templates
     var chartHTML = '' +
-        '<h2 class="title">Parsers</h2>' +
+        '<h2 class="title subtitle">Parsers</h2>' +
         Stats.prototype.generateStatDataPointHTML(Stats.statDataPoints.parsers) +
-        '<h2 class="title">Templates</h2>' +
+        '<h2 class="title subtitle">Templates</h2>' +
         Stats.prototype.generateStatDataPointHTML(Stats.statDataPoints.templates);
 
     var contentHTML = ' ' +
@@ -135,7 +135,7 @@ Stats.prototype.loadStats = function (onlyContent, statData, contentWrapper) {
         '   <h1 class="title">' + Global.normalizeTitle('stats') + '</h1>' +
         '</div>' +
         '<div id="primaryContentData" class="contentModule">' +
-        '   <div id="chartsWrapper">' +
+        '   <div id="chartsWrapper" class="moduleDataWrapper">' +
                 chartHTML +
         '   </div>' +
         '</div>';

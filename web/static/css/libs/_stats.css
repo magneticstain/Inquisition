@@ -5,19 +5,11 @@
  */
 
 #chartsWrapper {
-    padding: 25px;
     text-align: center;
 }
 
-#chartsWrapper h2 {
-    border: 2px dashed #A33C1D;
-    color: #3B6C7F;
-    font-size: 32px;
-    padding: 5px 15px;
-}
-
 #chartsWrapper h3 {
-    color: #333;
+    border: none;
     font-size: 24px;
     margin: 25px;
 }

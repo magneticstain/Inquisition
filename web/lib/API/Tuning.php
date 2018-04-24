@@ -12,18 +12,20 @@ class Tuning
         'data_source' => 'default',
         'data' => []
     ];
+    public $appendNewData = false;
     private $cfgHandler = null;
     public $cfgSection = '';
     public $cfgVal = null;
     public $possibleMetadataVals = [
         'types' => [
+            'all',
             'cfg',
             'parser',
             'template',
             'regex',
             'field',
-            'ioc',
-            'mapping',
+            'ioc_field_mapping',
+            'parser_template_mapping',
             'known_host'
         ],
         'idFieldNames' => [
@@ -111,6 +113,44 @@ class Tuning
         }
     }
 
+    public function setMetadataTypeIdx($metadataType)
+    {
+        /*
+         *  Purpose:
+         *      * set type index object value based on given metadata type
+         *
+         *  Params:
+         *      * $metadataType :: STR :: metatdata type to set index for
+         *
+         *  Returns: INT || BOOL
+         *
+         */
+
+        $typeFound = false;
+
+        foreach($this->possibleMetadataVals['types'] as $typeIdx => $type)
+        {
+            if($type === strtolower($metadataType))
+            {
+                // type is valid, set index
+                $this->metadataTypeIdx = $typeIdx;
+                $typeFound = true;
+
+                break;
+            }
+        }
+
+        // return a value along with setting obj val
+        if($typeFound)
+        {
+            return $typeIdx;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     public function setTuningValues($tuningOpts)
     {
         /*
@@ -135,23 +175,7 @@ class Tuning
 
                 case 'type':
                 case 't':
-                    $typeFound = false;
-                    foreach($this->possibleMetadataVals['types'] as $typeIdx => $type)
-                    {
-                        if($type === strtolower($optVal))
-                        {
-                            // type is valid, set index
-                            $this->metadataTypeIdx = $typeIdx;
-                            $typeFound = true;
-
-                            break;
-                        }
-                    }
-
-                    if(!$typeFound)
-                    {
-                        throw new \Exception('invalid type provided');
-                    }
+                    $this->setMetadataTypeIdx($optVal);
 
                     break;
 
@@ -196,6 +220,8 @@ class Tuning
          *
          */
 
+        $results = null;
+
         // define list of keys we should not return values for
         $bannedCfgKeys = [ 'sentry_api_key', 'db_pass' ];
         if(in_array($this->key, $bannedCfgKeys))
@@ -206,14 +232,14 @@ class Tuning
         // check if no params were set; if so, return all configs
         if(empty($this->cfgSection) && empty($this->key))
         {
-            $this->resultDataset['data'] = $this->cfgHandler->configVals;
+            $results = $this->cfgHandler->configVals;
         }
         elseif(!empty($this->cfgSection) && empty($this->key))
         {
             // get all cfg values from given section
             if(isset($this->cfgHandler->configVals[$this->cfgSection]))
             {
-                $this->resultDataset['data'] = $this->cfgHandler->configVals[$this->cfgSection];
+                $results = $this->cfgHandler->configVals[$this->cfgSection];
             }
         }
         else
@@ -222,15 +248,15 @@ class Tuning
             if(isset($this->cfgHandler->configVals[$this->cfgSection][$this->key]))
             {
                 // must be set as array in order to be traversed for banned keys below
-                $this->resultDataset['data'] = $this->cfgHandler->configVals[$this->cfgSection][$this->key];
+                $results = $this->cfgHandler->configVals[$this->cfgSection][$this->key];
             }
         }
 
         // redact any banned keys
         // we only have to do this for arrays since specific keys that are set get caught above
-        if(is_array($this->resultDataset['data']))
+        if(is_array($results))
         {
-            foreach($this->resultDataset['data'] as $cfgKey => $cfgData)
+            foreach($results as $cfgKey => $cfgData)
             {
                 foreach($bannedCfgKeys as $bannedKey)
                 {
@@ -239,7 +265,7 @@ class Tuning
                         // we're looking at a full section of data, not an individual config key-val pair
                         if(array_key_exists($bannedKey, $cfgData))
                         {
-                            $this->resultDataset['data'][$cfgKey][$bannedKey] = '<REDACTED>';
+                            $results[$cfgKey][$bannedKey] = '<REDACTED>';
                         }
                     }
                     else
@@ -247,11 +273,21 @@ class Tuning
                         // config key-value pair; check config key directly
                         if($cfgKey === $bannedKey)
                         {
-                            $this->resultDataset['data'][$cfgKey] = '<REDACTED>';
+                            $results[$cfgKey] = '<REDACTED>';
                         }
                     }
                 }
             }
+        }
+
+        // check if the user is requesting everything, in which we should append to the dataset instead of overwrite it
+        if($this->appendNewData)
+        {
+            $this->resultDataset['data']['cfg'] = $results;
+        }
+        else
+        {
+            $this->resultDataset['data'] = $results;
         }
     }
 
@@ -336,12 +372,12 @@ class Tuning
                 $typeData['idFieldName'] = 'field_id';
 
                 break;
-            case 'ioc':
+            case 'ioc_field_mapping':
                 $typeData['tableName'] = 'IOCItemToFieldMapping';
                 $typeData['idFieldName'] = 'mapping_id';
 
                 break;
-            case 'mapping':
+            case 'parser_template_mapping':
                 $typeData['tableName'] = 'ParserToFieldTemplateMapping';
                 $typeData['idFieldName'] = 'mapping_id';
 
@@ -351,8 +387,6 @@ class Tuning
                 $typeData['idFieldName'] = 'host_id';
 
                 break;
-            default:
-                throw new \Exception('invalid metadata type provided');
         }
 
         return $typeData;
@@ -408,7 +442,16 @@ class Tuning
             ";
             $this->dbConn->dbQueryOptions['optionVals'] = $sqlInputData;
 
-            $this->resultDataset['data'] = $this->dbConn->runQuery();
+            $results = $this->dbConn->runQuery();
+
+            if($this->appendNewData)
+            {
+                $this->resultDataset['data'][$metadataType] = $results;
+            }
+            else
+            {
+                $this->resultDataset['data'] = $results;
+            }
         }
     }
 

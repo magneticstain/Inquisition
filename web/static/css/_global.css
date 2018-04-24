@@ -37,8 +37,23 @@ main {
     font-family: 'Noto Sans', sans-serif;
 }
 
+.subtitle {
+    border-bottom: 2px dotted #25AAE1;
+    color: #333;
+    font-size: 32px;
+    letter-spacing: 3px;
+    margin: 20px 0;
+    padding-bottom: 10px;
+}
+
 #mainWrapper {
     height: 100%;
+}
+
+.moduleDataWrapper {
+    margin: 0 auto;
+    padding: 25px;
+    width: 95%;
 }
 
 a:link {
@@ -64,4 +79,10 @@ a:hover {
 .loadingModule {
     display: inline-block;
     margin: 0 auto;
+}
+
+.listingHeader {
+    background: #25AAE1;
+    color: #E8E8E8;
+    font-size: 22px;
 }
