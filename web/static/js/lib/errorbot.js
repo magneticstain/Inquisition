@@ -17,16 +17,30 @@ var errorSeverities = [
 ];
 
 var ErrorBot = function(sev, msg){
-    this.setError(sev, msg);
+    this.setMsg(sev, msg);
 };
 
 ErrorBot.prototype.setErrorModalHTML = function () {
-    errorModal.html('' +
-        '<img src="/static/imgs/icons/error.svg" alt="ERROR - ' + errorSeverities[this.severity] + '">' +
-        '<p>' + this.msg + '</p>');
+    /*
+        Set HTML of error modal based on message metadata
+     */
+
+    // defaut is set to ERROR
+    var modalImgHTML = '<img src="/static/imgs/icons/error.svg" alt="ERROR - ' + errorSeverities[this.severity] + '">',
+        modalBgColor = '#E64747';
+
+    if(this.severity < 0)
+    {
+        // message is indicative of a success
+        modalImgHTML = '<img src="/static/imgs/icons/success.svg" alt="Request was SUCCESSFUL">';
+        modalBgColor = '#47E674'
+    }
+
+    errorModal.html(modalImgHTML + '<p>' + this.msg + '</p>');
+    errorModal.css('backgroundColor', modalBgColor);
 };
 
-ErrorBot.prototype.setError = function (severity, msg) {
+ErrorBot.prototype.setMsg = function (severity, msg) {
     // sets characteristics of error
     // severity
     if(typeof severity === 'undefined')
@@ -52,13 +66,26 @@ ErrorBot.prototype.setError = function (severity, msg) {
     this.setErrorModalHTML();
 };
 
-ErrorBot.prototype.displayError = function (delayTimeMS) {
-    // update any loading modules that are running
-    $('#loadingContainer').replaceWith('' +
-        '<div class="errorContainer">' +
-        '   <img src="/static/imgs/robot.svg">' +
-        '   <p class="fancyHeading">Uh oh - looks like we encountered an error!</p>' +
-        '</div>');
+ErrorBot.prototype.displayMsg = function (delayTimeMS) {
+    /*
+        Show error modal and update any main content to reflect the error if needed
+     */
+
+    // update any loading modules that are running if msg is no a success message
+    if(0 <= this.severity) {
+        $('#loadingContainer').replaceWith('' +
+            '<div class="errorContainer">' +
+            '   <img src="/static/imgs/robot.svg">' +
+            '   <p class="fancyHeading">Uh oh - looks like we encountered an error!</p>' +
+            '</div>');
+    }
+
+    // check if delay time was provided
+    if(typeof delayTimeMS === 'undefined')
+    {
+        // set to default delay time
+        delayTimeMS = 5000;
+    }
 
     // check for persistent display
     if(delayTimeMS === 0 || 3 <= this.severity)
@@ -72,13 +99,6 @@ ErrorBot.prototype.displayError = function (delayTimeMS) {
         });
 
         return;
-    }
-
-    // check if delay time was provided
-    if(typeof delayTimeMS === 'undefined')
-    {
-        // set to default delay time
-        delayTimeMS = 5000;
     }
 
     // display the error modal to user
@@ -99,17 +119,25 @@ ErrorBot.prototype.logErrorToConsole = function () {
 
 ErrorBot.generateError = function (severity, msg, silent, errorDisplayDelayTime) {
     // abstract function for setting an error, displaying it, and writing a log to the console
-    var eb = new ErrorBot();
+    // TODO: make this function non-static so that we aren't declaring this class inside itself
+    var eb = new ErrorBot(severity, msg);
+    var isError = false;
+
+    if(0 <= severity)
+    {
+        isError = true;
+
+        // only log errors to the console
+        eb.logErrorToConsole();
+    }
 
     if(typeof silent === 'undefined')
     {
-        // set to default delay time
+        // set to default
         silent = false;
     }
-
-    eb.setError(severity, msg);
-    eb.logErrorToConsole();
-    if (! silent) {
-        eb.displayError(errorDisplayDelayTime);
+    if (!silent)
+    {
+        eb.displayMsg(errorDisplayDelayTime);
     }
 };

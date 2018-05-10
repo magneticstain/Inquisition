@@ -123,19 +123,19 @@ class View
             <div id="mainWrapper">
                 <nav>
                     <div id="navContainer">
-                        <a class="alerts" href="/alerts/">
+                        <a href="/alerts/" title="View All Alerts">
                             <div class="alerts navOption selected">
                                 <img src="/static/imgs/icons/alerts.svg" alt="View Current Alerts">
                                 <span>Alerts</span>
                             </div>
                         </a>
-                        <a class="stats" href="/stats/">
+                        <a href="/stats/"  title="Show Stats Graph">
                             <div class="stats navOption">
                                 <img src="/static/imgs/icons/stats.svg" alt="View Current Alerts">
                                 <span>Stats</span>
                             </div>
                         </a>
-                        <a class="tuning" href="/tuning/">
+                        <a href="/tuning/" title="Tune Inquisition Configurations">
                             <div class="tuning navOption">
                                 <img src="/static/imgs/icons/tuning.svg" alt="View Current Alerts">
                                 <span>Tuning</span>

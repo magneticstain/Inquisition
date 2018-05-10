@@ -68,9 +68,9 @@
 
 #primaryContentData {
     background: #E8E8E8;
-    height: 80%;
+    /*height: 80%;*/
     margin-top: 28px;
-    max-height: 85%;
-    min-height: 25%;
-    overflow: auto;
+    /*max-height: 85%;*/
+    /*min-height: 25%;*/
+    overflow-x: auto;
 }

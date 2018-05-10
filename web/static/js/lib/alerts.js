@@ -167,7 +167,7 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
         ['src_node', 'SOURCE'],
         ['dst_node', 'DESTINATION'],
         ['alert_detail', 'SUMMARY']
-        ];
+    ];
 
     if(!onlyContent)
     {

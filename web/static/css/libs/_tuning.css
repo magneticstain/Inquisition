@@ -17,8 +17,19 @@
     width: 50%;
 }
 
+.optSetBundle {
+    border: 2px dashed #A33C1D;
+    border-radius: 10px;
+    margin-bottom: 100px;
+    padding: 25px;
+}
+
 .optWrapper {
     margin: 15px 0 25px;
+}
+
+.optWrapper.configs {
+    overflow-x: auto;
 }
 
 .optSetListing {
@@ -59,27 +70,24 @@
     vertical-align: middle;
 }
 
-.optWrapper.configs {
-    padding: 25px;
+.optWrapper.configs table {
+    margin: 0 auto;
 }
 
 .optWrapper.configs td {
-    padding: 1%;
-    white-space: nowrap;
+    padding: 1% 3%;
 }
 
 .optWrapper.configs label, .optWrapper.configs input {
-    font-size: 18px;
-    margin: 0 13px;
+    font-size: 16px;
 }
 
 .optWrapper.configs label {
-    border-bottom: 2px dotted #25AAE1;
     letter-spacing: 1px;
     padding-bottom: 5px;
 }
 
 .optWrapper.configs input {
     color: #333;
-    padding: 3px;
+    padding: 8px;
 }

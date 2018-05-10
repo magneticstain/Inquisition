@@ -10,7 +10,7 @@ use API\Tuning;
 require $_SERVER['DOCUMENT_ROOT'].'/lib/Autoloader.php';
 
 // set http headers
-\Perspective\View::setHTTPHeaders('application/json', 30);
+\Perspective\View::setHTTPHeaders('application/json', 0);
 
 $publicErrorMsg = '';
 $dbConn = $tuningHandler = null;

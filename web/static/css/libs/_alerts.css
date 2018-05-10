@@ -30,8 +30,11 @@
 }
 
 /* Alert Listings */
-.alert {
+.alertTable tr {
     border: 1px solid #403F4C;
+}
+
+.alert {
     cursor: pointer;
     font-size: 16px;
 }

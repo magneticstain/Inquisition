@@ -25,10 +25,4 @@ Nav.prepNavMenu = function () {
             width: navMenuOrigWidth
         });
     });
-
-    // loading trigger for nav options
-    $('.navOption').click(function () {
-        var contentKey = $(this).parent().attr('class');
-        Controller.initContent(false, $('#contentWrapper'), contentKey);
-    });
 };
