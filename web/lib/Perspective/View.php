@@ -155,11 +155,12 @@ class View
         </footer>
     </body>
     <script defer src="/static/js/plugins/jquery-3.2.1.min.js"></script>
+    <script defer src="/static/js/plugins/vex.combined.min.js"></script>
     <script defer src="/static/js/plugins/jquery.cookie.js"></script>
     <script defer src="/static/js/plugins/pace.min.js"></script>
+    <script defer src="/static/js/plugins/toggles.min.js"></script>
     <script defer src="/static/js/plugins/jquery.timeago.js"></script>
     <script defer src="/static/js/plugins/Chart.bundle.min.js"></script>
-    <script defer src="/static/js/plugins/toggles.min.js"></script>
     <script defer src="/static/js/lib/global.js"></script>
     <script defer src="/static/js/lib/errorbot.js"></script>
     <script defer src="/static/js/lib/mystic.js"></script>

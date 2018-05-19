@@ -121,12 +121,9 @@ ErrorBot.generateError = function (severity, msg, silent, errorDisplayDelayTime)
     // abstract function for setting an error, displaying it, and writing a log to the console
     // TODO: make this function non-static so that we aren't declaring this class inside itself
     var eb = new ErrorBot(severity, msg);
-    var isError = false;
 
     if(0 <= severity)
     {
-        isError = true;
-
         // only log errors to the console
         eb.logErrorToConsole();
     }
@@ -136,7 +133,7 @@ ErrorBot.generateError = function (severity, msg, silent, errorDisplayDelayTime)
         // set to default
         silent = false;
     }
-    if (!silent)
+    if(!silent)
     {
         eb.displayMsg(errorDisplayDelayTime);
     }

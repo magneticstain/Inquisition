@@ -26,6 +26,22 @@ Tuning.prototype.updateConfigVal = function (section, key, val) {
     });
 };
 
+Tuning.prototype.deleteInquisitionDataObj = function (dataType, identifier) {
+    /*
+        Delete data object with given params using Inquisition API
+     */
+
+    // send api request via mystic lib
+    Mystic.queryAPI('DELETE', '/api/v1/tuning/', 20000, {
+        t: dataType,
+        i: identifier
+    }, function () {
+        ErrorBot.generateError(-1, dataType + ' deleted successfully');
+    }, function () {
+        ErrorBot.generateError(4, 'could not delete ' + dataType + ' via Inquisition API');
+    });
+};
+
 Tuning.prototype.generateMiscOptHTML = function (configOptData) {
     /*
         Generate HTML for config options
@@ -44,20 +60,23 @@ Tuning.prototype.generateMiscOptHTML = function (configOptData) {
         '               <table>' +
         '                   <tr>';
 
+    // traverse config opt dataset
     configOptData.forEach(function (configOpt) {
         optCount++;
 
+        // add config label
         html += '' +
             '                   <td>' +
             '                       <span>' + configOpt.label + '</span>' +
             '                   </td>' +
             '                   <td>';
 
+        // generate config opt value html
         var configMetadataAttrs = 'data-section="' + configOpt.section + '" data-key="' + configOpt.key + '"';
         if(configOpt.inputType === 'toggle')
         {
             // set class for toggle(s) based on value
-            if(configOpt.rawVal == true)
+            if(parseInt(configOpt.rawVal) === 1)
             {
                 toggleDataAttr = 'data-toggle-on="true"';
             }
@@ -110,7 +129,7 @@ Tuning.prototype.generateListingBoxHTML = function (title, listingHTML) {
         Generate generic box with given listing html
      */
 
-    var html = '' +
+    return '' +
         '   <h3 class="listingHeader">' + title + '</h3>' +
         '   <div class="optSetListing">' +
         '       <div class="listingDataWrapper">' +
@@ -119,8 +138,32 @@ Tuning.prototype.generateListingBoxHTML = function (title, listingHTML) {
         '          </table>' +
         '       </div>' +
         '   </div>';
+};
 
-    return html;
+Tuning.prototype.generateListingButtonHTML = function (addEditButton, addDeleteButton) {
+    /*
+        generate HTML for option listing action buttons
+     */
+
+    var buttonHTML = '' +
+        '               <span class="listingOptButtons">';
+
+    if(addEditButton)
+    {
+        buttonHTML += '' +
+            '                   <img class="edit" src="/static/imgs/icons/edit.svg" title="Edit Configuration" alt="Open modal to edit configuration">';
+    }
+
+    if(addDeleteButton)
+    {
+        buttonHTML += '' +
+            '                   <img class="delete" src="/static/imgs/icons/delete.svg" title="Delete Listing" alt="Delete given listing data permanently">';
+    }
+
+    buttonHTML += '' +
+        '               </span>';
+
+    return buttonHTML;
 };
 
 Tuning.prototype.generateParserListingHTML = function (parserData) {
@@ -140,7 +183,7 @@ Tuning.prototype.generateParserListingHTML = function (parserData) {
 
     parserData.forEach(function (parser) {
         listingHTML += '' +
-            '       <tr>';
+            '       <tr data-objtype="parser" data-identifier="' + parser.parser_id + '">';
 
         if(parser.status == true)
         {
@@ -160,10 +203,7 @@ Tuning.prototype.generateParserListingHTML = function (parserData) {
             '           <td>' + parser.parser_name + '</td>' +
             '           <td>' + parser.parser_log + '</td>' +
             '           <td>' +
-            '               <span class="listingOptButtons">' +
-            '                   <img src="/static/imgs/icons/edit.svg" title="Edit Parser Configuration" alt="Open modal to edit parser configuration">' +
-            '                   <img src="/static/imgs/icons/delete.svg" title="Delete Parser" alt="Delete given parser permanently">' +
-            '               </span>' +
+                            Tuning.prototype.generateListingButtonHTML(true, true) +
             '           </td>' +
             '       </tr>';
     });
@@ -183,10 +223,12 @@ Tuning.prototype.generateTemplateListingHTML = function (templateData) {
         '               <th>CREATED</th>' +
         '               <th>NAME</th>' +
         '               <th>OPTIONS</th>' +
-        '           </tr>' +
-        '           <tr>';
+        '           </tr>';
 
     templateData.forEach(function (template) {
+        listingHTML += '' +
+            '       <tr data-objtype="template" data-identifier="' + template.template_id + '">';
+
         if(template.status == true)
         {
             listingHTML += '           <td><span class="enabled" title="Template is ENABLED">&#10004;</span></td>';
@@ -204,10 +246,7 @@ Tuning.prototype.generateTemplateListingHTML = function (templateData) {
             '           </td>' +
             '           <td>' + template.template_name + '</td>' +
             '           <td>' +
-            '               <span class="listingOptButtons">' +
-            '                   <img src="/static/imgs/icons/edit.svg" title="Edit Template Configuration" alt="Open modal to edit template configuration">' +
-            '                   <img src="/static/imgs/icons/delete.svg" title="Delete Template" alt="Delete given template permanently">' +
-            '               </span>' +
+                            Tuning.prototype.generateListingButtonHTML(true, true) +
             '           </td>' +
             '       </tr>';
     });
@@ -230,17 +269,15 @@ Tuning.prototype.generateKnownHostListingHTML = function (knownHostData) {
 
     knownHostData.forEach(function (knownHost) {
         listingHTML += '' +
-            '       <tr>' +
+            '       <tr data-objtype="known_host" data-identifier="' + knownHost.host_id + '">' +
             '           <td>' + knownHost.host_id + '</td>' +
             '           <td>' +
-            '               <time class="fuzzyTimestamp" title="' + knownHost.created + '" datetime="' + knownHost.created
-                            + '"></time>' +
+            '               <time class="fuzzyTimestamp" title="' + knownHost.created + '" datetime="'
+                            + knownHost.created + '"></time>' +
             '           </td>' +
             '           <td>' + knownHost.host_val + '</td>' +
             '           <td>' +
-            '               <span class="listingOptButtons">' +
-            '                   <img src="/static/imgs/icons/delete.svg" title="Delete Known Host Entry" alt="Delete given host permanently">' +
-            '               </span>' +
+                            Tuning.prototype.generateListingButtonHTML(false, true) +
             '           </td>' +
             '       </tr>';
     });
@@ -263,7 +300,7 @@ Tuning.prototype.generateIntelIOCListingHTML = function (iocData, fieldData) {
 
     iocData.forEach(function (iocItem) {
         listingHTML += '' +
-            '       <tr>' +
+            '       <tr data-objtype="ioc_field_mapping" data-identifier="' + iocItem.mapping_id + '">' +
             '           <td>' + iocItem.mapping_id + '</td>' +
             '           <td>' + iocItem.ioc_item_name + '</td>';
 
@@ -282,23 +319,18 @@ Tuning.prototype.generateIntelIOCListingHTML = function (iocData, fieldData) {
         listingHTML += '' +
             '           <td data-field-id="' + iocItem.field_id + '">' + iocFieldName + '</td>' +
             '           <td>' +
-            '               <span class="listingOptButtons">' +
-            '                   <img src="/static/imgs/icons/edit.svg" title="Edit Template Configuration" alt="Open modal to edit template configuration">' +
-            '                   <img src="/static/imgs/icons/delete.svg" title="Delete Template" alt="Delete given template permanently">' +
-            '               </span>' +
+                            Tuning.prototype.generateListingButtonHTML(true, true) +
             '           </td>' +
             '       </tr>';
     });
 
-    return Tuning.prototype.generateListingBoxHTML('Templates', listingHTML);
+    return Tuning.prototype.generateListingBoxHTML('Intel Field Mappings', listingHTML);
 };
 
 Tuning.prototype.loadTuningConfiguration = function (onlyContent, tuningData, contentWrapper, titleHTML) {
     /*
         Load configuration to be tuned, along w/ current vals, to view for user to interact with
      */
-
-    console.log(tuningData);
 
     var tuningDataset = tuningData.data;
     var parsingConfigOpts = [
@@ -519,6 +551,7 @@ Tuning.prototype.setPostConfigLoadingOptions = function () {
     var section = '';
     var key = '';
     var rawConfigVal = 0;
+
     // toggles
     toggleSwitches.on('toggle', function (dataEvents, active) {
         section = $(this).data('section');
@@ -531,6 +564,7 @@ Tuning.prototype.setPostConfigLoadingOptions = function () {
 
         Tuning.prototype.startSaveTimeout(section, key, rawConfigVal);
     });
+
     // input text boxes and other input elmnts
     $('.configValInputs').change(function () {
         section = $(this).data('section');
@@ -538,5 +572,27 @@ Tuning.prototype.setPostConfigLoadingOptions = function () {
         rawConfigVal = $(this).val();
 
         Tuning.prototype.startSaveTimeout(section, key, rawConfigVal);
-    })
+    });
+
+    // modals for CRUD
+    // set modal theme (requirement of vex)
+    vex.defaultOptions.className = 'vex-theme-default';
+    $('#tuning .delete').click(function () {
+        // get metadata of listing
+        var parentEntryContainer = $(this).parents('tr');
+        var dataType = parentEntryContainer.data('objtype'),
+            objIdentifier = parentEntryContainer.data('identifier');
+
+        vex.dialog.confirm({
+            message: 'Are you sure you want to delete this ' + dataType.replace(/_/g, ' ') + '?',
+            callback: function (result) {
+                if(result)
+                {
+                    // delete via api and remove from view
+                    Tuning.prototype.deleteInquisitionDataObj(dataType, objIdentifier);
+                    parentEntryContainer.fadeOut();
+                }
+            }
+        });
+    });
 };

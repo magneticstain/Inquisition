@@ -12,7 +12,10 @@
     display: none;
     min-height: 25px;
     padding: 8px;
+    position: sticky;
+    top: 2px;
     text-align: center;
+    z-index: 1000;
 }
 
 #mainErrorModal * {

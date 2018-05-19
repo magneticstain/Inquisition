@@ -13,6 +13,9 @@
 @import "libs/third-party/toggles.css";
 @import "libs/third-party/toggles-modern.css";
 
+@import "libs/third-party/vex.css";
+@import "libs/third-party/vex-theme-default.css";
+
 /* Local JS Libs */
 @import "libs/_errorbot.css";
 

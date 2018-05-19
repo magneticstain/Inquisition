@@ -632,7 +632,6 @@ class Tuning
          */
 
         $metadataType = $this->possibleMetadataVals['types'][$this->metadataTypeIdx];
-        echo $metadataType;
 
         if($metadataType != 'cfg')
         {
