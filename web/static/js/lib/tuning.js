@@ -8,15 +8,16 @@
 
 var Tuning = function () {};
 
-Tuning.prototype.updateConfigVal = function (section, key, val) {
+Tuning.prototype.updateConfigVal = function (dataType, section, identifier, key, val) {
     /*
         Send update for given configuration data to Tuning API
      */
 
     // send api request via mystic lib
     Mystic.queryAPI('POST', '/api/v1/tuning/', 20000, {
-        t: 'cfg',
+        t: dataType,
         s: section,
+        i: identifier,
         k: key,
         v: val
     }, function () {
@@ -42,6 +43,21 @@ Tuning.prototype.deleteInquisitionDataObj = function (dataType, identifier) {
     });
 };
 
+Tuning.prototype.initToggles = function (onToggleCallback) {
+    /*
+        Initialize all toggle buttons on current page
+     */
+
+    var toggleSwitches = $('.toggleSwitch');
+    toggleSwitches.toggles();
+
+    // add listener if needed
+    if(onToggleCallback != null)
+    {
+        toggleSwitches.on('toggle', onToggleCallback);
+    }
+};
+
 Tuning.prototype.generateMiscOptHTML = function (configOptData) {
     /*
         Generate HTML for config options
@@ -50,6 +66,9 @@ Tuning.prototype.generateMiscOptHTML = function (configOptData) {
             * configOptData entries should match format of:
                 * inputType (text, number, toggle)
                 * label
+                * description
+                * dataType
+                * section
                 * key
                 * rawVal
      */
@@ -67,12 +86,14 @@ Tuning.prototype.generateMiscOptHTML = function (configOptData) {
         // add config label
         html += '' +
             '                   <td>' +
-            '                       <span>' + configOpt.label + '</span>' +
+            '                       <span class="configOptLabel" title="' + configOpt.desc + '">' + configOpt.label
+                                    + '</span>' +
             '                   </td>' +
             '                   <td>';
 
         // generate config opt value html
-        var configMetadataAttrs = 'data-section="' + configOpt.section + '" data-key="' + configOpt.key + '"';
+        var configMetadataAttrs = 'data-datatype="' + configOpt.dataType + '" data-section="' + configOpt.section
+            + '" data-key="' + configOpt.key + '"';
         if(configOpt.inputType === 'toggle')
         {
             // set class for toggle(s) based on value
@@ -130,7 +151,7 @@ Tuning.prototype.generateListingBoxHTML = function (title, listingHTML) {
      */
 
     return '' +
-        '   <h3 class="listingHeader">' + title + '</h3>' +
+        '   <h3 class="heading listingHeader">' + title + '</h3>' +
         '   <div class="optSetListing">' +
         '       <div class="listingDataWrapper">' +
         '           <table class="listingData">' +
@@ -183,7 +204,7 @@ Tuning.prototype.generateParserListingHTML = function (parserData) {
 
     parserData.forEach(function (parser) {
         listingHTML += '' +
-            '       <tr data-objtype="parser" data-identifier="' + parser.parser_id + '">';
+            '       <tr data-dataType="parser" data-identifier="' + parser.parser_id + '">';
 
         if(parser.status == true)
         {
@@ -227,7 +248,7 @@ Tuning.prototype.generateTemplateListingHTML = function (templateData) {
 
     templateData.forEach(function (template) {
         listingHTML += '' +
-            '       <tr data-objtype="template" data-identifier="' + template.template_id + '">';
+            '       <tr data-dataType="template" data-identifier="' + template.template_id + '">';
 
         if(template.status == true)
         {
@@ -269,7 +290,7 @@ Tuning.prototype.generateKnownHostListingHTML = function (knownHostData) {
 
     knownHostData.forEach(function (knownHost) {
         listingHTML += '' +
-            '       <tr data-objtype="known_host" data-identifier="' + knownHost.host_id + '">' +
+            '       <tr data-dataType="known_host" data-identifier="' + knownHost.host_id + '">' +
             '           <td>' + knownHost.host_id + '</td>' +
             '           <td>' +
             '               <time class="fuzzyTimestamp" title="' + knownHost.created + '" datetime="'
@@ -300,7 +321,7 @@ Tuning.prototype.generateIntelIOCListingHTML = function (iocData, fieldData) {
 
     iocData.forEach(function (iocItem) {
         listingHTML += '' +
-            '       <tr data-objtype="ioc_field_mapping" data-identifier="' + iocItem.mapping_id + '">' +
+            '       <tr data-dataType="ioc_field_mapping" data-identifier="' + iocItem.mapping_id + '">' +
             '           <td>' + iocItem.mapping_id + '</td>' +
             '           <td>' + iocItem.ioc_item_name + '</td>';
 
@@ -327,197 +348,7 @@ Tuning.prototype.generateIntelIOCListingHTML = function (iocData, fieldData) {
     return Tuning.prototype.generateListingBoxHTML('Intel Field Mappings', listingHTML);
 };
 
-Tuning.prototype.loadTuningConfiguration = function (onlyContent, tuningData, contentWrapper, titleHTML) {
-    /*
-        Load configuration to be tuned, along w/ current vals, to view for user to interact with
-     */
-
-    var tuningDataset = tuningData.data;
-    var parsingConfigOpts = [
-        {
-            inputType: 'number',
-            label: 'Sleep Time',
-            section: 'parsing',
-            key: 'sleepTime',
-            rawVal: tuningDataset.cfg.parsing.sleepTime
-        },
-        {
-            inputType: 'number',
-            label: 'Num Sleeps Between Stat Logging',
-            section: 'parsing',
-            key: 'numSleepsBetweenStats',
-            rawVal: tuningDataset.cfg.parsing.numSleepsBetweenStats
-        },
-        {
-            inputType: 'number',
-            label: 'Log TTL',
-            section: 'parsing',
-            key: 'logTTL',
-            rawVal: tuningDataset.cfg.parsing.logTTL
-        },
-        {
-            inputType: 'number',
-            label: 'Max Logs To Parse',
-            section: 'parsing',
-            key: 'maxLogsToParse',
-            rawVal: tuningDataset.cfg.parsing.maxLogsToParse
-        },
-        {
-            inputType: 'toggle',
-            label: 'Hazy Tracking',
-            section: 'state_tracking',
-            key: 'enableHazyStateTracking',
-            rawVal: tuningDataset.cfg.state_tracking.enableHazyStateTracking
-        },
-        {
-            inputType: 'number',
-            label: 'Num Logs Between State Updates',
-            section: 'state_tracking',
-            key: 'stateTrackingWaitNumLogs',
-            rawVal: tuningDataset.cfg.state_tracking.stateTrackingWaitNumLogs
-        }
-    ];
-
-    var analysisConfigOpts = [
-        {
-            inputType: 'toggle',
-            label: 'Baseline Mode',
-            section: 'learning',
-            key: 'enableBaselineMode',
-            rawVal: tuningDataset.cfg.learning.enableBaselineMode
-        },
-        {
-            inputType: 'number',
-            label: 'Sleep Time (Threat Detection)',
-            section: 'learning',
-            key: 'networkThreatDetectionSleepTime',
-            rawVal: tuningDataset.cfg.learning.networkThreatDetectionSleepTime
-        },
-        {
-            inputType: 'number',
-            label: 'Sleep Time (Anomaly Detection)',
-            section: 'learning',
-            key: 'anomalyDetectionSleepTime',
-            rawVal: tuningDataset.cfg.learning.anomalyDetectionSleepTime
-        },
-        {
-            inputType: 'float',
-            label: 'Max Standard Deviation Tolerance',
-            section: 'alerting',
-            key: 'maxTrafficNodeStdDev',
-            rawVal: tuningDataset.cfg.alerting.maxTrafficNodeStdDev
-        }
-    ];
-
-    var addlMiscConfigs = [
-        {
-            inputType: 'text',
-            label: 'App. Log File',
-            section: 'logging',
-            key: 'logFile',
-            rawVal: tuningDataset.cfg.logging.logFile
-        },
-        {
-            inputType: 'text',
-            label: 'App. Logging Level',
-            section: 'logging',
-            key: 'logLvl',
-            rawVal: tuningDataset.cfg.logging.logLvl
-        },
-        {
-            inputType: 'text',
-            label: 'App. Log Format Template',
-            section: 'logging',
-            key: 'logFormat',
-            rawVal: tuningDataset.cfg.logging.logFormat
-        },
-        {
-            inputType: 'toggle',
-            label: 'Metrics Mode',
-            section: 'logging',
-            key: 'enableMetricsMode',
-            rawVal: tuningDataset.cfg.logging.enableMetricsMode
-        },
-        {
-            inputType: 'toggle',
-            label: 'Print Template Match',
-            section: 'logging',
-            key: 'printMatchValues',
-            rawVal: tuningDataset.cfg.logging.printMatchValues
-        },
-        {
-            inputType: 'toggle',
-            label: 'Verbose Logging',
-            section: 'logging',
-            key: 'verbose',
-            rawVal: tuningDataset.cfg.logging.verbose
-        },
-        {
-            inputType: 'toggle',
-            label: 'Store Stats Persistently',
-            section: 'stats',
-            key: 'keepPersistentStats',
-            rawVal: tuningDataset.cfg.stats.keepPersistentStats
-        }
-    ];
-
-    var contentHTML = titleHTML +
-        '<div id="primaryContentData" class="contentModule">' +
-        '   <div id="tuningOptsWrapper" class="moduleDataWrapper">' +
-        '       <div class="optSetBundle">' +
-        '           <h2 class="title subtitle">Parsing Options</h2>' +
-        '           <div class="optWrapper configs">' +
-                        Tuning.prototype.generateMiscOptHTML(parsingConfigOpts) +
-        '           </div>' +
-        '           <div class="optWrapper">' +
-                        Tuning.prototype.generateTemplateListingHTML(tuningDataset.template) +
-        '           </div>' +
-        '           <div class="optWrapper">' +
-                        Tuning.prototype.generateParserListingHTML(tuningDataset.parser) +
-        '           </div>' +
-        '       </div>' +
-        '       <div class="optSetBundle">' +
-        '           <h2 class="title subtitle">Analysis Options</h2>' +
-        '           <div class="optWrapper configs">' +
-                        Tuning.prototype.generateMiscOptHTML(analysisConfigOpts) +
-        '           </div>' +
-        '           <div class="optWrapper">' +
-                        Tuning.prototype.generateKnownHostListingHTML(tuningDataset.known_host) +
-        '           </div>' +
-        '           <div class="optWrapper">' +
-        '           </div>' +
-        '       </div>' +
-        '       <div class="optSetBundle">' +
-        '           <h2 class="title subtitle">Intel Options</h2>' +
-        '           <div class="optWrapper configs">' +
-                        Tuning.prototype.generateMiscOptHTML([
-                            {
-                                inputType: 'number',
-                                label: 'Sleep Time',
-                                section: 'intel',
-                                key: 'sleepTime',
-                                rawVal: tuningDataset.cfg.intel.sleepTime
-                            }
-                        ]) +
-        '           </div>' +
-        '           <div class="optWrapper">' +
-                        Tuning.prototype.generateIntelIOCListingHTML(tuningDataset.ioc_field_mapping, tuningDataset.field) +
-        '           </div>' +
-        '       </div>' +
-        '       <div class="optSetBundle">' +
-        '           <h2 class="title subtitle">Application Configuration Options</h2>' +
-        '           <div class="optWrapper configs">' +
-                        Tuning.prototype.generateMiscOptHTML(addlMiscConfigs) +
-        '           </div>' +
-        '       </div>' +
-        '   </div>' +
-        '</div>';
-
-    // update content container with html data
-    contentWrapper.html(contentHTML);
-};
-
-Tuning.prototype.startSaveTimeout = function (section, key, val) {
+Tuning.prototype.startSaveTimeout = function (dataType, section, identifier, key, val) {
     /*
         Start timeout until we save all configuration options
 
@@ -531,8 +362,336 @@ Tuning.prototype.startSaveTimeout = function (section, key, val) {
     }
 
     this.saveTimer = setTimeout(function () {
-        Tuning.prototype.updateConfigVal(section, key, val);
+        Tuning.prototype.updateConfigVal(dataType, section, identifier, key, val);
     }, 2000);
+};
+
+Tuning.prototype.loadTuningConfiguration = function (onlyContent, tuningData, contentWrapper, titleHTML) {
+    /*
+        Load and display configuration to be tuned, along w/ current vals, to view for user to interact with
+     */
+
+    var tuningDataset = tuningData.data;
+    var parsingConfigOpts = [
+        {
+            inputType: 'number',
+            label: 'Sleep Time',
+            desc: 'Amount of time (in seconds) a parser should sleep for between checks for new logs/data (default: 2)',
+            dataType: 'cfg',
+            section: 'parsing',
+            key: 'sleepTime',
+            rawVal: tuningDataset.cfg.parsing.sleepTime
+        },
+        {
+            inputType: 'number',
+            label: 'Num Sleeps Between Stat Logging',
+            desc: 'Number of sleeps the parser should go through before printing general stats in log (default: 10)',
+            dataType: 'cfg',
+            section: 'parsing',
+            key: 'numSleepsBetweenStats',
+            rawVal: tuningDataset.cfg.parsing.numSleepsBetweenStats
+        },
+        {
+            inputType: 'number',
+            label: 'Log TTL',
+            desc: 'Amount of time (in seconds) to store logs in the Log DB',
+            dataType: 'cfg',
+            section: 'parsing',
+            key: 'logTTL',
+            rawVal: tuningDataset.cfg.parsing.logTTL
+        },
+        {
+            inputType: 'number',
+            label: 'Max Logs To Parse',
+            desc: 'Number of logs a parser should read before exiting. If set to 0, the parser will never stop reading. ' +
+            '(default: 0)',
+            dataType: 'cfg',
+            section: 'parsing',
+            key: 'maxLogsToParse',
+            rawVal: tuningDataset.cfg.parsing.maxLogsToParse
+        },
+        {
+            inputType: 'toggle',
+            label: 'Hazy Tracking',
+            desc: 'If set to true, it enables a feature that reduces state tracking accuracy in return for increased ' +
+            'parsing speed. See Inquisition docs for more details (default: 0 [F])',
+            dataType: 'cfg',
+            section: 'state_tracking',
+            key: 'enableHazyStateTracking',
+            rawVal: tuningDataset.cfg.state_tracking.enableHazyStateTracking
+        },
+        {
+            inputType: 'number',
+            label: 'Num Logs Between State Updates',
+            desc: 'If hazy state tracking is enabled, this is the amount of logs a parser will wait before updating ' +
+            'the offset file (default: 5)',
+            dataType: 'cfg',
+            section: 'state_tracking',
+            key: 'stateTrackingWaitNumLogs',
+            rawVal: tuningDataset.cfg.state_tracking.stateTrackingWaitNumLogs
+        }
+    ];
+
+    var analysisConfigOpts = [
+        {
+            inputType: 'toggle',
+            label: 'Baseline Mode',
+            desc: '',
+            dataType: 'cfg',
+            section: 'learning',
+            key: 'enableBaselineMode',
+            rawVal: tuningDataset.cfg.learning.enableBaselineMode
+        },
+        {
+            inputType: 'number',
+            label: 'Sleep Time (Threat Detection)',
+            desc: '',
+            dataType: 'cfg',
+            section: 'learning',
+            key: 'networkThreatDetectionSleepTime',
+            rawVal: tuningDataset.cfg.learning.networkThreatDetectionSleepTime
+        },
+        {
+            inputType: 'number',
+            label: 'Sleep Time (Anomaly Detection)',
+            desc: '',
+            dataType: 'cfg',
+            section: 'learning',
+            key: 'anomalyDetectionSleepTime',
+            rawVal: tuningDataset.cfg.learning.anomalyDetectionSleepTime
+        },
+        {
+            inputType: 'float',
+            label: 'Max Standard Deviation Tolerance',
+            desc: '',
+            dataType: 'cfg',
+            section: 'alerting',
+            key: 'maxTrafficNodeStdDev',
+            rawVal: tuningDataset.cfg.alerting.maxTrafficNodeStdDev
+        }
+    ];
+
+    var addlMiscConfigs = [
+        {
+            inputType: 'text',
+            label: 'App. Log File',
+            desc: 'Filename to write application logs to',
+            dataType: 'cfg',
+            section: 'logging',
+            key: 'logFile',
+            rawVal: tuningDataset.cfg.logging.logFile
+        },
+        {
+            inputType: 'text',
+            label: 'App. Logging Level',
+            desc: 'Minimum level of logging to write to disk. For example, a setting of \'ERROR\' will write logs ' +
+            'with a severity level of ERROR and CRITICAL. (DEBUG|INFO|WARNING|ERROR|CRITICAL) (default: INFO)',
+            dataType: 'cfg',
+            section: 'logging',
+            key: 'logLvl',
+            rawVal: tuningDataset.cfg.logging.logLvl
+        },
+        {
+            inputType: 'text',
+            label: 'App. Log Format Template',
+            desc: 'Formatting of logs being written. More info on formatting syntax can be found in the documentation ' +
+            'for the logging library in Python (default: %(asctime)s [ %(levelname)s ] [ %(name)s ] %(message)s',
+            dataType: 'cfg',
+            section: 'logging',
+            key: 'logFormat',
+            rawVal: tuningDataset.cfg.logging.logFormat
+        },
+        {
+            inputType: 'toggle',
+            label: 'Metrics Mode',
+            desc: 'If enabled, write stat for run-based stats at the INFO level instead of DEBUG level (default: 0 [F])',
+            dataType: 'cfg',
+            section: 'logging',
+            key: 'enableMetricsMode',
+            rawVal: tuningDataset.cfg.logging.enableMetricsMode
+        },
+        {
+            inputType: 'toggle',
+            label: 'Print Template Match',
+            desc: 'Specifies whether parser should write the values its templates match in the log. ' +
+            'This should be disabled if you are parsing sensitive information in your logs or are must abide by ' +
+            'various compliance frameworks (e.g. PCI w/ credit card data in the logs).',
+            dataType: 'cfg',
+            section: 'logging',
+            key: 'printMatchValues',
+            rawVal: tuningDataset.cfg.logging.printMatchValues
+        },
+        {
+            inputType: 'toggle',
+            label: 'Verbose Logging',
+            desc: 'Specifies whether parser should write ALL data it processes to logs. Usually only useful for ' +
+            'debugging or compliance.',
+            dataType: 'cfg',
+            section: 'logging',
+            key: 'verbose',
+            rawVal: tuningDataset.cfg.logging.verbose
+        },
+        {
+            inputType: 'toggle',
+            label: 'Store Stats Persistently',
+            desc: 'If set to true, store stat data in the Log DB for easy and persistent access (default: 1 [T])',
+            dataType: 'cfg',
+            section: 'stats',
+            key: 'keepPersistentStats',
+            rawVal: tuningDataset.cfg.stats.keepPersistentStats
+        }
+    ];
+
+    var contentHTML = titleHTML +
+        '<div id="primaryContentData" class="contentModule">' +
+        '   <div id="tuningOptsWrapper" class="moduleDataWrapper">' +
+        '       <div class="optSetBundle">' +
+        '           <h2 class="title subtitle">Parsing Options</h2>' +
+        '           <div class="optWrapper configs">' +
+        Tuning.prototype.generateMiscOptHTML(parsingConfigOpts) +
+        '           </div>' +
+        '           <div class="optWrapper">' +
+        Tuning.prototype.generateTemplateListingHTML(tuningDataset.template) +
+        '           </div>' +
+        '           <div class="optWrapper">' +
+        Tuning.prototype.generateParserListingHTML(tuningDataset.parser) +
+        '           </div>' +
+        '       </div>' +
+        '       <div class="optSetBundle">' +
+        '           <h2 class="title subtitle">Analysis Options</h2>' +
+        '           <div class="optWrapper configs">' +
+        Tuning.prototype.generateMiscOptHTML(analysisConfigOpts) +
+        '           </div>' +
+        '           <div class="optWrapper">' +
+        Tuning.prototype.generateKnownHostListingHTML(tuningDataset.known_host) +
+        '           </div>' +
+        '           <div class="optWrapper">' +
+        '           </div>' +
+        '       </div>' +
+        '       <div class="optSetBundle">' +
+        '           <h2 class="title subtitle">Intel Options</h2>' +
+        '           <div class="optWrapper configs">' +
+        Tuning.prototype.generateMiscOptHTML([
+            {
+                inputType: 'number',
+                label: 'Sleep Time',
+                dataType: 'cfg',
+                section: 'intel',
+                key: 'sleepTime',
+                rawVal: tuningDataset.cfg.intel.sleepTime
+            }
+        ]) +
+        '           </div>' +
+        '           <div class="optWrapper">' +
+        Tuning.prototype.generateIntelIOCListingHTML(tuningDataset.ioc_field_mapping, tuningDataset.field) +
+        '           </div>' +
+        '       </div>' +
+        '       <div class="optSetBundle">' +
+        '           <h2 class="title subtitle">Application Configuration Options</h2>' +
+        '           <div class="optWrapper configs">' +
+        Tuning.prototype.generateMiscOptHTML(addlMiscConfigs) +
+        '           </div>' +
+        '       </div>' +
+        '   </div>' +
+        '</div>';
+
+    // update content container with html data
+    contentWrapper.html(contentHTML);
+};
+
+Tuning.prototype.setConfigChangeTriggerEvts = function () {
+    /*
+        Set all events needed for handling config changes
+     */
+
+    var dataType = '',
+        section = '',
+        objIdentifier = 0,
+        key = '',
+        rawConfigVal = 0;
+
+    // init toggle switches
+    Tuning.prototype.initToggles(function (dataEvents, active) {
+        dataType = $(this).data('datatype');
+        section = $(this).data('section');
+        objIdentifier = $(this).parents('.objContent').data('identifier');
+        key = $(this).data('key');
+
+        if(active)
+        {
+            rawConfigVal = 1;
+        }
+
+        Tuning.prototype.startSaveTimeout(dataType, section, objIdentifier, key, rawConfigVal);
+    });
+
+    // input text boxes and other input elmnts
+    $('.configValInputs').change(function () {
+        dataType = $(this).data('datatype');
+        section = $(this).data('section');
+        objIdentifier = $(this).parents('.objContent').data('identifier');
+        key = $(this).data('key');
+        rawConfigVal = $(this).val();
+
+        Tuning.prototype.startSaveTimeout(dataType, section, objIdentifier, key, rawConfigVal);
+    });
+};
+
+Tuning.prototype.loadConfigEditData = function (dataType, identifier) {
+    /*
+        Perform API query to load necessary data based on data type
+     */
+
+    var fadeOutFunct = function () {},
+        optionData = [],
+        modalHTML = '';
+
+    switch(dataType)
+    {
+        case 'template':
+            fadeOutFunct = function (onlyContent, apiData, contentWrapper) {
+                optionData = [
+                    {
+                        inputType: 'text',
+                        label: 'Name',
+                        desc: 'Name of template',
+                        dataType: 'template',
+                        section: '',
+                        key: 'template_name',
+                        rawVal: apiData.data[0].template_name
+                    },
+                    {
+                        inputType: 'toggle',
+                        label: 'Status',
+                        desc: 'Status of template (enabled or disabled)',
+                        dataType: 'template',
+                        section: '',
+                        key: 'status',
+                        rawVal: apiData.data[0].status
+                    }
+                ];
+
+                modalHTML = '' +
+                    '<div class="optWrapper configs">' +
+                    Tuning.prototype.generateMiscOptHTML(optionData) +
+                    '</div>' +
+                    '<div class="modalSelectorGrpWrapper">' +
+                    '   <span>' +
+                    '   </span>' +
+                    '   <span>' +
+                    '   </span>' +
+                    '</div>';
+
+                contentWrapper.html(modalHTML);
+            };
+
+            break;
+    }
+
+    Mystic.initAPILoad(false, $('.modalContent'), 'GET', '/api/v1/tuning/?t=' + dataType + '&i=' + identifier,
+        fadeOutFunct, function () {
+            Tuning.prototype.setConfigChangeTriggerEvts();
+        }, 10000);
 };
 
 Tuning.prototype.setPostConfigLoadingOptions = function () {
@@ -543,36 +702,8 @@ Tuning.prototype.setPostConfigLoadingOptions = function () {
     // init timeago fuzzy timestamps
     $('time.fuzzyTimestamp').timeago();
 
-    // init toggle switches
-    var toggleSwitches = $('.toggleSwitch');
-    toggleSwitches.toggles();
-
     // add listeners for config changes
-    var section = '';
-    var key = '';
-    var rawConfigVal = 0;
-
-    // toggles
-    toggleSwitches.on('toggle', function (dataEvents, active) {
-        section = $(this).data('section');
-        key = $(this).data('key');
-
-        if(active)
-        {
-            rawConfigVal = 1;
-        }
-
-        Tuning.prototype.startSaveTimeout(section, key, rawConfigVal);
-    });
-
-    // input text boxes and other input elmnts
-    $('.configValInputs').change(function () {
-        section = $(this).data('section');
-        key = $(this).data('key');
-        rawConfigVal = $(this).val();
-
-        Tuning.prototype.startSaveTimeout(section, key, rawConfigVal);
-    });
+    Tuning.prototype.setConfigChangeTriggerEvts();
 
     // modals for CRUD
     // set modal theme (requirement of vex)
@@ -580,7 +711,7 @@ Tuning.prototype.setPostConfigLoadingOptions = function () {
     $('#tuning .delete').click(function () {
         // get metadata of listing
         var parentEntryContainer = $(this).parents('tr');
-        var dataType = parentEntryContainer.data('objtype'),
+        var dataType = parentEntryContainer.data('datatype'),
             objIdentifier = parentEntryContainer.data('identifier');
 
         vex.dialog.confirm({
@@ -594,5 +725,25 @@ Tuning.prototype.setPostConfigLoadingOptions = function () {
                 }
             }
         });
+    });
+
+    $('#tuning .edit').click(function () {
+        // get metadata of listing and generate html for edit modal
+        var parentEntryContainer = $(this).parents('tr');
+        var dataType = parentEntryContainer.data('datatype'),
+            objIdentifier = parentEntryContainer.data('identifier');
+
+        vex.open({
+            contentClassName: 'lgTuningModal',
+            unsafeContent: '' +
+            '<div class="modalContentWrapper">' +
+            '   <div class="heading modalHeader">Edit ' + dataType.replace(/_/g, ' ') + '</div>' +
+            '   <div class="modalContent objContent" data-identifier="' + objIdentifier + '">' +
+            Controller.initLoadingModal(null, 'small', true) +
+            '   </div>' +
+            '</div>'
+        });
+
+        Tuning.prototype.loadConfigEditData(dataType, objIdentifier);
     });
 };

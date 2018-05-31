@@ -31,6 +31,12 @@ Mystic.initAPILoad = function (onlyContent, contentWrapper, httpMethod, apiUrl, 
         Abstraction class for making API call and performing before and after functionality
      */
 
+    if(orderByFieldOpts == null)
+    {
+        // to prevent index errors
+        orderByFieldOpts = [];
+    }
+
     Mystic.queryAPI(httpMethod, apiUrl, timeout, postData, function (apiData) {
         contentWrapper.fadeOut(250, function () {
             try {

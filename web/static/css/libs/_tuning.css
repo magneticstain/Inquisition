@@ -28,8 +28,8 @@
     margin: 15px 0 25px;
 }
 
-.optWrapper.configs {
-    overflow-x: auto;
+.configOptLabel:hover {
+    cursor: help;
 }
 
 .optSetListing {
@@ -40,6 +40,10 @@
     min-height: 100px;
     overflow: auto;
     text-align: center;
+}
+
+.optWrapper td {
+    vertical-align: middle;
 }
 
 .optWrapper .listingHeader {
@@ -62,6 +66,7 @@
 
 .listingOptButtons {
     height: 100%;
+    white-space: nowrap;
 }
 
 .listingOptButtons img {
@@ -70,11 +75,15 @@
     vertical-align: middle;
 }
 
+#primaryContentData .optWrapper.configs {
+    overflow-x: auto;
+}
+
 .optWrapper.configs table {
     margin: 0 auto;
 }
 
-.optWrapper.configs td {
+#primaryContentData .optWrapper td {
     padding: 1% 3%;
 }
 
@@ -90,4 +99,30 @@
 .optWrapper.configs input {
     color: #333;
     padding: 8px;
+}
+
+#tuning .lgTuningModal {
+    width: 70%;
+}
+
+.modalContent {
+    overflow-x: auto;
+}
+
+.modalContent .optWrapper td {
+    padding: 15px;
+}
+
+.modalContentWrapper {
+    margin: 20px;
+}
+
+.modalContentWrapper .loadingModuleContainer {
+    margin: 10% 0;
+}
+
+.modalHeader {
+    padding: 10px;
+    text-align: center;
+    text-transform: capitalize;
 }

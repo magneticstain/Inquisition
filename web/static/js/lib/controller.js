@@ -8,7 +8,7 @@
 
 var Controller = function () {};
 
-Controller.initLoadingModal = function (container, modalSize) {
+Controller.initLoadingModal = function (container, modalSize, htmlOnly) {
     /*
         Update HTML of given container with loading modal
      */
@@ -21,7 +21,15 @@ Controller.initLoadingModal = function (container, modalSize) {
         '   </div>' +
         '</div>';
 
-    container.html(moduleHTML);
+    if(htmlOnly)
+    {
+        return moduleHTML;
+    }
+    else
+    {
+        // update container with html instead of just returning html
+        container.html(moduleHTML);
+    }
 };
 
 Controller.getContentConstraints = function (GETVarKey, defaultVal, cookieKey) {
