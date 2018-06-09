@@ -108,7 +108,7 @@ Alerts.prototype.generateAlertsTableHeaderHTML = function (availableAlertFieldNa
 
 Alerts.prototype.generateAlertsTableListingHTML = function (alertData, availableAlertFieldNames) {
     /*
-        - generate and return HTML for the listings included in the actual alerts listings table
+        Generate and return HTML for the listings included in the actual alerts listings table
      */
 
     var listingHTML = '';

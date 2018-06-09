@@ -8,6 +8,9 @@
 @import "_reset.css";
 
 /* Third-Party Librarys */
+@import "libs/third-party/jquery-ui.min.css";
+@import "libs/third-party/jquery-ui.theme.min.css";
+
 @import "libs/third-party/pace.css";
 
 @import "libs/third-party/toggles.css";

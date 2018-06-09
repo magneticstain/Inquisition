@@ -13,6 +13,10 @@ html, body {
     text-align: center;
 }
 
+.inlineCenter {
+    margin: 0 auto;
+}
+
 #mainLoadingProgressBar {
     background: #DD4D21;
     display: none;

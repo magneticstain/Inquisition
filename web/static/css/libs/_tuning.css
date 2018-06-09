@@ -38,7 +38,7 @@
     height: 300px;
     margin: 0 auto;
     min-height: 100px;
-    overflow: auto;
+    overflow-y: auto;
     text-align: center;
 }
 
@@ -102,11 +102,14 @@
 }
 
 #tuning .lgTuningModal {
+    min-height: 40%;
+    max-height: 100%;
+    overflow: auto;
     width: 70%;
 }
 
 .modalContent {
-    overflow-x: auto;
+    height: 100%;
 }
 
 .modalContent .optWrapper td {
@@ -125,4 +128,37 @@
     padding: 10px;
     text-align: center;
     text-transform: capitalize;
+}
+
+.modalContentSet {
+    margin: 10px;
+    padding: 25px;
+    text-align: center;
+}
+
+.modalContentSetHeader {
+    color: #3B6C7F;
+    font-size: 24px;
+    margin-bottom: 36px;
+}
+
+.modalContentSetData {
+    display: inline-block;
+    margin: 3% 5%;
+    max-width: 45%;
+    min-width: 35%;
+    vertical-align: top;
+}
+
+.modalContentSetDataListEntry {
+    padding: 15px;
+}
+
+.modalContentSetDataListEntry:hover {
+    cursor: pointer;
+}
+
+.ui-selected {
+    background: #76D7FF;
+    color: #737e8d;
 }

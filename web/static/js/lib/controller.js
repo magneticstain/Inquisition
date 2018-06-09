@@ -13,6 +13,11 @@ Controller.initLoadingModal = function (container, modalSize, htmlOnly) {
         Update HTML of given container with loading modal
      */
 
+    if(modalSize == null)
+    {
+        modalSize = 'standard';
+    }
+
     var moduleHTML = '' +
         '<div class="loadingModuleContainer blockCenter">' +
         '   <div class="' + modalSize + ' loadingModule">' +

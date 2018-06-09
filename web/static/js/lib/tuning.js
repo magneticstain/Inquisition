@@ -355,15 +355,17 @@ Tuning.prototype.startSaveTimeout = function (dataType, section, identifier, key
         Addl. Info: timeout is currently hard-coded to 2000ms or 2s
      */
 
+    var timeoutMS = 2000;
+
     // clear old timer, if appl.
     if(this.saveTimer)
     {
-        clearTimeout(this.saveTimer);
+        clearTimeout(this.saveTimer);2000
     }
 
     this.saveTimer = setTimeout(function () {
         Tuning.prototype.updateConfigVal(dataType, section, identifier, key, val);
-    }, 2000);
+    }, timeoutMS);
 };
 
 Tuning.prototype.loadTuningConfiguration = function (onlyContent, tuningData, contentWrapper, titleHTML) {
@@ -637,50 +639,220 @@ Tuning.prototype.setConfigChangeTriggerEvts = function () {
     });
 };
 
+Tuning.prototype.generateModalContentSetHTML = function (dataType, dataSet) {
+    /*
+        Generate HTML of interactive list using given data
+     */
+
+    if(dataType == null)
+    {
+        throw 'empty data type not allowed when generating modal set HTML';
+    }
+
+    var html = '' +
+        '<ol class="modalContentSetDataList ' + dataType + 'DataSet">';
+
+    // get data identifier
+    var parentObjDataId = $('.' + dataType + 'List').data(dataType + '-id'),
+        itemDataId = 0,
+        itemName = 'UNKNOWN',
+        itemKeyName = '',
+        selectedItemClass = '';
+
+    dataSet.forEach(function (modalContentItem) {
+        // get item ID based on data type
+        switch(dataType)
+        {
+            case 'field':
+                itemDataId = modalContentItem.field_id;
+                itemName = modalContentItem.field_name;
+                itemKeyName = 'field_id';
+
+                break;
+            case 'regex':
+                itemDataId = modalContentItem.regex_id;
+                itemName = modalContentItem.regex;
+                itemKeyName = 'regex_id';
+
+                break;
+        }
+
+        // add html, with selected class being added if id's match
+        if(parentObjDataId === itemDataId)
+        {
+            selectedItemClass = 'ui-selected';
+        }
+        else
+        {
+            // reset class to null string
+            selectedItemClass = '';
+        }
+
+        html += '<li class="modalContentSetDataListEntry ui-widget-content ' + selectedItemClass + '" data-item-id="'
+            + itemDataId + '" data-item-key-name="' + itemKeyName + '">' + itemName + '</li>';
+    });
+
+    html += '</ol>';
+
+    return html;
+};
+
+Tuning.prototype.generateModalContentSet = function (dataType, parentObjDataType) {
+    /*
+        Fetch data for given modal data type, format it, and update the modal/view
+     */
+
+    if(dataType == null)
+    {
+        throw 'empty data type not allowed when generating modal content sets';
+    }
+    else
+    {
+        var titleCaseDataType = Global.normalizeTitle(dataType),
+            titleCaseParentObjDataType = Global.normalizeTitle(parentObjDataType);
+    }
+
+    Mystic.queryAPI('GET', '/api/v1/tuning/?t=' + dataType, 5000, null, function (apiData) {
+        $('.modalContentSetData.' + dataType + 'List').html('<p ' +
+            'title="' + titleCaseParentObjDataType + ' ' + titleCaseDataType + ' Selections // ' +
+            'Tip: Press and hold the control key while clicking to unselect an option" ' +
+            'class="modalContentSetHeader title">' + titleCaseDataType + '</p>'
+            + Tuning.prototype.generateModalContentSetHTML(dataType, apiData.data));
+
+        // make data set lists selectable
+        $('.modalContentSetDataList.' + dataType + 'DataSet').selectable({
+            selected: function (event, uiElmnt) {
+                var currentItem = $('.ui-selected', this),
+                    objId = $(this).parents('.modalContentSet').data('objid'),
+                    itemKey = currentItem.data('item-key-name'),
+                    itemRawCfgVal = currentItem.data('item-id');
+
+                Tuning.prototype.startSaveTimeout(parentObjDataType, '', objId, itemKey, itemRawCfgVal);
+            }
+        });
+    }, function () {
+        ErrorBot.generateError(4, 'could not load ' + dataType + ' data from the Inquisition API');
+    });
+};
+
+Tuning.prototype.generateEditModalHTML = function (optionData, modalContentSetHTML) {
+    /*
+        Generates full HTML for an edit modal with given option data
+     */
+
+    if(modalContentSetHTML == null)
+    {
+        modalContentSetHTML = '';
+    }
+
+    return '' +
+        '<div class="optWrapper configs">' +
+        Tuning.prototype.generateMiscOptHTML(optionData) +
+        '</div>' +
+        '<div class="optSetBundle modalContentSet" data-objid="' + this.objId + '">' +
+        modalContentSetHTML +
+        '</div>';
+};
+
 Tuning.prototype.loadConfigEditData = function (dataType, identifier) {
     /*
         Perform API query to load necessary data based on data type
      */
 
     var fadeOutFunct = function () {},
-        optionData = [],
+        fadeInFunct = function () {},
         modalHTML = '';
+
+    // set identifier as an obj var so that it can be used elsewhere downstream
+    this.objId = identifier;
 
     switch(dataType)
     {
         case 'template':
             fadeOutFunct = function (onlyContent, apiData, contentWrapper) {
-                optionData = [
-                    {
-                        inputType: 'text',
-                        label: 'Name',
-                        desc: 'Name of template',
-                        dataType: 'template',
-                        section: '',
-                        key: 'template_name',
-                        rawVal: apiData.data[0].template_name
-                    },
+                modalHTML = Tuning.prototype.generateEditModalHTML([
                     {
                         inputType: 'toggle',
                         label: 'Status',
                         desc: 'Status of template (enabled or disabled)',
-                        dataType: 'template',
+                        dataType: dataType,
                         section: '',
                         key: 'status',
                         rawVal: apiData.data[0].status
+                    },
+                    {
+                        inputType: 'text',
+                        label: 'Name',
+                        desc: 'Name of template',
+                        dataType: dataType,
+                        section: '',
+                        key: 'template_name',
+                        rawVal: apiData.data[0].template_name
                     }
-                ];
+                ], '<div class="modalContentSetData fieldList" data-field-id="' + apiData.data[0].field_id + '"></div>' +
+                    '<div class="modalContentSetData regexList" data-regex-id="' + apiData.data[0].regex_id + '"></div>');
 
-                modalHTML = '' +
-                    '<div class="optWrapper configs">' +
-                    Tuning.prototype.generateMiscOptHTML(optionData) +
-                    '</div>' +
-                    '<div class="modalSelectorGrpWrapper">' +
-                    '   <span>' +
-                    '   </span>' +
-                    '   <span>' +
-                    '   </span>' +
-                    '</div>';
+                contentWrapper.html(modalHTML);
+            };
+
+            fadeInFunct = function () {
+                Tuning.prototype.setConfigChangeTriggerEvts();
+
+                // gather fields and regex data
+                Tuning.prototype.generateModalContentSet('field', 'template');
+                Tuning.prototype.generateModalContentSet('regex', 'template');
+            };
+
+            break;
+        case 'parser':
+            fadeOutFunct = function (onlyContent, apiData, contentWrapper) {
+                modalHTML = Tuning.prototype.generateEditModalHTML([
+                    {
+                        inputType: 'toggle',
+                        label: 'Status',
+                        desc: 'Status of parser (enabled or disabled)',
+                        dataType: dataType,
+                        section: '',
+                        key: 'status',
+                        rawVal: apiData.data[0].status
+                    },
+                    {
+                        inputType: 'text',
+                        label: 'Name',
+                        desc: 'Name of parser',
+                        dataType: dataType,
+                        section: '',
+                        key: 'parser_name',
+                        rawVal: apiData.data[0].parser_name
+                    },
+                    {
+                        inputType: 'text',
+                        label: 'Log File',
+                        desc: 'Filename that log parser should analyze',
+                        dataType: dataType,
+                        section: '',
+                        key: 'parser_log',
+                        rawVal: apiData.data[0].parser_log
+                    }
+                ]);
+
+                contentWrapper.html(modalHTML);
+            };
+
+            break;
+        case 'ioc_field_mapping':
+            fadeOutFunct = function (onlyContent, apiData, contentWrapper) {
+                modalHTML = Tuning.prototype.generateEditModalHTML([
+                    {
+                        inputType: 'text',
+                        label: 'IOC Item Name',
+                        desc: 'Name of IOC item being fetched',
+                        dataType: dataType,
+                        section: '',
+                        key: 'ioc_item_name',
+                        rawVal: apiData.data[0].ioc_item_name
+                    }
+                ]);
 
                 contentWrapper.html(modalHTML);
             };
@@ -688,10 +860,8 @@ Tuning.prototype.loadConfigEditData = function (dataType, identifier) {
             break;
     }
 
-    Mystic.initAPILoad(false, $('.modalContent'), 'GET', '/api/v1/tuning/?t=' + dataType + '&i=' + identifier,
-        fadeOutFunct, function () {
-            Tuning.prototype.setConfigChangeTriggerEvts();
-        }, 10000);
+    Mystic.initAPILoad(false, $('.modalContent'), 'GET', '/api/v1/tuning/?t=' + dataType + '&i=' + this.objId,
+        fadeOutFunct, fadeInFunct, 10000);
 };
 
 Tuning.prototype.setPostConfigLoadingOptions = function () {
