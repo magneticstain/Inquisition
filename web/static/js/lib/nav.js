@@ -11,11 +11,10 @@ Nav.prepNavMenu = function () {
         Setup all needed functionality for navigation menu
      */
 
-    // nav menu extension
-    var navMenu = $('nav');
-    // get original width
-    var navMenuOrigWidth = navMenu.width();
+    var navMenu = $('nav'),
+        navMenuOrigWidth = navMenu.width();
 
+    // extend and shrink the nav bar as the user hovers over it
     navMenu.mouseenter(function() {
         $(this).animate({
             width: '200'

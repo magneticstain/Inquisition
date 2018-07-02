@@ -9,5 +9,5 @@ RewriteRule ^([\w]+)/?\??(\S+) /?content=$1&$2
 # static asset caching
 # currently 1 month
 <filesMatch ".(css|png|svg|ttf|js|ico)$">
-Header set Cache-Control "max-age=2592000, public"
+Header set Cache-Control "max-age=300, public"
 </filesMatch>

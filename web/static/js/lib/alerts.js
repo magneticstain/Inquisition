@@ -8,6 +8,24 @@
 
 var Alerts = function () {};
 
+Alerts.getAvailableFieldNames = function () {
+    /*
+        Return array of all field names available for alerts
+     */
+
+    return [
+        ['alert_type', 'TYPE'],
+        ['alert_id', 'ALERT ID'],
+        ['created', 'CREATED'],
+        ['updated', 'LAST UPDATED'],
+        ['host', 'HOST'],
+        ['src_node', 'SOURCE'],
+        ['dst_node', 'DESTINATION'],
+        ['alert_detail', 'SUMMARY']
+    ];
+};
+
+// Single Alert Functs
 Alerts.prototype.loadSingleAlert = function (onlyContent, alertData, contentWrapper) {
     /*
         Process details to generate html for and load single alert
@@ -27,6 +45,7 @@ Alerts.prototype.loadSingleAlert = function (onlyContent, alertData, contentWrap
         '   <div id="standaloneAlertContents">';
 
     // generate html for details of alert
+    // details format is [ key/title, val ]
     var alertDetailDataset = [
         [ 'Summary', Global.normalizeTitle(alert.alert_detail) ],
         [ 'Created', '<time class="fuzzyTimestamp" title="' + alert.created + '" datetime="' + alert.created + '">'
@@ -70,14 +89,16 @@ Alerts.prototype.setPostStandalonAlertLoadOpts = function () {
     document.title = 'Alert #' + alertID + ' - Inquisition';
 };
 
-Alerts.prototype.generateAlertsTableHeaderHTML = function (availableAlertFieldNames, orderByField, orderByPlacement) {
+// Multiple Alerts Functs
+// loading functions
+Alerts.prototype.generateAlertsTableHeaderHTML = function (orderByField, orderByPlacement) {
     /*
         - generate and return HTML for the header row of the Alerts listings table
      */
 
     var headerHTML = '';
 
-    availableAlertFieldNames.forEach(function (fieldNameData) {
+    Alerts.getAvailableFieldNames().forEach(function (fieldNameData) {
         // check if currently selected order by field
         var addlClasses = '';
         var orderByIconHTML = '';
@@ -106,7 +127,7 @@ Alerts.prototype.generateAlertsTableHeaderHTML = function (availableAlertFieldNa
     return headerHTML;
 };
 
-Alerts.prototype.generateAlertsTableListingHTML = function (alertData, availableAlertFieldNames) {
+Alerts.prototype.generateAlertsTableListingHTML = function (alertData) {
     /*
         Generate and return HTML for the listings included in the actual alerts listings table
      */
@@ -132,7 +153,7 @@ Alerts.prototype.generateAlertsTableListingHTML = function (alertData, available
             '           <td>' + alert.alert_detail + '</td>' +
             '       </tr>' +
             '       <tr class="alertLogDetails">' +
-            '           <td colspan="' + availableAlertFieldNames.length + '">' +
+            '           <td colspan="' + Alerts.getAvailableFieldNames().length + '">' +
             '               <div class="logDetailsWrapper">' +
             '                   <div class="title logDetailHeading">' +
             '                       <p>Log Details</p>' +
@@ -142,7 +163,8 @@ Alerts.prototype.generateAlertsTableListingHTML = function (alertData, available
             '                   </div>' +
             '               </div>' +
             '               <div class="viewAlertWrapper">' +
-            '                   <a href="/alert/' + alert.alert_id + '" title="View full alert details">View Alert Details &rarr;</a>' +
+            '                   <a href="/alert/' + alert.alert_id +
+            '" title="View full alert details">View Alert Details &rarr;</a>' +
             '               </div>' +
             '           </td>' +
             '       </tr>';
@@ -158,16 +180,6 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
      */
 
     var contentHTML = '';
-    var availableAlertFieldNames = [
-        ['alert_type', 'TYPE'],
-        ['alert_id', 'ALERT ID'],
-        ['created', 'CREATED'],
-        ['updated', 'LAST UPDATED'],
-        ['host', 'HOST'],
-        ['src_node', 'SOURCE'],
-        ['dst_node', 'DESTINATION'],
-        ['alert_detail', 'SUMMARY']
-    ];
 
     if(!onlyContent)
     {
@@ -181,8 +193,7 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
         '       <thead>' +
         '           <tr class="listingHeader">';
 
-    contentHTML += Alerts.prototype.generateAlertsTableHeaderHTML(availableAlertFieldNames, orderByField,
-        orderByPlacement);
+    contentHTML += Alerts.prototype.generateAlertsTableHeaderHTML(orderByField, orderByPlacement);
 
     contentHTML += '' +
         '           </tr>' +
@@ -190,7 +201,7 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
         '       <tbody>';
 
     // listings html
-    contentHTML += Alerts.prototype.generateAlertsTableListingHTML(apiData, availableAlertFieldNames);
+    contentHTML += Alerts.prototype.generateAlertsTableListingHTML(apiData);
 
     // cap existing html containers
     contentHTML += '' +
@@ -206,10 +217,11 @@ Alerts.prototype.loadAlerts = function (onlyContent, apiData, contentWrapper, co
     // update content container with html data
     contentWrapper.html(contentHTML);
 
-    // set global data var for order by placement val
+    // set global data var for order by placement val, to be used later
     $('#primaryContentData').data('alert_order_placement', orderByPlacement);
 };
 
+// post-load functions
 Alerts.performPostAlertLoadOptionProcessing = function (cookieKey, newValue, orderBy, orderByPlacement, limit,
                                                         elmntBaseClass, elmntSelectedClass) {
     /*
@@ -229,7 +241,7 @@ Alerts.performPostAlertLoadOptionProcessing = function (cookieKey, newValue, ord
     Global.setActiveElement(elmntBaseClass, elmntSelectedClass);
 
     Controller.initLoadingModal(primaryDataWrapperElmt, 'large');
-    Controller.initContent(true, primaryDataWrapperElmt, 'alerts', limit, [orderBy, orderByPlacement]);
+    Controller.initContent(primaryDataWrapperElmt, 'alerts', true, limit, [orderBy, orderByPlacement]);
 };
 
 Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {

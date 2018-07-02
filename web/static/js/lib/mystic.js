@@ -1,7 +1,7 @@
 /*
     Inquisition // Celestial // Mystic.js
 
-    - JS lib for data generation and manipulation
+    - JS lib for loading remote data via API calls
  */
 
 "use strict";
@@ -25,8 +25,8 @@ Mystic.queryAPI = function (httpMethod, apiURL, timeout, data, successFunction, 
     });
 };
 
-Mystic.initAPILoad = function (onlyContent, contentWrapper, httpMethod, apiUrl, fadeOutFunct, fadeInFunct,
-                               timeout, initialHtml, orderByFieldOpts, postData) {
+Mystic.initAPILoad = function (contentWrapper, httpMethod, apiUrl, fadeOutFunct, fadeInFunct, timeout, onlyContent,
+                               initialHtml, orderByFieldOpts, postData) {
     /*
         Abstraction class for making API call and performing before and after functionality
      */

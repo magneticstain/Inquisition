@@ -8,6 +8,51 @@
 
 var Global = function () {};
 
+Global.prototype.queryGlobalAccessData = function (action, moduleName, key, dataset) {
+    /*
+        Save given dataset - in JSON-encoded format - to global elmt
+    */
+
+    var paramMissing = false,
+        paramName = '';
+    if(action == null)
+    {
+        paramMissing = true;
+        paramName = 'action';
+    }
+    if(moduleName == null)
+    {
+        paramMissing = true;
+        paramName = 'module name';
+    }
+    if(key == null)
+    {
+        paramMissing = true;
+        paramName = 'key';
+    }
+    if(paramMissing)
+    {
+        throw 'no ' + paramName + ' provided during global data query';
+    }
+    if(dataset == null)
+    {
+        dataset = [];
+    }
+
+    var targetElmnt = $('#' + moduleName);
+    switch (action.toLowerCase())
+    {
+        case 'get':
+            return JSON.parse(targetElmnt.data(key));
+
+        case 'set':
+            targetElmnt.data(key, JSON.stringify(dataset));
+            return true;
+        default:
+            throw 'invalid action provided during global data query :: [ ' + action + ' ]';
+    }
+};
+
 Global.normalizeTitle = function (contentTitle) {
     /*
         Format content title in titlecase
@@ -15,7 +60,14 @@ Global.normalizeTitle = function (contentTitle) {
 
     var title = '';
 
-    var titleClauses = contentTitle.toLowerCase().split(' ');
+    if(contentTitle == null)
+    {
+        throw 'no string provided for title normalization';
+    }
+    else
+    {
+        var titleClauses = contentTitle.split(' ');
+    }
 
     titleClauses.forEach(function (clause) {
         if(title)
@@ -38,6 +90,16 @@ Global.setActiveElement = function (baseClass, contentKeyClass) {
 
     $(baseClass).removeClass(selectionDesignationClass);
     $(baseClass + contentKeyClass).addClass(selectionDesignationClass);
+};
+
+Global.initFuzzyTimestamps = function () {
+    /*
+        Initialize and run any addl logic needed for displaying fuzzy timestamps in the view
+     */
+
+    // currently using the timeago.js plugin
+    // https://timeago.yarp.com/
+    $('time.fuzzyTimestamp').timeago();
 };
 
 Global.getContentKeyFromCleanURL = function () {

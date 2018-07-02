@@ -33,8 +33,18 @@ Controller.initLoadingModal = function (container, modalSize, htmlOnly) {
     else
     {
         // update container with html instead of just returning html
-        container.html(moduleHTML);
+        try
+        {
+            container.html(moduleHTML);
+        }
+        catch (e)
+        {
+            console.log('could not update given container for loading :: [ ' + e + ' ]')
+            return false;
+        }
     }
+
+    return true;
 };
 
 Controller.getContentConstraints = function (GETVarKey, defaultVal, cookieKey) {
@@ -66,25 +76,26 @@ Controller.getContentConstraints = function (GETVarKey, defaultVal, cookieKey) {
     return constraintVal;
 };
 
-Controller.initContent = function (onlyContent, contentWrapper, contentKey, contentLimit, contentSortFieldOpts) {
+Controller.initContent = function (contentWrapper, contentKey, onlyContent, contentLimit, contentSortFieldOpts) {
     /*
         Load HTML for content based on given content key
      */
 
-    var alerts = new Alerts();
-    var stats = new Stats();
-    var tuning = new Tuning();
-    var normalizedContentKey = contentKey.toLowerCase();
-    var apiEndpointAndParams = '';
-    var titleHTML = '';
-    var optionsHTML = '';
-    var fadeOutFunct = function () {};
-    var fadeInFunct = function () {};
+    var alerts = new Alerts(),
+        stats = new Stats(),
+        tuning = new Tuning(),
+        normalizedContentKey = contentKey.toLowerCase(),
+        apiEndpointAndParams = '',
+        titleHTML = '',
+        optionsHTML = '',
+        fadeOutFunct = function () {},
+        fadeInFunct = function () {};
+
+    // check if certain data should be loaded from other sources
     if(contentLimit == null)
     {
         contentLimit = parseInt(this.getContentConstraints('l', 50, 'content_limit'));
     }
-
     if(contentSortFieldOpts == null)
     {
         contentSortFieldOpts = [ this.getContentConstraints('o', 'alert_id', 'order_by'),
@@ -117,12 +128,12 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
             apiEndpointAndParams = 'tuning/?t=all';
 
             fadeOutFunct = tuning.loadTuningConfiguration;
-            fadeInFunct = tuning.setPostConfigLoadingOptions;
+            fadeInFunct = tuning.runPostConfigLoad;
 
             break;
         default:
             // default option is always alerts
-            // overwrite content key if necessary
+            // override content key
             normalizedContentKey = 'alerts';
 
             // set API endpoint
@@ -130,21 +141,24 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
                 + '&p=' + contentSortFieldOpts[1] + '&l=' + contentLimit;
 
             // build alert limit options html
-            var availableAlertLimits = [50, 250, 500, 0];
+            var availableAlertLimits = [50, 250, 500, 0],
+                selectedClass = '';
             optionsHTML = '' +
                 '<div class="contentOptions contentModule">' +
                 '   <span>Show: ';
             availableAlertLimits.forEach(function (alertLimit, idx) {
+                // check if first element to see if visual break is needed before option
                 if(idx !== 0) {
                     optionsHTML += ' | ';
                 }
 
-                // see if this option should be selected as the current limit
-                var selectedClass = '';
+                // check if this option should be selected as the current limit
+                selectedClass = '';
                 if(alertLimit === contentLimit) {
                     selectedClass = ' selected';
                 }
 
+                // append combined html for option
                 optionsHTML += '<p class="option alertShow' + alertLimit + selectedClass + '">';
                 if(alertLimit === 0) {
                     optionsHTML += 'All';
@@ -167,13 +181,14 @@ Controller.initContent = function (onlyContent, contentWrapper, contentKey, cont
 
     if(titleHTML === '')
     {
-        // set title HTML to default format
+        // custom title html not provided; set title HTML to default format
         titleHTML = ' ' +
             '<div id="contentTitleWrapper" class="contentModule">' +
             '   <h1 class="title">' + Global.normalizeTitle(normalizedContentKey) + '</h1>' +
             '</div>';
     }
 
-    Mystic.initAPILoad(onlyContent, contentWrapper, 'GET', '/api/v1/' + apiEndpointAndParams, fadeOutFunct, fadeInFunct,
-        20000, titleHTML + optionsHTML, contentSortFieldOpts);
+    // load data for user
+    Mystic.initAPILoad(contentWrapper, 'GET', '/api/v1/' + apiEndpointAndParams, fadeOutFunct, fadeInFunct,
+        20000, onlyContent, titleHTML + optionsHTML, contentSortFieldOpts);
 };

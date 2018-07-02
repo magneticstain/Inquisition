@@ -124,19 +124,16 @@ Stats.prototype.loadStats = function (onlyContent, statData, contentWrapper) {
     Stats.rawStatData = statData.data;
 
     // generate chart html for parsers and templates
-    var chartHTML = '' +
-        '<h2 class="title subtitle">Parsers</h2>' +
-        Stats.prototype.generateStatDataPointHTML(Stats.statDataPoints.parsers) +
-        '<h2 class="title subtitle">Templates</h2>' +
-        Stats.prototype.generateStatDataPointHTML(Stats.statDataPoints.templates);
-
     var contentHTML = ' ' +
         '<div id="contentTitleWrapper" class="contentModule">' +
         '   <h1 class="title">' + Global.normalizeTitle('stats') + '</h1>' +
         '</div>' +
         '<div id="primaryContentData" class="contentModule">' +
         '   <div id="chartsWrapper" class="moduleDataWrapper">' +
-                chartHTML +
+        '       <h2 class="title subtitle">Parsers</h2>' +
+        Stats.prototype.generateStatDataPointHTML(Stats.statDataPoints.parsers) +
+        '       <h2 class="title subtitle">Templates</h2>' +
+        Stats.prototype.generateStatDataPointHTML(Stats.statDataPoints.templates) +
         '   </div>' +
         '</div>';
 

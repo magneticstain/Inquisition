@@ -1,0 +1,64 @@
+/*
+    Inquisition // Celestial // _modal.css
+
+    - styles for Modal-related HTML; mostly used w/ Tuning module
+ */
+
+
+.modalContent {
+    height: 100%;
+}
+
+.modalContent .optWrapper td {
+    padding: 15px;
+}
+
+.modalContentWrapper {
+    margin: 20px;
+}
+
+.modalContentWrapper .loadingModuleContainer {
+    margin: 10% 0;
+}
+
+.modalHeader {
+    padding: 10px;
+    text-align: center;
+    text-transform: capitalize;
+}
+
+.modalContentSet {
+    margin: 10px;
+    padding: 25px;
+    text-align: center;
+}
+
+.modalContentSetHeader {
+    color: #3B6C7F;
+    font-size: 24px;
+    margin-bottom: 36px;
+}
+
+.modalContentSetData {
+    display: inline-block;
+    margin: 3% 5%;
+    max-width: 45%;
+    min-width: 35%;
+    overflow: auto;
+    vertical-align: top;
+}
+
+.modalContentSetDataListEntry {
+    background: #E5E5E5;
+    margin: 2px;
+    padding: 15px;
+}
+
+.modalContentSetDataListEntry:hover {
+    background: #F58A69;
+    cursor: pointer;
+}
+
+.modalContentSetDataListEntry.selected {
+    background: #F25A2C;
+}

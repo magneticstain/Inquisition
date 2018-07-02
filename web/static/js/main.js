@@ -15,5 +15,5 @@ $(document).ready(function () {
 
     // load content based on content key
     Controller.initLoadingModal($('#loadingContainer'), 'large');
-    Controller.initContent(false, $('#contentWrapper'), Global.getContentKeyFromCleanURL());
+    Controller.initContent($('#contentWrapper'), Global.getContentKeyFromCleanURL());
 });
