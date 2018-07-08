@@ -44,7 +44,6 @@ Modal.prototype.loadParserTemplateMappings = function (mappingContainer, parserD
                 var mappingData = apiMappingData.data;
 
                 // add mappings to global var for later use
-                // $('#tuning').data('parser-template-mappings', JSON.stringify(mappingData));
                 Global.prototype.queryGlobalAccessData('set', 'tuning', 'parser-template-mappings', mappingData);
 
                 // traverse mappings
@@ -130,6 +129,7 @@ Modal.prototype.updateParserTemplateMapping = function (parser_id, template_id, 
 
     var parserTemplateMappings = Global.prototype.queryGlobalAccessData('get', 'tuning', 'parser-template-mappings'),
         matchFound = false,
+        mappingIdx = null,
         mappingID = null,
         keyData = null,
         values = null;
@@ -140,24 +140,28 @@ Modal.prototype.updateParserTemplateMapping = function (parser_id, template_id, 
     }
 
     // traverse mappings and try finding any that match our criteria
-    $.each(parserTemplateMappings, function (mappingIdx, ptMapping) {
-        if(ptMapping.parser_id === parser_id && ptMapping.template_id === template_id)
+    $.each(parserTemplateMappings, function (ptMappingIdx, ptMapping) {
+        if (ptMapping.parser_id === parser_id && ptMapping.template_id === template_id)
         {
             matchFound = true;
             mappingID = ptMapping.mapping_id;
-
-            // mapping will be deleted if found, so we should remove it from our mapping cache
-            Global.prototype.queryGlobalAccessData('set', 'tuning', 'parser-template-mappings',
-                parserTemplateMappings.splice(mappingIdx, 1)
-            );
+            mappingIdx = ptMappingIdx;
         }
     });
 
     // if no mapping was found, we should add the mapping via the api
-    if(!matchFound)
+    if (!matchFound)
     {
-        keyData = { fields: [ 'parser_id', 'template_id' ] };
-        values = { values: [ parser_id, template_id ] };
+        keyData = {fields: ['parser_id', 'template_id']};
+        values = {values: [parser_id, template_id]};
+    }
+    else
+    {
+        // mapping will be deleted, so we should remove it from our mapping cache and resave
+        parserTemplateMappings.splice(mappingIdx, 1);
+        Global.prototype.queryGlobalAccessData('set', 'tuning', 'parser-template-mappings',
+            parserTemplateMappings
+        );
     }
 
     // perform update
@@ -261,7 +265,9 @@ Modal.prototype.generateModalContentSetDataHTML = function (dataType, dataSet) {
 
                 break;
             case 'regex':
-                itemName = modalContentSetItem.regex;
+                itemName = '[ <strong>PATTERN:</strong> ' + modalContentSetItem.regex + ' ]<br />[ <strong>GRP:</strong> '
+                    + modalContentSetItem.regex_group + ' ]<br />[ <strong>IDX:</strong> '
+                    + modalContentSetItem.regex_match_index + ' ]';
                 itemKeyName = 'regex_id';
 
                 break;
@@ -360,6 +366,8 @@ Modal.prototype.setTransitionFunctions = function () {
                             rawVal: apiData.data[0].template_name
                         }
                     ], '<div class="modalContentSetData fieldList" data-field-id="' + apiData.data[0].field_id + '">'
+                        + '</div>'
+                        + '<div class="modalContentSetData regexList" data-regex-id="' + apiData.data[0].regex_id + '">'
                         + '</div>',
                         apiData.data[0].template_id
                     )
@@ -371,6 +379,7 @@ Modal.prototype.setTransitionFunctions = function () {
 
                 // gather fields and regex data
                 Modal.prototype.loadModalContentSet('field', 'template', true, false);
+                Modal.prototype.loadModalContentSet('regex', 'template', true, false);
             };
 
             break;

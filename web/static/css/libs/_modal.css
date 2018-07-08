@@ -62,3 +62,8 @@
 .modalContentSetDataListEntry.selected {
     background: #F25A2C;
 }
+
+/* needed to override CSS reset */
+.modalContentSetDataListEntry strong {
+    font-weight: bold;
+}

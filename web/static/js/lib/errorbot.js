@@ -102,7 +102,10 @@ ErrorBot.prototype.displayMsg = function (delayTimeMS) {
     }
 
     // display the error modal to user
-    errorModal.slideDown().delay(delayTimeMS).slideUp();
+    // check if delay is already
+    // DEV NOTE: we slideUp() first in order to make sure the user is reengaged if they generate another msg while
+    //  another is already being displayed.
+    errorModal.slideUp().slideDown().delay(delayTimeMS).slideUp();
 
     // if the user hovers over the error modal, stay down until they untarget the error modal
     errorModal.hover(function() {

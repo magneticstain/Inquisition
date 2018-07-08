@@ -45,8 +45,8 @@ Tuning.getAllAppConfigOpts = function (cfgData) {
             {
                 inputType: 'number',
                 label: 'Max Logs To Parse',
-                desc: 'Number of logs a parser should read before exiting. If set to 0, the parser will never stop reading. ' +
-                '(default: 0)',
+                desc: 'Number of logs a parser should read before exiting. If set to 0, the parser will ' +
+                'interactively read from the log file as new logs are written. (default: 0)',
                 dataType: 'cfg',
                 section: 'parsing',
                 key: 'maxLogsToParse',
@@ -56,7 +56,7 @@ Tuning.getAllAppConfigOpts = function (cfgData) {
                 inputType: 'toggle',
                 label: 'Hazy Tracking',
                 desc: 'If set to true, it enables a feature that reduces state tracking accuracy in return for increased ' +
-                'parsing speed. See Inquisition docs for more details (default: 0 [F])',
+                'parsing speed. See Inquisition docs for more details (default: 0 [ENABLED])',
                 dataType: 'cfg',
                 section: 'state_tracking',
                 key: 'enableHazyStateTracking',
@@ -77,7 +77,9 @@ Tuning.getAllAppConfigOpts = function (cfgData) {
             {
                 inputType: 'toggle',
                 label: 'Baseline Mode',
-                desc: '',
+                desc: 'Enable/disable baseline mode. In baseline mode, the Destiny engine is set to learn about the ' +
+                'network it\'s on, i.e. it "baselines" the network to know what\'s NOT a threat. See the user manual ' +
+                'for more details. (default: 0 [DISABLED])',
                 dataType: 'cfg',
                 section: 'learning',
                 key: 'enableBaselineMode',
@@ -86,7 +88,8 @@ Tuning.getAllAppConfigOpts = function (cfgData) {
             {
                 inputType: 'number',
                 label: 'Sleep Time (Threat Detection)',
-                desc: '',
+                desc: 'Amount of time (in seconds) to wait between running threat detection runs on current log data.' +
+                ' (default: 15)',
                 dataType: 'cfg',
                 section: 'learning',
                 key: 'networkThreatDetectionSleepTime',
@@ -95,7 +98,8 @@ Tuning.getAllAppConfigOpts = function (cfgData) {
             {
                 inputType: 'number',
                 label: 'Sleep Time (Anomaly Detection)',
-                desc: '',
+                desc: 'Amount of time (in seconds) to wait between running network anomaly detection runs on current ' +
+                'log data. (default: 5)',
                 dataType: 'cfg',
                 section: 'learning',
                 key: 'anomalyDetectionSleepTime',
@@ -104,7 +108,8 @@ Tuning.getAllAppConfigOpts = function (cfgData) {
             {
                 inputType: 'float',
                 label: 'Max Standard Deviation Tolerance',
-                desc: '',
+                desc: 'Maximum standard deviation that Erudite can detect in active log amounts before generating ' +
+                'alert. (default: 1.0)',
                 dataType: 'cfg',
                 section: 'alerting',
                 key: 'maxTrafficNodeStdDev',
@@ -115,6 +120,7 @@ Tuning.getAllAppConfigOpts = function (cfgData) {
             {
                 inputType: 'number',
                 label: 'Sleep Time',
+                desc: 'Amount of time (in seconds) that Augur will wait before fetching IOC data. (default: 3600)',
                 dataType: 'cfg',
                 section: 'intel',
                 key: 'sleepTime',
@@ -125,7 +131,7 @@ Tuning.getAllAppConfigOpts = function (cfgData) {
             {
                 inputType: 'text',
                 label: 'App. Log File',
-                desc: 'Filename to write application logs to',
+                desc: 'Filename to write application logs to. (default: /var/log/inquisition/app.log)',
                 dataType: 'cfg',
                 section: 'logging',
                 key: 'logFile',
@@ -144,8 +150,9 @@ Tuning.getAllAppConfigOpts = function (cfgData) {
             {
                 inputType: 'text',
                 label: 'App. Log Format Template',
-                desc: 'Formatting of logs being written. More info on formatting syntax can be found in the documentation ' +
-                'for the logging library in Python (default: %(asctime)s [ %(levelname)s ] [ %(name)s ] %(message)s',
+                desc: 'Formatting of logs being written. More info on formatting syntax can be found in the ' +
+                'documentation for the logging library in Python. ' +
+                '(default: %(asctime)s [ %(levelname)s ] [ %(name)s ] %(message)s',
                 dataType: 'cfg',
                 section: 'logging',
                 key: 'logFormat',
@@ -154,7 +161,8 @@ Tuning.getAllAppConfigOpts = function (cfgData) {
             {
                 inputType: 'toggle',
                 label: 'Metrics Mode',
-                desc: 'If enabled, write stat for run-based stats at the INFO level instead of DEBUG level (default: 0 [F])',
+                desc: 'If enabled, write stat for run-based stats at the INFO level instead of DEBUG level. ' +
+                '(default: F [DISABLED])',
                 dataType: 'cfg',
                 section: 'logging',
                 key: 'enableMetricsMode',
@@ -165,7 +173,7 @@ Tuning.getAllAppConfigOpts = function (cfgData) {
                 label: 'Print Template Match',
                 desc: 'Specifies whether parser should write the values its templates match in the log. ' +
                 'This should be disabled if you are parsing sensitive information in your logs or are must abide by ' +
-                'various compliance frameworks (e.g. PCI, w/ credit card data in the logs).',
+                'various compliance frameworks (e.g. PCI, w/ credit card data in the logs). (default: T [ENABLED])',
                 dataType: 'cfg',
                 section: 'logging',
                 key: 'printMatchValues',
@@ -175,7 +183,7 @@ Tuning.getAllAppConfigOpts = function (cfgData) {
                 inputType: 'toggle',
                 label: 'Verbose Logging',
                 desc: 'Specifies whether parser should write ALL data it processes to logs. Usually only useful for ' +
-                'debugging or compliance.',
+                'debugging or compliance. (default: F [DISABLED]',
                 dataType: 'cfg',
                 section: 'logging',
                 key: 'verbose',
@@ -184,7 +192,8 @@ Tuning.getAllAppConfigOpts = function (cfgData) {
             {
                 inputType: 'toggle',
                 label: 'Store Stats Persistently',
-                desc: 'If set to true, store stat data in the Log DB for easy and persistent access (default: 1 [T])',
+                desc: 'If set to true, store stat data in the Log DB for easy and persistent access. ' +
+                '(default: T [ENABLED])',
                 dataType: 'cfg',
                 section: 'stats',
                 key: 'keepPersistentStats',
