@@ -50,8 +50,11 @@
 
 .modalContentSetDataListEntry {
     background: #E5E5E5;
+    line-height: 2;
     margin: 2px;
+    overflow: auto;
     padding: 15px;
+    white-space: nowrap;
 }
 
 .modalContentSetDataListEntry:hover {
@@ -66,4 +69,21 @@
 /* needed to override CSS reset */
 .modalContentSetDataListEntry strong {
     font-weight: bold;
+}
+
+.modalActionButtonWrapper {
+    margin-bottom: 20px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.modalActionButtonWrapper .modalButton {
+    float: left;
+    opacity: 0.8;
+    width: 50%;
+}
+
+.modalActionButtonWrapper .modalButton:hover {
+    cursor: pointer;
+    opacity: 1;
 }

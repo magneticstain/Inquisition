@@ -83,8 +83,13 @@ ErrorBot.prototype.displayMsg = function (delayTimeMS) {
     // check if delay time was provided
     if(typeof delayTimeMS === 'undefined')
     {
-        // set to default delay time
-        delayTimeMS = 5000;
+        // set to default delay time based on severity
+        delayTimeMS = 3000;
+        if(0 <= this.severity)
+        {
+            // increase the delay if it's not a success message
+            delayTimeMS = 5000;
+        }
     }
 
     // check for persistent display

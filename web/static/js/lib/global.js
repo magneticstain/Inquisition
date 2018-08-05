@@ -53,7 +53,7 @@ Global.prototype.queryGlobalAccessData = function (action, moduleName, key, data
     }
 };
 
-Global.normalizeTitle = function (contentTitle) {
+Global.normalizeTitle = function (contentTitle, allowUnderscores) {
     /*
         Format content title in titlecase
      */
@@ -66,6 +66,11 @@ Global.normalizeTitle = function (contentTitle) {
     }
     else
     {
+        if(allowUnderscores == null || !allowUnderscores)
+        {
+            contentTitle = contentTitle.replace(/_/g, ' ');
+        }
+
         var titleClauses = contentTitle.split(' ');
     }
 

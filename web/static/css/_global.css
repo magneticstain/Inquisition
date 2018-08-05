@@ -90,3 +90,24 @@ a:hover {
     color: #E8E8E8;
     font-size: 22px;
 }
+
+.rawVal {
+    background: #E5E5E5;
+    border: #25AAE1 dashed 2px;
+    display: inline;
+    font: 12px 'PT Mono', serif;
+    padding: 4px;
+}
+
+.modalButton {
+    color: #333;
+    padding: 10px;
+}
+
+.modalButton.clear {
+    background: #C64923;
+}
+
+.modalButton.save {
+    background: #1DA800;
+}

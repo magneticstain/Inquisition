@@ -4,6 +4,15 @@
     - styles for Tuning content module/lib
  */
 
+.add {
+    cursor: pointer;
+}
+
+.add .accent {
+    color: #dd4d21;
+    display: inline-block;
+}
+
 .enabled {
     color: #1DA800;
 }
