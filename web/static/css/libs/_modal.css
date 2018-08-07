@@ -48,18 +48,17 @@
     vertical-align: top;
 }
 
+.modalContentSetDataListEntryContainer {
+    margin: 2px;
+    position: relative;
+}
+
 .modalContentSetDataListEntry {
     background: #E5E5E5;
     line-height: 2;
-    margin: 2px;
     overflow: auto;
     padding: 15px;
     white-space: nowrap;
-}
-
-.modalContentSetDataListEntry:hover {
-    background: #F58A69;
-    cursor: pointer;
 }
 
 .modalContentSetDataListEntry.selected {
@@ -69,6 +68,24 @@
 /* needed to override CSS reset */
 .modalContentSetDataListEntry strong {
     font-weight: bold;
+}
+
+.modalContentSetDataListEntry.hover {
+    background: #F58A69;
+}
+
+.modalContentSetDataListEntry.hover, .modalContentSetDataActionButton:hover {
+    cursor: pointer;
+}
+
+.modalContentSetDataActionButton {
+    background: #4894cd;
+    color: #E8E8E8;
+    font: 12px 'PT Mono', serif;
+    padding: 3px;
+    position: absolute;
+    right: 0;
+    top: -20px;
 }
 
 .modalActionButtonWrapper {

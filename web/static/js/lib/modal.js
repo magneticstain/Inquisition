@@ -182,7 +182,7 @@ Modal.prototype.initContentSetDataSelectors = function (contentSetType, parentCo
         throw 'no content set data type provided during CSD selector initialization';
     }
 
-    $('.modalContentSetDataListEntry').click(function () {
+    $('.modalContentSetDataListEntry').off().click(function () {
         var parentObjId = $(this).parents('.modalContentSet').data('obj-id'),
             itemDataType = $(this).data('data-type'),
             itemKey = $(this).data('key'),
@@ -223,7 +223,30 @@ Modal.prototype.initContentSetDataSelectors = function (contentSetType, parentCo
         {
             $(this).addClass(selectedClass);
         }
+    }).hover(function () {
+        var entryContainerElmnt = $(this).parent();
+
+        // add delete button and its event handler
+        entryContainerElmnt.prepend('<span class="modalContentSetDataActionButton">[-] remove</span>');
+        $('.modalContentSetDataActionButton').click(function () {
+            console.log('here');
+        });
+
+        $(this).addClass('hover');
     });
+
+    // DEV NOTE: we perform the hover leave callback separately, on the container element instead of the entry element
+    //  so that we can have the action button outside of the entry itself, but the mouseleave logic won't trigger when
+    //  the user hovers over the action button
+    $('.modalContentSetDataListEntryContainer').hover(function () {}, function () {
+        // remove delete action button when mouse leaves
+        $(this).children('.modalContentSetDataActionButton').remove();
+
+        $(this).children('.modalContentSetDataListEntry').removeClass('hover');
+    });
+
+    // add config item handlers as well (add/edit/delete logic)
+    Tuning.prototype.initConfigItemHandlers();
 };
 
 Modal.prototype.generateModalContentSetDataHTML = function (dataType, dataSet) {
@@ -293,9 +316,11 @@ Modal.prototype.generateModalContentSetDataHTML = function (dataType, dataSet) {
             selectedItemClassName = '';
         }
 
-        html += '<div class="modalContentSetDataListEntry configValInputs ' + selectedItemClassName + ' '
+        html += '<div class="modalContentSetDataListEntryContainer">' +
+            '<div class="modalContentSetDataListEntry configValInputs ' + selectedItemClassName + ' '
             + itemNonAddableClass + '" ' + 'data-data-type="' + dataType + '" data-key="' + itemKeyName
-            + '" data-item-id="' + itemDataId + '">' + itemName + '</div>';
+            + '" data-item-id="' + itemDataId + '">' + itemName + '</div>' +
+            '</div>';
     });
 
     html += '</div>';
@@ -320,11 +345,10 @@ Modal.prototype.loadModalContentSet = function (contentSetType, parentContentDat
     }
 
     Mystic.queryAPI('GET', '/api/v1/tuning/?t=' + contentSetType, 5000, null, function (apiData) {
-        $('.modalContentSetData.' + contentSetType + 'List').html('<p title="' + titleCaseParentContentDataType + ' '
-            + titleCaseContentSetType + ' Selections // ' +
-            'Tip: press and hold the control key while clicking to unselect an option or to select multiple options" ' +
+        $('.modalContentSetData.' + contentSetType + 'List').html(
+            '<p title="' + titleCaseParentContentDataType + ' ' + titleCaseContentSetType + ' Selections" ' +
             'class="modalContentSetHeader title">' +
-            '   <label for="' + contentSetType + 'DataSet">' + titleCaseContentSetType + '   </label>' +
+            '   <label for="' + contentSetType + 'DataSet" class="add">' + titleCaseContentSetType + '</label>' +
             '</p>' +
             Modal.prototype.generateModalContentSetDataHTML(contentSetType, apiData.data)
         );
@@ -531,12 +555,12 @@ Modal.prototype.setTransitionFunctions = function () {
                     sendDataToApi = false;
                 }
 
-                Tuning.prototype.setConfigChangeTriggerEvts(useManualActionButtons);
-                Modal.prototype.setFormActionButtonHandlers();
-
                 // gather fields and regex data
                 Modal.prototype.loadModalContentSet('field', 'template', true, false, sendDataToApi);
                 Modal.prototype.loadModalContentSet('regex', 'template', true, false, sendDataToApi);
+
+                Tuning.prototype.setConfigChangeTriggerEvts(useManualActionButtons);
+                Modal.prototype.setFormActionButtonHandlers();
             };
 
             break;
@@ -565,10 +589,10 @@ Modal.prototype.setTransitionFunctions = function () {
                     useManualActionButtons = true
                 }
 
+                Modal.prototype.loadModalContentSet('template', 'parser', false, true);
+
                 Tuning.prototype.setConfigChangeTriggerEvts(useManualActionButtons);
                 Modal.prototype.setFormActionButtonHandlers();
-
-                Modal.prototype.loadModalContentSet('template', 'parser', false, true);
             };
 
             break;
@@ -658,11 +682,11 @@ Modal.prototype.setTransitionFunctions = function () {
                     sendDataToApi = false;
                 }
 
-                Tuning.prototype.setConfigChangeTriggerEvts(useManualActionButtons);
-                Modal.prototype.setFormActionButtonHandlers();
-
                 // load content set data
                 Modal.prototype.loadModalContentSet('field', 'ioc_field_mapping', true, false, sendDataToApi);
+
+                Tuning.prototype.setConfigChangeTriggerEvts(useManualActionButtons);
+                Modal.prototype.setFormActionButtonHandlers();
             };
 
             break;
