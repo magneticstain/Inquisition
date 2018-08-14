@@ -9,7 +9,7 @@ use API\Tuning;
 
 require $_SERVER['DOCUMENT_ROOT'].'/lib/Autoloader.php';
 
-// set http headers
+// set http headers for api response
 \Perspective\View::setHTTPHeaders('application/json', 0);
 
 $publicErrorMsg = '';

@@ -24,6 +24,7 @@ class Tuning
             'template',
             'regex',
             'field',
+            'field_type',
             'ioc_field_mapping',
             'parser_template_mapping',
             'known_host'
@@ -370,6 +371,11 @@ class Tuning
             case 'field':
                 $typeData['tableName'] = 'Fields';
                 $typeData['idFieldName'] = 'field_id';
+
+                break;
+            case 'field_type':
+                $typeData['tableName'] = 'FieldTypes';
+                $typeData['idFieldName'] = 'type_id';
 
                 break;
             case 'ioc_field_mapping':
