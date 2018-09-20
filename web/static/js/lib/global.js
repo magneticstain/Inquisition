@@ -1,7 +1,7 @@
 /*
     Inquisition // Celestial // Global.js
 
-    - JS lib for globally-used functions
+    - JS lib for globally-used general functions
  */
 
 "use strict";
@@ -14,7 +14,8 @@ Global.prototype.queryGlobalAccessData = function (action, moduleName, key, data
     */
 
     var paramMissing = false,
-        paramName = '';
+        paramName = '',
+        dataset = dataset || {};
     if(action == null)
     {
         paramMissing = true;
@@ -33,10 +34,6 @@ Global.prototype.queryGlobalAccessData = function (action, moduleName, key, data
     if(paramMissing)
     {
         throw 'no ' + paramName + ' provided during global data query';
-    }
-    if(dataset == null)
-    {
-        dataset = [];
     }
 
     var targetElmnt = $('#' + moduleName);
@@ -148,8 +145,8 @@ Global.fetchGETVar = function (varName) {
         Retrieve given GET variable via browser URL
      */
 
-    var GETVars = window.location.search.substring(1).split('&');
-    var GETVarVal = '';
+    var GETVars = window.location.search.substring(1).split('&'),
+        GETVarVal = '';
 
     GETVars.forEach(function (GETVar) {
         var GETVarKeyValPair = GETVar.split('=');

@@ -1,5 +1,5 @@
 /*
-    Inquisition // Celestial // Nav.css
+    Inquisition // Celestial // Nav.js
 
     - lib for navigation menu related functionality
  */

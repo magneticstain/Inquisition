@@ -84,7 +84,7 @@ ErrorBot.prototype.displayMsg = function (delayTimeMS) {
     if(typeof delayTimeMS === 'undefined')
     {
         // set to default delay time based on severity
-        delayTimeMS = 3000;
+        delayTimeMS = 1500;
         if(0 <= this.severity)
         {
             // increase the delay if it's not a success message

@@ -6,7 +6,9 @@
 
 "use strict";
 
-var Tuning = function () {};
+var Tuning = function () {
+    Module.call(this);
+};
 
 Tuning.getAllAppConfigOpts = function (cfgData) {
     /*
@@ -287,301 +289,13 @@ Tuning.prototype.generateAppCfgOptHTML = function (configOptData) {
     return html;
 };
 
-Tuning.prototype.generateItemButtonHTML = function (addEditButton, addDeleteButton) {
+Tuning.prototype.loadTuningConfiguration = function (tuningData, contentWrapper, titleHTML) {
     /*
-        Generate HTML for item action buttons
+        Load and display configuration to be tuned, along w/ current vals, to View for user to interact with
      */
 
-    var buttonHTML = '<span class="listingOptButtons">';
-
-    if(addEditButton)
-    {
-        buttonHTML += '<img class="edit" src="/static/imgs/icons/edit.svg" title="Edit Configuration" ' +
-            'alt="Open modal to edit configuration">';
-    }
-
-    if(addDeleteButton)
-    {
-        buttonHTML += '<img class="delete" src="/static/imgs/icons/delete.svg" title="Delete Item" ' +
-            'alt="Delete this item permanently">';
-    }
-
-    buttonHTML += '</span>';
-
-    return buttonHTML;
-};
-
-Tuning.prototype.generateItemBoxHTML = function (dataType, itemHTML) {
-    /*
-        Generate generic content box with given item html
-     */
-
-    return '' +
-        '<div class="dataBlobContainer ' + dataType + 'Blob" data-datatype="' + dataType + '" data-identifier="0">' +
-        '   <h3 class="heading listingHeader add">' + Global.normalizeTitle(dataType) + 's</h3>' +
-        '   <div class="optSetListing">' +
-        '       <div class="listingDataWrapper">' +
-        '           <table class="listingData">' +
-        itemHTML +
-        '           </table>' +
-        '       </div>' +
-        '   </div>' +
-        '</div>';
-};
-
-Tuning.prototype.generateItemHTML = function (dataType, itemIdentifierFieldKey, itemFieldMetadata, itemData,
-                                              requiredButtons, itemContentTitle) {
-    /*
-        Generate HTML of all given items using provided constraints
-     */
-
-    if(itemFieldMetadata == null || itemFieldMetadata == null || itemData == null)
-    {
-        throw 'missing item data provided during configuration item HTML generation';
-    }
-
-    var itemHTML = '',
-        titleCaseDataType = Global.normalizeTitle(dataType);
-
-    if(itemContentTitle != null)
-    {
-        titleCaseDataType = Global.normalizeTitle(itemContentTitle);
-    }
-
-    // generate html for table header first
-    itemHTML += '<tr>';
-    itemFieldMetadata.forEach(function (field) {
-        itemHTML += '<th>' + field.name + '</th>';
-    });
-    itemHTML += '' +
-        '   <th>OPTIONS</th>' +
-        '</tr>';
-
-    itemData.forEach(function (item) {
-        itemHTML += '<tr class="dataBlobWrapper" data-dataType="' + dataType + '" data-identifier="'
-            + item[itemIdentifierFieldKey] + '">';
-        
-        // traverse each item and generate a cell for each data field
-        itemFieldMetadata.forEach(function (itemField) {
-            itemHTML += '<td>';
-            switch (itemField.fieldType)
-            {
-                case 'general':
-                    itemHTML += item[itemField.objKey];
-
-                    break;
-                case 'status':
-                    var statusDisplayName = 'enabled',
-                        statusHTMLChar = '&#10004;';
-                    if(item.status == false)
-                    {
-                        statusDisplayName = 'disabled';
-                        statusHTMLChar = '&#10008;';
-                    }
-
-                    itemHTML += '<span class="' + statusDisplayName + '" title="' + titleCaseDataType + ' is '
-                        + statusDisplayName.toUpperCase() + '">' + statusHTMLChar + '</span>';
-
-                    break;
-                case 'timestamp':
-                    itemHTML += '<time class="fuzzyTimestamp" title="' + item[itemField.objKey] + '" datetime="'
-                        + item[itemField.objKey] + '"></time>';
-
-                    break;
-                case 'correlated':
-                    // field value needs to be correlated w/ extra data
-                    if(itemField.extraData.data == null)
-                    {
-                        throw 'no extra data provided for correlated item field';
-                    }
-                    var iocFieldName = 'UNKNOWN',
-                        relatedData = itemField.extraData.data,
-                        dataKey = itemField.extraData.sharedDataKey;
-
-                    for(var i = 0; i < relatedData.length; i++)
-                    {
-                        if(relatedData[i][dataKey] === item[dataKey])
-                        {
-                            iocFieldName = relatedData[i][itemField.extraData.overwriteValKey];
-
-                            break;
-                        }
-                    }
-
-                    itemHTML += iocFieldName;
-
-                    break;
-                default:
-                    throw 'unknown type found while generating item HTML :: [ ' + itemField.fieldType + ' ]';
-            }
-            itemHTML += '</td>';
-        });
-
-        // append button html
-        itemHTML += '<td>' + Tuning.prototype.generateItemButtonHTML(requiredButtons.edit, requiredButtons.delete)
-            + '</td>';
-
-        itemHTML += '</tr>';
-    });
-
-    return this.generateItemBoxHTML(dataType, itemHTML);
-};
-
-Tuning.prototype.getObjDataHTML = function (objDataType, rawObjDataset, addlDatasetForCorrelation) {
-    /*
-        Abstract function for generating HTML for given obj data type
-     */
-
-    var identifierFieldName = '',
-        fieldOpts = [],
-        actionButtonFlags = {};
-
-    if(rawObjDataset == null)
-    {
-        throw 'no object dataset provided for object data HTML';
-    }
-
-    // generate item html based on datatype
-    switch (objDataType)
-    {
-        case 'template':
-            identifierFieldName = 'template_id';
-            fieldOpts = [
-                {
-                    name: 'status',
-                    fieldType: 'status',
-                    isIdentifier: false,
-                    objKey: 'status'
-                },
-                {
-                    name: 'id',
-                    fieldType: 'general',
-                    isIdentifier: true,
-                    objKey: 'template_id'
-                },
-                {
-                    name: 'created',
-                    fieldType: 'timestamp',
-                    isIdentifier: false,
-                    objKey: 'created'
-                },
-                {
-                    name: 'name',
-                    fieldType: 'general',
-                    isIdentifier: false,
-                    objKey: 'template_name'
-                }
-            ];
-            actionButtonFlags = { edit: true, delete: true };
-
-            break;
-        case 'parser':
-            identifierFieldName = 'parser_id';
-            fieldOpts = [
-                {
-                    name: 'status',
-                    fieldType: 'status',
-                    isIdentifier: false,
-                    objKey: 'status'
-                },
-                {
-                    name: 'id',
-                    fieldType: 'general',
-                    isIdentifier: true,
-                    objKey: 'parser_id'
-                },
-                {
-                    name: 'created',
-                    fieldType: 'timestamp',
-                    isIdentifier: false,
-                    objKey: 'created'
-                },
-                {
-                    name: 'name',
-                    fieldType: 'general',
-                    isIdentifier: false,
-                    objKey: 'parser_name'
-                },
-                {
-                    name: 'log',
-                    fieldType: 'general',
-                    isIdentifier: false,
-                    objKey: 'parser_log'
-                }
-            ];
-            actionButtonFlags = { edit: true, delete: true };
-
-            break;
-        case 'known_host':
-            identifierFieldName = 'host_id';
-            fieldOpts = [
-                {
-                    name: 'id',
-                    fieldType: 'general',
-                    isIdentifier: true,
-                    objKey: 'host_id'
-                },
-                {
-                    name: 'created',
-                    fieldType: 'timestamp',
-                    isIdentifier: false,
-                    objKey: 'created'
-                },
-                {
-                    name: 'host',
-                    fieldType: 'general',
-                    isIdentifier: false,
-                    objKey: 'host_val'
-                }
-            ];
-            actionButtonFlags = { edit: false, delete: true };
-
-            break;
-        case 'ioc_field_mapping':
-            identifierFieldName = 'mapping_id';
-            fieldOpts = [
-                {
-                    name: 'id',
-                    fieldType: 'general',
-                    isIdentifier: true,
-                    objKey: 'mapping_id'
-                },
-                {
-                    name: 'ioc item name',
-                    fieldType: 'general',
-                    isIdentifier: false,
-                    objKey: 'ioc_item_name'
-                },
-                {
-                    name: 'mapped field name',
-                    fieldType: 'correlated',
-                    isIdentifier: false,
-                    objKey: 'field_id',
-                    extraData: {
-                        data: addlDatasetForCorrelation,
-                        sharedDataKey: 'field_id',
-                        overwriteValKey: 'field_name'
-                    }
-                }
-            ];
-            actionButtonFlags = { edit: true, delete: true };
-
-            break;
-        default:
-            throw 'invalid object data type provided for object data HTML generation';
-    }
-
-    return Tuning.prototype.generateItemHTML(objDataType, identifierFieldName, fieldOpts, rawObjDataset,
-        actionButtonFlags)
-};
-
-Tuning.prototype.loadTuningConfiguration = function (onlyContent, tuningData, contentWrapper, titleHTML) {
-    /*
-        Load and display configuration to be tuned, along w/ current vals, to view for user to interact with
-     */
-
-    var tuningDataset = tuningData.data;
-    var appConfigOpts = Tuning.getAllAppConfigOpts(tuningDataset.cfg);
+    var tuningDataset = tuningData.data,
+        appConfigOpts = Tuning.getAllAppConfigOpts(tuningDataset.cfg);
 
     // save tuning dataset for global access so that it can be used by all libs/functions
     Global.prototype.queryGlobalAccessData('set', 'tuning', 'tuning-dataset', tuningDataset);
@@ -595,10 +309,10 @@ Tuning.prototype.loadTuningConfiguration = function (onlyContent, tuningData, co
         Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.parsing) +
         '           </div>' +
         '           <div class="optWrapper">' +
-        Tuning.prototype.getObjDataHTML('template', tuningDataset.template) +
+        ConfigTable.prototype.getObjDataHTML('template', tuningDataset.template) +
         '           </div>' +
         '           <div class="optWrapper">' +
-        Tuning.prototype.getObjDataHTML('parser', tuningDataset.parser) +
+        ConfigTable.prototype.getObjDataHTML('parser', tuningDataset.parser) +
         '           </div>' +
         '       </div>' +
         '       <div class="optSetBundle">' +
@@ -607,7 +321,7 @@ Tuning.prototype.loadTuningConfiguration = function (onlyContent, tuningData, co
         Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.analysis) +
         '           </div>' +
         '           <div class="optWrapper">' +
-        Tuning.prototype.getObjDataHTML('known_host', tuningDataset.known_host) +
+        ConfigTable.prototype.getObjDataHTML('known_host', tuningDataset.known_host) +
         '           </div>' +
         '           <div class="optWrapper">' +
         '           </div>' +
@@ -618,7 +332,7 @@ Tuning.prototype.loadTuningConfiguration = function (onlyContent, tuningData, co
         Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.ioc) +
         '           </div>' +
         '           <div class="optWrapper">' +
-        Tuning.prototype.getObjDataHTML('ioc_field_mapping', tuningDataset.ioc_field_mapping, tuningDataset.field) +
+        ConfigTable.prototype.getObjDataHTML('ioc_field_mapping', tuningDataset.ioc_field_mapping, tuningDataset.field) +
         '           </div>' +
         '       </div>' +
         '       <div class="optSetBundle">' +
@@ -635,6 +349,7 @@ Tuning.prototype.loadTuningConfiguration = function (onlyContent, tuningData, co
 };
 
 // Post-Load Functs
+// App Configs
 Tuning.prototype.initToggles = function (onToggleCallback) {
     /*
         Initialize all toggle buttons on current page
@@ -648,36 +363,7 @@ Tuning.prototype.initToggles = function (onToggleCallback) {
     // add listener if needed
     if(onToggleCallback != null)
     {
-        toggleSwitches.on('toggle', onToggleCallback);
-    }
-};
-
-Tuning.prototype.setConfigChangeTriggerEvts = function (useManualActionButtons) {
-    /*
-        Set all events needed for handling config changes
-     */
-
-    if(useManualActionButtons == null)
-    {
-        useManualActionButtons = false;
-    }
-
-    if(!useManualActionButtons)
-    {
-        // init toggle switches
-        Tuning.prototype.initToggles(function (dataEvents, active) {
-            Tuning.prototype.configHandler($(this), 'toggle', active);
-        });
-
-        // input text boxes and other input elmnts
-        $('.configValInputs').change(function () {
-            Tuning.prototype.configHandler($(this), 'input');
-        });
-    }
-    else
-    {
-        // init toggle switches
-        Tuning.prototype.initToggles(function () {});
+        toggleSwitches.off().on('toggle', onToggleCallback);
     }
 };
 
@@ -686,7 +372,7 @@ Tuning.prototype.serializeObjIfNeeded = function (inputData) {
         Check if given input data is an obj, and if so, serialize it
      */
 
-    // NOTE: null is actually an obj; https://stackoverflow.com/a/8511350
+    // DEV NOTE: null is actually an obj and is interpreted as such; https://stackoverflow.com/a/8511350
     if(typeof inputData === 'object' && inputData !== null)
     {
         inputData = JSON.stringify(inputData);
@@ -700,10 +386,7 @@ Tuning.prototype.updateConfigVal = function (dataType, section, identifier, key,
         Send update for given configuration data to Tuning API
      */
 
-    if(method == null)
-    {
-        method = 'POST';
-    }
+    method = method || 'POST';
 
     // check if key or val needs to be serialized for sending via api
     // original value will be returned if a non-object is provided
@@ -721,7 +404,7 @@ Tuning.prototype.updateConfigVal = function (dataType, section, identifier, key,
         if(callbackOnSuccess != null)
         {
             // success callback function provided, lets run it
-            callbackOnSuccess(apiResponse);
+            callbackOnSuccess(apiResponse, dataType);
         }
 
         ErrorBot.generateError(-1, 'configuration updated successfully');
@@ -740,6 +423,7 @@ Tuning.prototype.startSaveTimeout = function (dataType, section, identifier, key
     var timeoutMS = 2000;
 
     // clear old timer, if appl.
+    // TODO: confirm this works as expected in given context
     if(this.saveTimer)
     {
         clearTimeout(this.saveTimer);
@@ -750,9 +434,9 @@ Tuning.prototype.startSaveTimeout = function (dataType, section, identifier, key
     }, timeoutMS);
 };
 
-Tuning.prototype.configHandler = function (elmnt, elmntType, isActive) {
+Tuning.prototype.appConfigHandler = function (elmnt, elmntType, isActive) {
     /*
-        Handler for tuning configuration changes
+        Handler for application configuration changes
      */
 
     var dataType = elmnt.data('datatype'),
@@ -761,6 +445,7 @@ Tuning.prototype.configHandler = function (elmnt, elmntType, isActive) {
         key = elmnt.data('key'),
         rawConfigVal = elmnt.val();
 
+    // convert bool to int to match API data reqs
     if(elmntType === 'toggle')
     {
         rawConfigVal = isActive === true ? 1 : 0;
@@ -769,131 +454,41 @@ Tuning.prototype.configHandler = function (elmnt, elmntType, isActive) {
     Tuning.prototype.startSaveTimeout(dataType, section, objIdentifier, key, rawConfigVal);
 };
 
-Tuning.prototype.deleteInquisitionDataObj = function (dataType, identifier) {
+Tuning.prototype.setConfigChangeTriggerEvts = function (useManualActionButtons) {
     /*
-        Delete data object with given params using Inquisition API
+        Set all events needed for handling config changes
      */
 
-    // send api request via mystic lib
-    Mystic.queryAPI('DELETE', '/api/v1/tuning/', 20000, {
-        t: dataType,
-        i: identifier
-    }, function () {
-        ErrorBot.generateError(-1, dataType + ' deleted successfully');
-    }, function () {
-        ErrorBot.generateError(4, 'could not delete ' + dataType + ' via Inquisition API');
-    });
-};
-
-Tuning.prototype.itemButtonHandler = function (itemElmnt, modalType, action, modalOpts, modalObj) {
-    /*
-        Handler for when an item's action buttons are acted upon (clicked) by the user
-     */
-
-    // get metadata of item
-    var entryContainer = itemElmnt.parents('.dataBlobWrapper');
-    var dataType = itemElmnt.parents('.dataBlobContainer').data('datatype'),
-        objIdentifier = entryContainer.data('identifier');
-
-    // set opts based on action
-    if(modalOpts == null)
+    if(useManualActionButtons == null)
     {
-        // modal opts are not being overridden; set default based on action
-        switch (action)
-        {
-            case 'delete':
-                modalOpts = {
-                    message: 'Are you sure you want to delete this ' + dataType.replace(/_/g, ' ') + '?',
-                    callback: function (result) {
-                        if(result)
-                        {
-                            // delete via api and remove from view
-                            Tuning.prototype.deleteInquisitionDataObj(dataType, objIdentifier);
-                            entryContainer.fadeOut();
-                        }
-                    }
-                };
-
-                break;
-            case 'edit':
-            case 'add':
-                var modalContent = '' +
-                    '<div class="modalContentWrapper" data-datatype="' + dataType + '">' +
-                    '   <div class="heading modalHeader">' + action + ' ' + dataType.replace(/_/g, ' ') + '</div>';
-
-                if(action === 'add')
-                {
-                    modalContent += '' +
-                        '<div class="modalActionButtonWrapper">' +
-                        '   <div class="modalButton blockCenter clear">&#10008; Clear</div>' +
-                        '   <div class="modalButton blockCenter save">&#10004; Save</div>' +
-                        '</div>';
-                }
-
-                modalContent += ''  +
-                    '   <div class="modalContent objContent" data-identifier="' + objIdentifier + '">' +
-                    Controller.initLoadingModal(null, 'small', true) +
-                    '   </div>' +
-                    '</div>';
-
-                modalOpts = {
-                    contentClassName: 'lgTuningModal',
-                    unsafeContent: modalContent
-                };
-
-                break;
-            default:
-                throw 'invalid action provided to item button handler';
-        }
+        useManualActionButtons = false;
     }
 
-    if(modalObj == null)
+    if(!useManualActionButtons)
     {
-        modalObj = new Modal(dataType, objIdentifier, modalOpts, modalType, action);
+        // init toggle switches
+        Tuning.prototype.initToggles(function (dataEvents, active) {
+            Tuning.prototype.appConfigHandler($(this), 'toggle', active);
+        });
+
+        // input text boxes and other input elmnts
+        $('.configValInputs').off().change(function () {
+            Tuning.prototype.appConfigHandler($(this), 'input');
+        });
     }
-
-    // init modal
-    modalObj.initModal(action);
-};
-
-Tuning.prototype.initConfigItemHandlers = function () {
-    /*
-        Initialize the handlers for all config item blob table items
-     */
-
-    // set modal theme (requirement of vex)
-    vex.defaultOptions.className = 'vex-theme-default';
-
-    // modals for CRUD
-    // NOTE: we're using off() here in order to remove any preexisting event handlers as this function can be ran
-    // multiple times, causing multiple listeners doing the same thing
-    $('.delete').off().click(function () {
-        Tuning.prototype.itemButtonHandler($(this), 'confirmation', 'delete');
-    });
-    $('.edit').off().click(function () {
-        Tuning.prototype.itemButtonHandler($(this), 'general', 'edit');
-    });
-    // set add button hover on top of click for add buttons
-    $('.add').off().click(function () {
-        Tuning.prototype.itemButtonHandler($(this), 'general', 'add');
-    }).hover(function () {
-        var origAddButtonText = $(this).text();
-
-        // save to element for use in leave function below
-        $(this).data('orig-text', origAddButtonText);
-
-        $(this).html('<p class="accent">+</p> Add ' + origAddButtonText);
-    }, function () {
-        $(this).html($(this).data('orig-text'));
-    });
+    else
+    {
+        // still init toggle switches so that they are shown in the view to the user
+        // DEV NOTE: typically used when running this function during an ADD context
+        Tuning.prototype.initToggles();
+    }
 };
 
 Tuning.prototype.runPostConfigLoad = function () {
     /*
         Perform any logic needed for AFTER config data has been loaded into the view
 
-        Addl. Info: this function is intended to be ran as a callback function, i.e. loaded by the controller directly
-            for the Tuning module
+        * intended to be ran after loadTuningConfiguration()
      */
 
     // init fuzzy timestamps
@@ -903,5 +498,5 @@ Tuning.prototype.runPostConfigLoad = function () {
     Tuning.prototype.setConfigChangeTriggerEvts();
 
     // add listening for config data item blobs
-    Tuning.prototype.initConfigItemHandlers();
+    ConfigTable.prototype.initConfigItemHandlers();
 };

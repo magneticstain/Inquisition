@@ -7,6 +7,8 @@
 "use strict";
 
 var Stats = function () {
+    Module.call(this);
+
     Stats.statDataPoints = {
         parsers: [
             [ 'Total Logs Processed', 'total_logs_processed' ],
@@ -28,13 +30,55 @@ var Stats = function () {
     Stats.chartData = [];
 };
 
+// Loading Functs
+Stats.prototype.generateStatDataPointHTML = function (dataPointSet) {
+    /*
+        Create concatonated html for all data points in set
+     */
+
+    var dataPointChartHTML = '';
+
+    $.each(dataPointSet, function (idx, datapointMetadata) {
+        dataPointChartHTML += '' +
+            '<h3 class="title subtitle">' + datapointMetadata[0] + '</h3>' +
+            '<canvas id="' + datapointMetadata[1] + '" class="chart"></canvas>';
+    });
+
+    return dataPointChartHTML;
+};
+
+Stats.prototype.loadStats = function (statData, contentWrapper) {
+    /*
+        Load and display stat containers
+     */
+
+    Stats.rawStatData = statData.data;
+
+    // generate chart html for parsers and templates
+    var contentHTML = ' ' +
+        '<div id="contentTitleWrapper" class="contentModule">' +
+        '   <h1 class="title">' + Global.normalizeTitle('stats') + '</h1>' +
+        '</div>' +
+        '<div id="primaryContentData" class="contentModule">' +
+        '   <div id="chartsWrapper" class="moduleDataWrapper">' +
+        '       <h2 class="title subtitle">Parsers</h2>' +
+        Stats.prototype.generateStatDataPointHTML(Stats.statDataPoints.parsers) +
+        '       <h2 class="title subtitle">Templates</h2>' +
+        Stats.prototype.generateStatDataPointHTML(Stats.statDataPoints.templates) +
+        '   </div>' +
+        '</div>';
+
+    // update content container with html data
+    contentWrapper.html(contentHTML);
+};
+
+// Post-Load Functs
 Stats.prototype.initChart = function (elmnt, chartData, chartOpts, chartType) {
     /*
         Create chart with given data and options
      */
 
-    if(chartType == null)
-    {
+    if(chartType == null) {
         // set to default chart type - bar graph
         chartType = 'bar';
     }
@@ -51,31 +95,28 @@ Stats.prototype.prepCharts = function () {
         Run logic for after stats wrapper has been loaded
      */
 
-
     // traverse each type of stat data point and create a graph for each
     $.map(Stats.statDataPoints, function (statTypeSet, statType) {
         $.each(statTypeSet, function (idx, datapointSet) {
-            var labelSet = [];
-            var statDataSet = [];
-            var datasetLabel = datapointSet[0];
-            var dataPointKey = datapointSet[1];
-            var chartOpts = {};
-            var chartType = 'bar';
+            var labelSet = [],
+                statDataSet = [],
+                datasetLabel = datapointSet[0],
+                dataPointKey = datapointSet[1],
+                chartOpts = {},
+                chartType = 'bar';
 
             // traverse each piece of stat data we have and see if our data point is present
             $.map(Stats.rawStatData, function (statData, statKey) {
                 // check if current data point has a value in stat data
-                if(typeof statData[dataPointKey] !== "undefined")
-                {
-                    // value present, let's add it
+                if(typeof statData[dataPointKey] !== "undefined") {
+                    // value present - let's add it to the master set
                     labelSet.push(statKey);
                     statDataSet.push(statData[dataPointKey]);
                 }
             });
 
-            if(datapointSet[2] != null)
-            {
-                // unit set, append it to label
+            if(datapointSet[2] != null) {
+                // measurement unit set - append it to label
                 datasetLabel += ' (' + datapointSet[2] + ')';
             }
 
@@ -98,45 +139,4 @@ Stats.prototype.prepCharts = function () {
             Stats.prototype.initChart($('#' + dataPointKey), chartData, chartOpts, chartType);
         });
     });
-};
-
-Stats.prototype.generateStatDataPointHTML = function (dataPointSet) {
-    /*
-        Create concatonated html for all data points in set
-     */
-
-    var dataPointChartHTML = '';
-
-    $.each(dataPointSet, function (idx, datapointMetadata) {
-        dataPointChartHTML += '' +
-            '<h3 class="title subtitle">' + datapointMetadata[0] + '</h3>' +
-            '<canvas id="' + datapointMetadata[1] + '" class="chart"></canvas>';
-    });
-
-    return dataPointChartHTML;
-};
-
-Stats.prototype.loadStats = function (onlyContent, statData, contentWrapper) {
-    /*
-        Load and display stats to user
-     */
-
-    Stats.rawStatData = statData.data;
-
-    // generate chart html for parsers and templates
-    var contentHTML = ' ' +
-        '<div id="contentTitleWrapper" class="contentModule">' +
-        '   <h1 class="title">' + Global.normalizeTitle('stats') + '</h1>' +
-        '</div>' +
-        '<div id="primaryContentData" class="contentModule">' +
-        '   <div id="chartsWrapper" class="moduleDataWrapper">' +
-        '       <h2 class="title subtitle">Parsers</h2>' +
-        Stats.prototype.generateStatDataPointHTML(Stats.statDataPoints.parsers) +
-        '       <h2 class="title subtitle">Templates</h2>' +
-        Stats.prototype.generateStatDataPointHTML(Stats.statDataPoints.templates) +
-        '   </div>' +
-        '</div>';
-
-    // update content container with html data
-    contentWrapper.html(contentHTML);
 };

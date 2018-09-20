@@ -1,55 +1,21 @@
 /*
     Inquisition // Celestial // Controller.js
 
-    - JS lib for controller functions in context of MVC framework
+    - JS lib for internal controller functions in context of MVC framework
  */
 
 "use strict";
 
-var Controller = function () {};
-
-Controller.initLoadingModal = function (container, modalSize, htmlOnly) {
-    /*
-        Update HTML of given container with loading modal
-     */
-
-    if(modalSize == null)
-    {
-        modalSize = 'standard';
-    }
-
-    var moduleHTML = '' +
-        '<div class="loadingModuleContainer blockCenter">' +
-        '   <div class="' + modalSize + ' loadingModule">' +
-        '       <img src="/static/imgs/icons/loading.svg" alt="Loading content..." title="Loading content, please wait...">' +
-        '       <p class="fancyHeading">loading, please wait...</p>' +
-        '   </div>' +
-        '</div>';
-
-    if(htmlOnly)
-    {
-        return moduleHTML;
-    }
-    else
-    {
-        // update container with html instead of just returning html
-        try
-        {
-            container.html(moduleHTML);
-        }
-        catch (e)
-        {
-            console.log('could not update given container for loading :: [ ' + e + ' ]')
-            return false;
-        }
-    }
-
-    return true;
+var Controller = function (contentWrapper, contentKey) {
+    this.contentWrapper = contentWrapper;
+    this.contentKey = contentKey;
+    this.fadeOutFunct = function () {};
+    this.fadeInFunct = function () {};
 };
 
-Controller.getContentConstraints = function (GETVarKey, defaultVal, cookieKey) {
+Controller.prototype.getContentConstraints = function (defaultVal, GETVarKey, cookieKey) {
     /*
-        Load content constraint from key
+        Load content constraint from key, either via GET var or cookie
      */
 
     var constraintVal = '';
@@ -76,34 +42,36 @@ Controller.getContentConstraints = function (GETVarKey, defaultVal, cookieKey) {
     return constraintVal;
 };
 
-Controller.initContent = function (contentWrapper, contentKey, onlyContent, contentLimit, contentSortFieldOpts) {
+Controller.prototype.initContent = function (contentWrapper, contentKey, contentLimit, contentSortFieldOpts,
+                                             onlyContent) {
     /*
         Load HTML for content based on given content key
+
+        Works by:
+            1) Defining logic based on content key
+            2) Running the fadeOut/fadeIn functions to load the content
      */
+
+    contentWrapper = contentWrapper || this.contentWrapper;
+    contentKey = contentKey || this.contentKey;
+    contentLimit = contentLimit || parseInt(this.getContentConstraints(50, 'l', 'content_limit'));
+    contentSortFieldOpts = contentSortFieldOpts || [
+        this.getContentConstraints('alert_id', 'o', 'order_by'),
+        this.getContentConstraints('asc', 'p', 'alert_order_placement')
+    ];
 
     var alerts = new Alerts(),
         stats = new Stats(),
         tuning = new Tuning(),
-        normalizedContentKey = contentKey.toLowerCase(),
         apiEndpointAndParams = '',
-        titleHTML = '',
-        optionsHTML = '',
-        fadeOutFunct = function () {},
-        fadeInFunct = function () {};
-
-    // check if certain data should be loaded from other sources
-    if(contentLimit == null)
-    {
-        contentLimit = parseInt(this.getContentConstraints('l', 50, 'content_limit'));
-    }
-    if(contentSortFieldOpts == null)
-    {
-        contentSortFieldOpts = [ this.getContentConstraints('o', 'alert_id', 'order_by'),
-            this.getContentConstraints('p', 'asc', 'alert_order_placement') ];
-    }
+        titleHTML = '' +
+            '<div id="contentTitleWrapper" class="contentModule">' +
+            '   <h1 class="title">' + Global.normalizeTitle(contentKey) + '</h1>' +
+            '</div>',
+        optionsHTML = '';
 
     // set vars based on type of content we have to load
-    switch (normalizedContentKey) {
+    switch (contentKey) {
         case 'alert':
             // get alert ID
             var alertID = parseInt(Global.getIdentifierFromURL());
@@ -111,43 +79,45 @@ Controller.initContent = function (contentWrapper, contentKey, onlyContent, cont
             // format api call
             apiEndpointAndParams = 'alerts/?i=' + alertID + '&l=1';
 
-            fadeOutFunct = alerts.loadSingleAlert;
-            fadeInFunct = alerts.setPostStandalonAlertLoadOpts;
+            this.fadeOutFunct = alerts.loadSingleAlert;
+            this.fadeInFunct = alerts.setPostStandalonAlertLoadOpts;
 
             break;
         case 'stats':
             // format api call
             apiEndpointAndParams = 'stats/';
 
-            fadeOutFunct = stats.loadStats;
-            fadeInFunct = stats.prepCharts;
+            this.fadeOutFunct = stats.loadStats;
+            this.fadeInFunct = stats.prepCharts;
 
             break;
         case 'tuning':
             // format api call
             apiEndpointAndParams = 'tuning/?t=all';
 
-            fadeOutFunct = tuning.loadTuningConfiguration;
-            fadeInFunct = tuning.runPostConfigLoad;
+            this.fadeOutFunct = tuning.loadTuningConfiguration;
+            this.fadeInFunct = tuning.runPostConfigLoad;
 
             break;
+        case 'alerts':
         default:
             // default option is always alerts
-            // override content key
-            normalizedContentKey = 'alerts';
+            // override content key in case this is triggered as the 'default' behavior
+            contentKey = 'alerts';
 
-            // set API endpoint
             apiEndpointAndParams = 'alerts/?o=' + contentSortFieldOpts[0]
                 + '&p=' + contentSortFieldOpts[1] + '&l=' + contentLimit;
 
             // build alert limit options html
-            var availableAlertLimits = [50, 250, 500, 0],
+            var availableAlertLimits = [ 50, 250, 500, 0 ],
                 selectedClass = '';
+
             optionsHTML = '' +
                 '<div class="contentOptions contentModule">' +
                 '   <span>Show: ';
+
+            // traverse and generate html for each alert limit available
             availableAlertLimits.forEach(function (alertLimit, idx) {
-                // check if first element to see if visual break is needed before option
                 if(idx !== 0) {
                     optionsHTML += ' | ';
                 }
@@ -158,7 +128,7 @@ Controller.initContent = function (contentWrapper, contentKey, onlyContent, cont
                     selectedClass = ' selected';
                 }
 
-                // append combined html for option
+                // append combined html for option to collective option html
                 optionsHTML += '<p class="option alertShow' + alertLimit + selectedClass + '">';
                 if(alertLimit === 0) {
                     optionsHTML += 'All';
@@ -171,24 +141,15 @@ Controller.initContent = function (contentWrapper, contentKey, onlyContent, cont
                 '   </span>' +
                 '</div>';
 
-            fadeOutFunct = alerts.loadAlerts;
-            fadeInFunct = alerts.setPostAlertLoadingOptions;
+            this.fadeOutFunct = alerts.loadAlerts;
+            this.fadeInFunct = alerts.setPostAlertLoadingOptions;
 
             break;
     }
 
-    Global.setActiveElement('.navOption', '.' + normalizedContentKey);
-
-    if(titleHTML === '')
-    {
-        // custom title html not provided; set title HTML to default format
-        titleHTML = ' ' +
-            '<div id="contentTitleWrapper" class="contentModule">' +
-            '   <h1 class="title">' + Global.normalizeTitle(normalizedContentKey) + '</h1>' +
-            '</div>';
-    }
+    Global.setActiveElement('.navOption', '.' + contentKey);
 
     // load data for user
-    Mystic.initAPILoad(contentWrapper, 'GET', '/api/v1/' + apiEndpointAndParams, fadeOutFunct, fadeInFunct,
+    Mystic.initAPILoad(contentWrapper, 'GET', '/api/v1/' + apiEndpointAndParams, this.fadeOutFunct, this.fadeInFunct,
         20000, onlyContent, titleHTML + optionsHTML, contentSortFieldOpts);
 };

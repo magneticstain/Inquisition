@@ -1,7 +1,7 @@
 /*
     Inquisition // Celestial // Mystic.js
 
-    - JS lib for loading remote data via API calls
+    - JS lib for loading remote data via API calls and any other public controller-related functions
  */
 
 "use strict";
@@ -26,7 +26,7 @@ Mystic.queryAPI = function (httpMethod, apiURL, timeout, data, successFunction, 
 };
 
 Mystic.initAPILoad = function (contentWrapper, httpMethod, apiUrl, fadeOutFunct, fadeInFunct, timeout, onlyContent,
-                               initialHtml, orderByFieldOpts, postData) {
+                                   initialHtml, orderByFieldOpts, postData) {
     /*
         Abstraction class for making API call and performing before and after functionality
      */
@@ -37,13 +37,15 @@ Mystic.initAPILoad = function (contentWrapper, httpMethod, apiUrl, fadeOutFunct,
         orderByFieldOpts = [];
     }
 
+    var orderByField = orderByFieldOpts[0],
+        orderByPlacementKey = orderByFieldOpts[1];
+
     Mystic.queryAPI(httpMethod, apiUrl, timeout, postData, function (apiData) {
         contentWrapper.fadeOut(250, function () {
             try {
-                fadeOutFunct(onlyContent, apiData, contentWrapper, initialHtml, orderByFieldOpts[0],
-                    orderByFieldOpts[1]);
+                fadeOutFunct(apiData, contentWrapper, initialHtml, onlyContent, orderByField, orderByPlacementKey);
             } catch (e) {
-                ErrorBot.generateError(3, 'issue initiating data call :: [ ' + e + ' ]');
+                ErrorBot.generateError(3, 'issue initiating API call for data :: [ ' + e + ' ]');
             }
         }).fadeIn(250, function () {
             try {

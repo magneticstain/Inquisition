@@ -14,6 +14,8 @@ $(document).ready(function () {
     Nav.prepNavMenu();
 
     // load content based on content key
-    Controller.initLoadingModal($('#loadingContainer'), 'large');
-    Controller.initContent($('#contentWrapper'), Global.getContentKeyFromCleanURL());
+    View.initLoadingModal($('#loadingContainer'), 'large');
+
+    var appController = new Controller($('#contentWrapper'), Global.getContentKeyFromCleanURL());
+    appController.initContent();
 });

@@ -163,9 +163,12 @@ class View
     <script defer src="/static/js/plugins/jquery.timeago.js"></script>
     <script defer src="/static/js/plugins/Chart.bundle.min.js"></script>
     <script defer src="/static/js/lib/global.js"></script>
+    <script defer src="/static/js/lib/view.js"></script>
     <script defer src="/static/js/lib/errorbot.js"></script>
     <script defer src="/static/js/lib/mystic.js"></script>
     <script defer src="/static/js/lib/modal.js"></script>
+    <script defer src="/static/js/lib/config_table.js"></script>
+    <script defer src="/static/js/lib/module.js"></script>
     <script defer src="/static/js/lib/alerts.js"></script>
     <script defer src="/static/js/lib/stats.js"></script>
     <script defer src="/static/js/lib/tuning.js"></script>

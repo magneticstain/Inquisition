@@ -41,16 +41,16 @@
 }
 
 /* Loading Module */
-.large.loadingModule {
+.large.loadingModal {
     margin: 135px auto;
     padding: 24px;
 }
 
-.large.loadingModule p {
+.large.loadingModal p {
     margin-top: 64px;
 }
 
-.large.loadingModule img {
+.large.loadingModal img {
     height: 230px;
 }
 

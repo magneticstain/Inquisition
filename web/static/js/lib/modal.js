@@ -7,15 +7,18 @@
 "use strict";
 
 var Modal = function (contentDataType, parentObjID, modalOpts, modalType, masterAction) {
-    this.contentDataType = contentDataType ? contentDataType : '';
-    this.parentObjID = parentObjID ? parentObjID : 0;
-    this.modalOpts = modalOpts ? modalOpts : {};
+    this.contentDataType = contentDataType || '';
+    this.parentObjID = parentObjID || 0;
+    this.modalOpts = modalOpts || {};
     this.modalType = modalType;
     this.masterAction = masterAction;
     this.fadeInFunct = function () {};
     this.fadeOutFunct = function () {};
 
-    this.setTransitionFunctions();
+    this.setModalTransitionFunctions();
+
+    // set modal theme (requirement of vex)
+    vex.defaultOptions.className = 'vex-theme-default';
 };
 
 // Modal Content Functs
@@ -92,7 +95,8 @@ Modal.prototype.loadParserTemplateMappings = function (mappingContainer, parserD
                     key: 'parser_log',
                     rawVal: parserData.parser_log
                 }
-            ], '<div class="modalContentSetData templateList" data-template-id="'
+            ], '<div class="modalContentSetData dataBlobWrapper dataBlobContainer templateList" ' +
+                'data-datatype="template" data-identifier="'+ jsonEncodedMappedTemplateIds + '" data-template-id="'
                 + jsonEncodedMappedTemplateIds + '"></div>', parentParserId);
 
             mappingContainer.html(modalHTML);
@@ -171,10 +175,10 @@ Modal.prototype.updateParserTemplateMapping = function (parser_id, template_id, 
     return true;
 };
 
-Modal.prototype.initContentSetDataSelectors = function (contentSetType, parentContentDataType, selectionIsExclusive,
-                                                        allowFullDeselections, sendData) {
+Modal.prototype.initModalContentSetDataListeners = function (contentSetType, parentContentDataType,
+                                                             selectionIsExclusive, allowFullDeselections, sendData) {
     /*
-        Prepare any event handlers needed for acting on changes by the user to the content set data list(s)
+        Prepare any event listeners needed for acting on changes by the user to the content set data list(s)
      */
 
     if(contentSetType == null)
@@ -182,6 +186,7 @@ Modal.prototype.initContentSetDataSelectors = function (contentSetType, parentCo
         throw 'no content set data type provided during CSD selector initialization';
     }
 
+    // CSD entry listeners (select and delete)
     $('.modalContentSetDataListEntry').off().click(function () {
         var parentObjId = $(this).parents('.modalContentSet').data('obj-id'),
             itemDataType = $(this).data('data-type'),
@@ -191,7 +196,7 @@ Modal.prototype.initContentSetDataSelectors = function (contentSetType, parentCo
 
         if(sendData)
         {
-            if (parentContentDataType === 'parser' && itemDataType === 'template') {
+            if(parentContentDataType === 'parser' && itemDataType === 'template') {
                 var httpMethod = 'PUT';
 
                 if ($(this).hasClass(selectedClass)) {
@@ -211,8 +216,14 @@ Modal.prototype.initContentSetDataSelectors = function (contentSetType, parentCo
         // clear all other selections if exclusive flagged is marked
         if(selectionIsExclusive === true)
         {
-            $(this).parent().children('.modalContentSetDataListEntry').removeClass(selectedClass);
+            // DEV NOTE: we can't just use $.siblings() here because the .modalContentSetDataListEntry elmnts are
+            // separated within their own wrappers
+            $(this).parents('.modalContentSetDataList').find('.modalContentSetDataListEntry').not(this)
+            .removeClass(selectedClass);
         }
+
+        // remove the hover class that has been added now that we've clicked the element
+        $(this).removeClass('hover');
 
         // allow possibility to deselect any item, or just add the ability to select an obj (by click only*)
         if(allowFullDeselections === true)
@@ -224,18 +235,24 @@ Modal.prototype.initContentSetDataSelectors = function (contentSetType, parentCo
             $(this).addClass(selectedClass);
         }
     }).hover(function () {
-        var entryContainerElmnt = $(this).parent();
+        var entryContainerElmnt = $(this).parent(),
+            contentSetDataItemDataType = $(this).data('data-type'),
+            contentSetDataItemId = $(this).data('item-id');
 
         // add delete button and its event handler
-        entryContainerElmnt.prepend('<span class="modalContentSetDataActionButton">[-] remove</span>');
-        $('.modalContentSetDataActionButton').click(function () {
-            console.log('here');
+        entryContainerElmnt.prepend('<span class="modalContentSetDataActionButton delete">[-] remove</span>');
+        $('.modalContentSetDataActionButton.delete').click(function () {
+            Tuning.prototype.deleteInquisitionDataObj(contentSetDataItemDataType, contentSetDataItemId);
+            $(this).parent().fadeOut();
         });
 
-        $(this).addClass('hover');
+        if(!$(this).hasClass('selected'))
+        {
+            $(this).addClass('hover');
+        }
     });
 
-    // DEV NOTE: we perform the hover leave callback separately, on the container element instead of the entry element
+    // DEV NOTE: we perform the hover leave callback separately, on the container element instead of the entry element,
     //  so that we can have the action button outside of the entry itself, but the mouseleave logic won't trigger when
     //  the user hovers over the action button
     $('.modalContentSetDataListEntryContainer').hover(function () {}, function () {
@@ -246,7 +263,7 @@ Modal.prototype.initContentSetDataSelectors = function (contentSetType, parentCo
     });
 
     // add config item handlers as well (add/edit/delete logic)
-    Tuning.prototype.initConfigItemHandlers();
+    ConfigTable.prototype.initConfigItemHandlers();
 };
 
 Modal.prototype.generateModalContentSetDataHTML = function (dataType, dataSet) {
@@ -259,18 +276,17 @@ Modal.prototype.generateModalContentSetDataHTML = function (dataType, dataSet) {
         throw 'empty data type not allowed when generating modal set HTML';
     }
 
-    var html = '' +
-        '<div data-content-set-data-type="' + dataType + '" id="' + dataType + 'DataSet" ' +
-        'class="modalContentSetDataList ' + dataType + 'DataSet">',
+    var html = '<div id="' + dataType + 'DataSet" class="modalContentSetDataList ' + dataType + 'DataSet">',
         contentSetDataID = $('.' + dataType + 'List').data(dataType + '-id'),
         itemDataId = 0,
         itemName = 'UNKNOWN',
         itemKeyName = '',
+        idxItemKeyName = '',
         selectedItemClassName = '',
         itemNonAddableClass = '';
 
     // multiple content set data IDs are supported; JSON strings are how they're stored serially
-    // we should see if that's the case
+    // we should see if that's the case first and deserialize it
     try
     {
         contentSetDataID = JSON.parse(contentSetDataID);
@@ -284,6 +300,13 @@ Modal.prototype.generateModalContentSetDataHTML = function (dataType, dataSet) {
             case 'field':
                 itemName = modalContentSetItem.field_name;
                 itemKeyName = 'field_id';
+
+                break;
+            case 'field_type':
+                itemName = '[ <strong>' + modalContentSetItem.type_key.toUpperCase() + '</strong> ] '
+                    + Global.normalizeTitle(modalContentSetItem.type_name);
+                itemKeyName = 'field_type';
+                idxItemKeyName = 'type_id';
 
                 break;
             case 'regex':
@@ -303,7 +326,18 @@ Modal.prototype.generateModalContentSetDataHTML = function (dataType, dataSet) {
             default:
                 throw 'unknown data type provided when generating modal content set list HTML';
         }
-        itemDataId = modalContentSetItem[itemKeyName];
+
+        // get item ID
+        if(idxItemKeyName === '')
+        {
+            // use key name as index for ID value
+            itemDataId = modalContentSetItem[itemKeyName];
+        }
+        else
+        {
+            // use alt index that has been set for given use case
+            itemDataId = modalContentSetItem[idxItemKeyName];
+        }
 
         // add html, with selected class being added if id's match
         if(itemDataId === contentSetDataID || $.inArray(itemDataId, contentSetDataID) !== -1)
@@ -353,7 +387,7 @@ Modal.prototype.loadModalContentSet = function (contentSetType, parentContentDat
             Modal.prototype.generateModalContentSetDataHTML(contentSetType, apiData.data)
         );
 
-        Modal.prototype.initContentSetDataSelectors(contentSetType, parentContentDataType, useExclusiveSelections,
+        Modal.prototype.initModalContentSetDataListeners(contentSetType, parentContentDataType, useExclusiveSelections,
             allowFullDeselection, sendContentSetDataToApi);
     }, function () {
         ErrorBot.generateError(4, 'could not load ' + contentSetType + ' data from the Inquisition API');
@@ -361,12 +395,141 @@ Modal.prototype.loadModalContentSet = function (contentSetType, parentContentDat
 };
 
 // -> Modal Action Functs
-Modal.prototype.runTransitionFunctionsOnDemand = function (dataContainer) {
+Modal.prototype.runTransitionFunctionsOnDemand = function (dataContainer, actionOverride) {
     /*
         Run obj's fadeOut and fadeIn functions in realtime
      */
 
-    this.fadeOutFunct(false, null, dataContainer, this.masterAction, this.fadeInFunct);
+    var action = this.masterAction;
+    if(actionOverride != null)
+    {
+        action = actionOverride;
+    }
+
+    this.fadeOutFunct(null, dataContainer, action, this.fadeInFunct);
+};
+
+Modal.prototype.getConfigValData = function (dataType) {
+    /*
+        Gather all config data within modal as object and return it
+     */
+
+    var configData = {
+        keyData: {
+            fields: []
+        },
+        valData: {
+            values: []
+        }
+    };
+
+    $('.modalContent.' + dataType + 'Modal .configValInputs:not(.ignoreForObjAdding)').each(function () {
+        var key = $(this).data('key'),
+            val = '';
+
+        if(typeof $(this).data('toggle-active') !== 'undefined')
+        {
+            // input is a toggle - convert state to bool
+            val = $(this).data('toggle-active') === true ? 1 : 0;
+        }
+        else if($(this).hasClass('modalContentSetDataListEntry'))
+        {
+            // input is a CSD entry, which also requires different handling
+            if(!$(this).hasClass('selected'))
+            {
+                // item wasn't selected so we don't care about it for this
+                return;
+            }
+
+            val = $(this).data('item-id');
+        }
+        else
+        {
+            val = $(this).val();
+        }
+
+        // add data to master input data store
+        configData['keyData']['fields'].push(key);
+        configData['valData']['values'].push(val);
+    });
+
+    return configData;
+};
+
+Modal.prototype.postDataSaveHandler = function (apiResponse, dataType) {
+    /*
+        Handler function for after a config data within a modal is saved/created
+     */
+
+    // check if extra operations are needed
+    if(dataType === 'parser')
+    {
+        var parserID = apiResponse.data['id'] || 0;
+
+        // generate PT mapping for each selected template
+        $('.modalContentSetDataListEntry').each(function () {
+            if($(this).hasClass('selected'))
+            {
+                var templateID = $(this).data('item-id');
+                Modal.prototype.updateParserTemplateMapping(parserID, templateID, 'PUT');
+            }
+        });
+    }
+
+    // process primary post-save logic
+    if(apiResponse.status === 'success')
+    {
+        // reload dataset blob
+        var apiRequestURL = '/api/v1/tuning/?t=' + dataType;
+        // override API url when dealing with IOC field mappings since it's a "correlated" object type
+        // see Issue #107 < https://github.com/magneticstain/Inquisition/issues/107 >
+        if(dataType === 'ioc_field_mapping')
+        {
+            // use the 'all' special value here since IOC field mapping listings require field data as well
+            apiRequestURL = '/api/v1/tuning/?t=all';
+        }
+
+        // DEV NOTE: due to a race condition with the fadeOut() animation used along with vex, we must get the
+        //  parent data-type before manipulating any modals
+        var parentDataType = $('.modalContentWrapper:nth-last-child(2)').data('datatype');
+
+        // close top modal
+        vex.closeTop();
+
+        // check if there are any existing modals; if so, reload the data of them
+        if(typeof vex.getAll()[2] !== 'undefined')
+        {
+            // modal is still open, reload the relevant CSD within it
+            var modalContainer = $('.modalContent.' + parentDataType + 'Modal'),
+                parentAction = modalContainer.data('action');
+            Modal.prototype.setModalTransitionFunctions(parentDataType);
+            Modal.prototype.runTransitionFunctionsOnDemand(modalContainer, parentAction);
+        }
+
+        // query api and reload relevant config item table with returned data
+        // set data type for use later in api query callback funct (dataType isn't in scope for callback funct)
+        Global.prototype.queryGlobalAccessData('set', 'tuning', 'postActionDataType', dataType);
+        Mystic.queryAPI('GET', apiRequestURL, 20000, null, function (apiResponse) {
+            var apiData = apiResponse.data,
+                addlDataForCorrelation = null,
+                dataType = Global.prototype.queryGlobalAccessData('get', 'tuning', 'postActionDataType');
+
+            // ioc field mappings require special handling; see above
+            if(dataType === 'ioc_field_mapping')
+            {
+                apiData = apiResponse.data.ioc_field_mapping;
+                addlDataForCorrelation = apiResponse.data.field;
+            }
+
+            $('.' + dataType + 'Blob').replaceWith(ConfigTable.prototype.getObjDataHTML(dataType, apiData,
+                addlDataForCorrelation));
+
+            // add listening for config data item blobs
+            ConfigTable.prototype.initConfigItemHandlers();
+        }, function () {
+            ErrorBot.generateError(4, dataType + ' data could not be reloaded');
+        });
+    }
 };
 
 Modal.prototype.setFormActionButtonHandlers = function () {
@@ -374,7 +537,7 @@ Modal.prototype.setFormActionButtonHandlers = function () {
         Set handler functions for all action buttons
      */
 
-    $('.clear').click(function () {
+    $('.clear').off().click(function () {
         // reset toggles
         Tuning.prototype.initToggles();
 
@@ -385,102 +548,10 @@ Modal.prototype.setFormActionButtonHandlers = function () {
         $('.modalContentSetDataListEntry').removeClass('selected');
     });
 
-    $('.save').click(function () {
+    $('.save').off().click(function () {
         var dataType = $(this).parents('.modalContentWrapper').data('datatype'),
-            inputData = {
-                keyData: {
-                    fields: []
-                },
-                valData: {
-                    values: []
-                }
-            };
-
-        // collect input data
-        $('.modalContentWrapper .configValInputs:not(.ignoreForObjAdding)').each(function () {
-            var key = $(this).data('key'),
-                val = '';
-
-            if(typeof $(this).data('toggle-active') !== 'undefined')
-            {
-                // input is a toggle - convert state to bool
-                val = $(this).data('toggle-active') === true ? 1 : 0;
-            }
-            else if($(this).hasClass('modalContentSetDataListEntry'))
-            {
-                // input is a CSD entry, which also requires different handling
-                if(!$(this).hasClass('selected'))
-                {
-                    // item wasn't selected so we don't care about it for this
-                    return;
-                }
-
-                val = $(this).data('item-id');
-            }
-            else
-            {
-                val = $(this).val();
-            }
-
-            // add data to master input data store
-            inputData['keyData']['fields'].push(key);
-            inputData['valData']['values'].push(val);
-        });
-
-        var callbackFunct = function (apiResponse) {
-            // check if extra operations are needed
-            if(dataType === 'parser')
-            {
-                var parserID = apiResponse.data['id'];
-
-                $('.modalContentSetDataListEntry').each(function () {
-                    if($(this).hasClass('selected'))
-                    {
-                        var templateID = $(this).data('item-id');
-
-                        // add mapping
-                        Modal.prototype.updateParserTemplateMapping(parserID, templateID, 'PUT');
-                    }
-                });
-            }
-
-            // process post-add logic
-            if(apiResponse.status === 'success')
-            {
-                vex.close(window.modal);
-
-                // reload dataset blob
-                // override API url when dealing with IOC field mappings since it's a "correlated" object type
-                // see Issue #107 < https://github.com/magneticstain/Inquisition/issues/107 >
-                var apiRequestURL = '/api/v1/tuning/?t=' + dataType;
-                if(dataType === 'ioc_field_mapping')
-                {
-                    // use the 'all' special value here since IOC field mapping listings require field data as well
-                    apiRequestURL = '/api/v1/tuning/?t=all';
-                }
-
-                // query api
-                Mystic.queryAPI('GET', apiRequestURL, 20000, null, function (apiResponse) {
-                    var apiData = apiResponse.data,
-                        addlDataForCorrelation = null;
-
-                    // ioc field mappings require special handling; see above
-                    if(dataType === 'ioc_field_mapping')
-                    {
-                        apiData = apiResponse.data.ioc_field_mapping;
-                        addlDataForCorrelation = apiResponse.data.field;
-                    }
-
-                    $('.' + dataType + 'Blob').replaceWith(Tuning.prototype.getObjDataHTML(dataType, apiData,
-                        addlDataForCorrelation));
-
-                    // add listening for config data item blobs
-                    Tuning.prototype.initConfigItemHandlers();
-                }, function () {
-                    ErrorBot.generateError(4, dataType + ' data could not be reloaded');
-                })
-            }
-        };
+            inputData = Modal.prototype.getConfigValData(dataType),
+            callbackFunct = Modal.prototype.postDataSaveHandler;
 
         // send add query
         Tuning.prototype.updateConfigVal(dataType, null, null, inputData['keyData'], inputData['valData'], 'PUT',
@@ -488,15 +559,21 @@ Modal.prototype.setFormActionButtonHandlers = function () {
     });
 };
 
-Modal.prototype.setTransitionFunctions = function () {
+Modal.prototype.setModalTransitionFunctions = function (dataTypeOverride) {
     /*
         Set the fade-in and fade-out functions based on various params
      */
 
-    switch(this.contentDataType)
+    var dataType = this.contentDataType;
+    if(dataTypeOverride != null)
+    {
+        dataType = dataTypeOverride;
+    }
+
+    switch(dataType)
     {
         case 'template':
-            this.fadeOutFunct = function (onlyContent, apiData, contentWrapper, action, callback) {
+            this.fadeOutFunct = function (apiData, contentWrapper, action, callback) {
                 if(apiData == null || apiData.data == null || typeof apiData.data[0] === 'undefined')
                 {
                     apiData = { data: [ {} ] };
@@ -530,10 +607,11 @@ Modal.prototype.setTransitionFunctions = function () {
                                 rawVal: templateName
                             }
                         ],
-                        '<div class="modalContentSetData fieldList" data-field-id="' + fieldId + '">'
-                            + '</div>'
-                            + '<div class="modalContentSetData regexList" data-regex-id="' + regexId + '">'
-                            + '</div>',
+                        '<div class="modalContentSetData dataBlobWrapper dataBlobContainer fieldList" ' +
+                        'data-datatype="field" data-field-id="' + fieldId + '" data-identifier="' + fieldId + '">'
+                        + '</div>' + '<div class="modalContentSetData dataBlobWrapper dataBlobContainer regexList" ' +
+                        'data-datatype="regex" data-identifier="' + regexId + '" data-regex-id="' + regexId + '">' +
+                        '</div>',
                         templateId
                     )
                 );
@@ -556,8 +634,8 @@ Modal.prototype.setTransitionFunctions = function () {
                 }
 
                 // gather fields and regex data
-                Modal.prototype.loadModalContentSet('field', 'template', true, false, sendDataToApi);
-                Modal.prototype.loadModalContentSet('regex', 'template', true, false, sendDataToApi);
+                Modal.prototype.loadModalContentSet('field', dataType, true, false, sendDataToApi);
+                Modal.prototype.loadModalContentSet('regex', dataType, true, false, sendDataToApi);
 
                 Tuning.prototype.setConfigChangeTriggerEvts(useManualActionButtons);
                 Modal.prototype.setFormActionButtonHandlers();
@@ -565,7 +643,7 @@ Modal.prototype.setTransitionFunctions = function () {
 
             break;
         case 'parser':
-            this.fadeOutFunct = function (onlyContent, apiData, contentWrapper, action, callback) {
+            this.fadeOutFunct = function (apiData, contentWrapper, action, callback) {
                 // set default data
                 if(apiData == null || apiData.data[0] == null || typeof apiData.data[0] === 'undefined')
                 {
@@ -597,7 +675,7 @@ Modal.prototype.setTransitionFunctions = function () {
 
             break;
         case 'known_host':
-            this.fadeOutFunct = function (onlyContent, apiData, contentWrapper, action, callback) {
+            this.fadeOutFunct = function (apiData, contentWrapper, action, callback) {
                 // set default data
                 if(apiData == null || apiData.data[0] == null)
                 {
@@ -638,7 +716,7 @@ Modal.prototype.setTransitionFunctions = function () {
 
             break;
         case 'ioc_field_mapping':
-            this.fadeOutFunct = function (onlyContent, apiData, contentWrapper, action, callback) {
+            this.fadeOutFunct = function (apiData, contentWrapper, action, callback) {
                 // set default data
                 if(apiData == null || apiData.data[0] == null)
                 {
@@ -660,7 +738,9 @@ Modal.prototype.setTransitionFunctions = function () {
                                 rawVal: apiData.data[0].ioc_item_name
                             }
                         ],
-                        '<div class="modalContentSetData fieldList" data-field-id="' + fieldId + '">' + '</div>',
+                        '<div class="modalContentSetData dataBlobWrapper dataBlobContainer fieldList" ' +
+                        'data-datatype="field" data-identifier="' + fieldId + '" data-field-id="' + fieldId + '">' +
+                        '</div>',
                         mappingID
                     )
                 );
@@ -690,6 +770,186 @@ Modal.prototype.setTransitionFunctions = function () {
             };
 
             break;
+        case 'field':
+            this.fadeOutFunct = function (apiData, contentWrapper, action, callback) {
+                // set default data
+                if(apiData == null || apiData.data[0] == null)
+                {
+                    apiData = { data: [{ field_name: '' }] };
+                }
+
+                var fieldId = apiData.data[0].field_id || 0,
+                    typeId = apiData.data[0].field_type || 0;
+
+                contentWrapper.html(
+                    Modal.prototype.generateModalContentHTML([
+                            {
+                                inputType: 'text',
+                                label: 'Field Name',
+                                desc: 'Canonical name of field that is being parsed (e.g. source_port)',
+                                dataType: 'field',
+                                section: '',
+                                key: 'field_name',
+                                rawVal: apiData.data[0].field_name
+                            }
+                        ],
+                        '<div class="modalContentSetData dataBlobWrapper dataBlobContainer field_typeList" ' +
+                        'data-datatype="field_type" data-identifier="' + typeId + '" data-type-id="' + typeId + '">' +
+                        '</div>',
+                        fieldId
+                    )
+                );
+
+                if(callback != null)
+                {
+                    // callback function set, run it
+                    callback(action);
+                }
+            };
+
+            this.fadeInFunct = function (action) {
+                var useManualActionButtons = false,
+                    sendDataToApi = true;
+
+                if(action != null && action.toLowerCase() === 'add')
+                {
+                    useManualActionButtons = true;
+                    sendDataToApi = false;
+                }
+
+                // load content set data
+                Modal.prototype.loadModalContentSet('field_type', 'field', true, true, sendDataToApi);
+
+                Tuning.prototype.setConfigChangeTriggerEvts(useManualActionButtons);
+                Modal.prototype.setFormActionButtonHandlers();
+            };
+
+            break;
+        case 'field_type':
+            this.fadeOutFunct = function (apiData, contentWrapper, action, callback) {
+                // set default data
+                if(apiData == null || apiData.data[0] == null)
+                {
+                    apiData = { data: [{ type_id:0, type_name: '', type_key: '' }] };
+                }
+
+                var fieldTypeID = apiData.data[0].type_id || 0,
+                    fieldTypeName = apiData.data[0].type_name || '',
+                    fieldTypeKey = apiData.data[0].type_key || '';
+
+                contentWrapper.html(
+                    Modal.prototype.generateModalContentHTML([
+                            {
+                                inputType: 'text',
+                                label: 'Field Type Key',
+                                desc: 'Key to be used to quickly identify field type and use for in-app correlation',
+                                dataType: 'field_type',
+                                section: '',
+                                key: 'type_key',
+                                rawVal: fieldTypeKey
+                            },
+                            {
+                                inputType: 'text',
+                                label: 'Field Type Name',
+                                desc: 'Canonical name to describe the type of field that is being parsed ' +
+                                    '(e.g. Traffic Source)',
+                                dataType: 'field_type',
+                                section: '',
+                                key: 'type_name',
+                                rawVal: fieldTypeName
+                            }
+                        ],
+                        '',
+                        fieldTypeID
+                    )
+                );
+
+                if(callback != null)
+                {
+                    // callback function set, run it
+                    callback(action);
+                }
+            };
+
+            this.fadeInFunct = function (action) {
+                var useManualActionButtons = false;
+
+                if(action != null && action.toLowerCase() === 'add')
+                {
+                    useManualActionButtons = true;
+                }
+
+                Tuning.prototype.setConfigChangeTriggerEvts(useManualActionButtons);
+                Modal.prototype.setFormActionButtonHandlers();
+            };
+
+            break;
+        case 'regex':
+            this.fadeOutFunct = function (apiData, contentWrapper, action, callback) {
+                // set default data
+                if(apiData == null || apiData.data[0] == null)
+                {
+                    apiData = { data: [{
+                        regex: '',
+                        regex_group: 0,
+                        regex_match_index: 0
+                    }] };
+                }
+
+                contentWrapper.html(
+                    Modal.prototype.generateModalContentHTML([
+                        {
+                            inputType: 'text',
+                            label: 'Regex Pattern',
+                            desc: 'Regex pattern to use for matching data against',
+                            dataType: 'regex',
+                            section: '',
+                            key: 'regex',
+                            rawVal: apiData.data[0].regex
+                        },
+                        {
+                            inputType: 'number',
+                            label: 'Regex Group Index',
+                            desc: 'Specifies which regex group to use (by index) that has been parsed from the data',
+                            dataType: 'regex',
+                            section: '',
+                            key: 'regex_group',
+                            rawVal: apiData.data[0].regex_group
+                        },
+                        {
+                            inputType: 'number',
+                            label: 'Regex Match Index',
+                            desc: 'Specified which match to use as the parsed value when there are multiple matches ' +
+                                'for each data artifact',
+                            dataType: 'regex',
+                            section: '',
+                            key: 'regex_match_index',
+                            rawVal: apiData.data[0].regex_match_index
+                        }
+                    ])
+                );
+
+                if(callback != null)
+                {
+                    // callback function set, run it
+                    callback(action);
+                }
+            };
+
+            this.fadeInFunct = function (action) {
+                var useManualActionButtons = false;
+                if(action != null && action.toLowerCase() === 'add')
+                {
+                    useManualActionButtons = true
+                }
+
+                Tuning.prototype.setConfigChangeTriggerEvts(useManualActionButtons);
+                Modal.prototype.setFormActionButtonHandlers();
+            };
+
+            break;
+        default:
+            ErrorBot.generateError(4, 'unknown data type provided for item manipulation');
     }
 };
 
@@ -698,10 +958,7 @@ Modal.prototype.initModal = function (modalAction) {
         Initialize the modal and display to the user
      */
 
-    if(modalAction == null)
-    {
-        modalAction = 'edit';
-    }
+    modalAction = modalAction || 'add';
 
     if(this.modalType === 'confirmation')
     {
@@ -709,11 +966,17 @@ Modal.prototype.initModal = function (modalAction) {
     }
     else
     {
-        window.modal = vex.open(this.modalOpts);
+        if(window.modalSet == null)
+        {
+            window.modalSet = [];
+        }
+
+        window.modalSet.push(vex.open(this.modalOpts));
     }
 
     // load data
-    var contentContainer = $('.modalContent');
+    // DEV NOTE: the addition of the second class here is so that multiple modals can be opened and loaded independently
+    var contentContainer = $('.modalContent.' + this.contentDataType + 'Modal');
     if(modalAction === 'add')
     {
         // load blank form instead of fetching data
