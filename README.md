@@ -37,5 +37,11 @@ After installing the software, we're now ready to start using it. For informatio
 
 # Credits
 ## Third-Party Libraries
-* [predis](https://github.com/nrk/predis)
 * [pygtail](https://github.com/bgreenlee/pygtail)
+* [predis](https://github.com/nrk/predis)
+* [Chart.js](https://www.chartjs.org/docs/latest/)
+* [jquery-cookie](https://github.com/carhartl/jquery-cookie)
+* [timeago](https://timeago.yarp.com/)
+* [PACE](https://github.hubspot.com/pace/docs/welcome/)
+* [jquery-toggles](https://github.com/simontabor/jquery-toggles)
+* [vex](https://github.hubspot.com/vex/)
