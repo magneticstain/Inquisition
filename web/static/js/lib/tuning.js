@@ -408,8 +408,14 @@ Tuning.prototype.updateConfigVal = function (dataType, section, identifier, key,
         }
 
         ErrorBot.generateError(-1, 'configuration updated successfully');
-    }, function () {
-        ErrorBot.generateError(4, 'could not save configuration data via Inquisition API');
+    }, function (apiResponse) {
+        var apiError = '';
+        if(apiResponse.error != null)
+        {
+            apiError = ' :: [ ' + apiResponse.error + ' ]';
+        }
+
+        ErrorBot.generateError(4, 'could not save configuration data via Inquisition API' + apiError);
     });
 };
 

@@ -307,8 +307,14 @@ ConfigTable.prototype.deleteInquisitionDataObj = function (dataType, identifier)
         i: identifier
     }, function () {
         ErrorBot.generateError(-1, dataType + ' deleted successfully');
-    }, function () {
-        ErrorBot.generateError(4, 'could not delete ' + dataType + ' via Inquisition API');
+    }, function (apiResponse) {
+        var apiError = '';
+        if(apiResponse.error != null)
+        {
+            apiError = ' :: [ ' + apiResponse.error + ' ]';
+        }
+
+        ErrorBot.generateError(4, 'could not delete ' + dataType + ' via Inquisition API' + apiError);
     });
 };
 

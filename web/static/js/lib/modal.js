@@ -45,19 +45,26 @@ Modal.prototype.loadParserTemplateMappings = function (mappingContainer, parserD
                 jsonEncodedMappedTemplateIds = '';
             if(apiMappingData.status === 'success')
             {
-                var mappingData = apiMappingData.data;
+                var mappingData = apiMappingData.data || [];
 
                 // add mappings to global var for later use
                 Global.prototype.queryGlobalAccessData('set', 'tuning', 'parser-template-mappings', mappingData);
 
                 // traverse mappings
-                // if one matches the parent parser id, add the associated template ID to our master list
-                mappingData.forEach(function (parserTemplateMapping) {
-                    if(parserTemplateMapping.parser_id === parentParserId)
-                    {
-                        mappedTemplateIds.push(parserTemplateMapping.template_id);
-                    }
-                });
+                if($.isArray(mappingData))
+                {
+                    // if one matches the parent parser id, add the associated template ID to our master list
+                    mappingData.forEach(function (parserTemplateMapping) {
+                        if(parserTemplateMapping.parser_id === parentParserId)
+                        {
+                            mappedTemplateIds.push(parserTemplateMapping.template_id);
+                        }
+                    });
+                }
+                else
+                {
+                    ErrorBot.generateError(2, 'API query was successful, but parser template mappings not found');
+                }
 
                 // jsonify template ID list so it can be used properly with .data()
                 jsonEncodedMappedTemplateIds = JSON.stringify(mappedTemplateIds);
@@ -106,8 +113,14 @@ Modal.prototype.loadParserTemplateMappings = function (mappingContainer, parserD
                 // callback function set, run it
                 callback(action);
             }
-        }, function () {
-            ErrorBot.generateError(4, templateFetchErrorMsg);
+        }, function (apiResponse) {
+            var apiError = '';
+            if(apiResponse.error != null)
+            {
+                apiError = ' :: [ ' + apiResponse.error + ' ]';
+            }
+
+            ErrorBot.generateError(4, templateFetchErrorMsg + apiError);
         });
 };
 
@@ -389,8 +402,14 @@ Modal.prototype.loadModalContentSet = function (contentSetType, parentContentDat
 
         Modal.prototype.initModalContentSetDataListeners(contentSetType, parentContentDataType, useExclusiveSelections,
             allowFullDeselection, sendContentSetDataToApi);
-    }, function () {
-        ErrorBot.generateError(4, 'could not load ' + contentSetType + ' data from the Inquisition API');
+    }, function (apiResponse) {
+        var apiError = '';
+        if(apiResponse.error != null)
+        {
+            apiError = ' [ ' + apiResponse.error + ' ]';
+        }
+
+        ErrorBot.generateError(4, 'could not load ' + contentSetType + ' data from the Inquisition API' + apiError);
     });
 };
 
@@ -526,8 +545,14 @@ Modal.prototype.postDataSaveHandler = function (apiResponse, dataType) {
 
             // add listening for config data item blobs
             ConfigTable.prototype.initConfigItemHandlers();
-        }, function () {
-            ErrorBot.generateError(4, dataType + ' data could not be reloaded');
+        }, function (apiResponse) {
+            var apiError = '';
+            if(apiResponse.error != null)
+            {
+                apiError = ' :: [ ' + apiResponse.error + ' ]';
+            }
+
+            ErrorBot.generateError(4, dataType + ' data could not be reloaded' + apiError);
         });
     }
 };
