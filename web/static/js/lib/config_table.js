@@ -106,8 +106,9 @@ ConfigTable.prototype.generateItemHTML = function (dataType, itemIdentifierField
 
                     break;
                 case 'timestamp':
-                    itemHTML += '<time class="fuzzyTimestamp" title="' + item[itemField.objKey] + '" datetime="'
-                        + item[itemField.objKey] + '"></time>';
+                    var timestamp = Global.prototype.convertTimestampToISE9601(item[itemField.objKey]);
+                    itemHTML += '<time class="fuzzyTimestamp" title="' + timestamp + '" datetime="' + timestamp
+                        + '">' + timestamp + '</time>';
 
                     break;
                 case 'correlated':

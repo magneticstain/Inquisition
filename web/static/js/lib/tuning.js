@@ -358,12 +358,12 @@ Tuning.prototype.initToggles = function (onToggleCallback) {
     var toggleSwitches = $('.toggleSwitch');
 
     // init toggles via lib
-    toggleSwitches.toggles();
+    toggleSwitches.off().toggles();
 
     // add listener if needed
     if(onToggleCallback != null)
     {
-        toggleSwitches.off().on('toggle', onToggleCallback);
+        toggleSwitches.on('toggle', onToggleCallback);
     }
 };
 
@@ -478,7 +478,7 @@ Tuning.prototype.setConfigChangeTriggerEvts = function (useManualActionButtons) 
         });
 
         // input text boxes and other input elmnts
-        $('.configValInputs').off().change(function () {
+        $('.configValInputs:not(.toggleSwitch)').off().change(function () {
             Tuning.prototype.appConfigHandler($(this), 'input');
         });
     }

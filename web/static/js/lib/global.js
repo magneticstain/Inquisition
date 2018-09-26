@@ -104,6 +104,24 @@ Global.initFuzzyTimestamps = function () {
     $('time.fuzzyTimestamp').timeago();
 };
 
+Global.prototype.convertTimestampToISE9601 = function (timestamp, timezoneExplicitlySet) {
+    /*
+        Convert given timestamp to ISO 8601 format, a requirement for use with the timeago plugin for fuzzy timestamps
+     */
+
+    if(timezoneExplicitlySet !== true)
+    {
+        // all timestamps on the backend SHOULD be in UTC/GMT timezone
+        // timezone is needed since Date() uses the local timezone if not, resulting in inaccurate results
+        timestamp += ' GMT';
+    }
+
+    var date = new Date(timestamp),
+        dateTimestamp = date.toISOString();
+
+    return dateTimestamp;
+};
+
 Global.getContentKeyFromCleanURL = function () {
     /*
         Get content key when using clean URLs

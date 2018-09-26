@@ -132,19 +132,24 @@ Alerts.prototype.generateAlertsTableListingHTML = function (alertData) {
         Generate and return HTML for the listings included in the actual alerts listings table
      */
 
-    var listingHTML = '';
+    var listingHTML = '',
+        createdTimestamp = '',
+        updatedTimestamp = '';
 
     alertData.data.forEach(function (alert) {
+        createdTimestamp = Global.prototype.convertTimestampToISE9601(alert.created);
+        updatedTimestamp = Global.prototype.convertTimestampToISE9601(alert.updated)
+
         listingHTML += '' +
             '<tr class="alert">' +
             '   <td>' + alert.alert_type + '</td>' +
             '   <td>' + alert.alert_id + '</td>' +
             '   <td>' +
-            '       <time class="fuzzyTimestamp" title="' + alert.created + '" datetime="' + alert.created + '">' +
+            '       <time class="fuzzyTimestamp" title="' + createdTimestamp + '" datetime="' + createdTimestamp + '">' +
             '       </time>' +
             '   </td>' +
             '   <td>' +
-            '       <time class="fuzzyTimestamp" title="' + alert.updated + '" datetime="' + alert.updated + '">' +
+            '       <time class="fuzzyTimestamp" title="' + updatedTimestamp + '" datetime="' + updatedTimestamp + '">' +
             '       </time>' +
             '   </td>' +
             '   <td>' + alert.host + '</td>' +

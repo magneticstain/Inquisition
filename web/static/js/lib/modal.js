@@ -543,8 +543,8 @@ Modal.prototype.postDataSaveHandler = function (apiResponse, dataType) {
             $('.' + dataType + 'Blob').replaceWith(ConfigTable.prototype.getObjDataHTML(dataType, apiData,
                 addlDataForCorrelation));
 
-            // add listening for config data item blobs
-            ConfigTable.prototype.initConfigItemHandlers();
+            // add events and other post-generation magic now that the html is in place
+            Tuning.prototype.runPostConfigLoad();
         }, function (apiResponse) {
             var apiError = '';
             if(apiResponse.error != null)
