@@ -10,7 +10,7 @@ class View
     public $subTitle = 'Home';
     public $content = '';
 
-    public function __construct($content, $subTitle = 'Home')
+    public function __construct($content = '', $subTitle = 'Home')
     {
         $this->subTitle = $subTitle;
         $this->content = $content;
@@ -114,9 +114,6 @@ class View
                         <img src="/static/imgs/title_logo.png" alt="Welcome to Inquisition">
                     </a>
                 </div>
-                <!--<div id="loginModule">-->
-                    <!--Josh Carlson | logout-->
-                <!--</div>-->
             </div>
         </header>
         <main>

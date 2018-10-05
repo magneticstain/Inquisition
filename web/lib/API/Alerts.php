@@ -215,7 +215,7 @@ class Alerts
         }
         else
         {
-            // cache miss, try to fetch the results and write them to the cache for later
+            // cache miss; try to fetch the results and write them to the cache for later
             if(!is_null($this->dbConn))
             {
                 // set query and opts in dbConn obj

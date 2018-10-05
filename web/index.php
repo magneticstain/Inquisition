@@ -2,7 +2,7 @@
 namespace Inquisition\Web;
 
 /**
- * Index.php - main page of inquisition's web component, Celestial
+ * Index.php - main page of inquisition's web component: Celestial
  */
 
 require $_SERVER['DOCUMENT_ROOT'].'/lib/Autoloader.php';
@@ -25,9 +25,6 @@ try {
     echo $view;
 } catch(\Exception $e) {
     error_log('[ SEV: FATAL ] could not start web engine :: [ MSG: '.$e->getMessage().' ]');
-
-    // throw 503 status
     http_response_code(503);
-
     exit(1);
 }
