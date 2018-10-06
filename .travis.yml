@@ -1,5 +1,7 @@
 dist: trusty
 sudo: required
+env:
+  - COVERALLS_PARALLEL=true
 matrix:
   include:
   - language: python
@@ -49,6 +51,4 @@ matrix:
     after_success:
     - php vendor/bin/php-coveralls -v
 notifications:
-  webhooks:
-    urls:
-      - https://coveralls.io/webhook
+  webhooks: https://coveralls.io/webhook
