@@ -2,6 +2,40 @@ dist: trusty
 sudo: required
 matrix:
   include:
+  - language: python
+    python:
+    - "3.4"
+    - "3.5"
+    - "3.6"
+    services:
+    - redis-server
+    before_script:
+    - sudo apt-get update -qq
+    - sudo apt-get install -qq python3-dev
+    - pip install -r build/build_requirements.txt
+    - sudo install/install.sh --is-build
+    script:
+    - coverage run --parallel-mode --source="." inquisition.py -h
+    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -k
+    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -t -l 5
+    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/bad_build.cfg -t || sh -c "exit 0"
+    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/non_existent.cfg -t || sh -c "exit 0"
+    - coverage run --parallel-mode --source="." inquisition.py -c /var/log/inquisition/app.log -t || sh -c "exit 0"
+    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_baseline_mode.cfg -t
+    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -t
+    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_hazy_tracking_enabled.cfg -t
+    - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_persistent_stats_disabled.cfg -t
+    - timeout 60s coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_no_log_limit.cfg -t
+    - timeout 60s coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_no_log_limit.cfg
+    - timeout 60s coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_min.cfg
+    - coverage run --parallel-mode --source="." -m unittest discover build/tests/
+    - coverage combine
+    after_success:
+    - ls -l /opt/inquisition/
+    - redis-cli KEYS "*"
+    - coverage report -m
+    - coveralls
+    - cat /var/log/inquisition/app.log
   - language: php
     php:
     - "7.0"
@@ -14,39 +48,7 @@ matrix:
     - phpunit -c phpunit.xml
     after_success:
     - php vendor/bin/php-coveralls -v
-  - language: python
-    python:
-      - "3.4"
-      - "3.5"
-      - "3.6"
-    services:
-      - redis-server
-    before_script:
-      - sudo apt-get update -qq
-      - sudo apt-get install -qq python3-dev
-      - pip install -r build/build_requirements.txt
-      - sudo install/install.sh --is-build
-    script:
-      - coverage run --parallel-mode --source="." inquisition.py -h
-      - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -k
-      - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -t -l 5
-      - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/bad_build.cfg -t || sh -c "exit 0"
-      - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/non_existent.cfg -t || sh -c "exit 0"
-      - coverage run --parallel-mode --source="." inquisition.py -c /var/log/inquisition/app.log -t || sh -c "exit 0"
-      - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_baseline_mode.cfg -t
-      - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build.cfg -t
-      - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_hazy_tracking_enabled.cfg -t
-      - coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_persistent_stats_disabled.cfg -t
-      - timeout 60s coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_no_log_limit.cfg -t
-      - timeout 60s coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_no_log_limit.cfg
-      - timeout 60s coverage run --parallel-mode --source="." inquisition.py -c build/src/conf/build_min.cfg
-      - coverage run --parallel-mode --source="." -m unittest discover build/tests/
-      - coverage combine
-    after_success:
-      - ls -l /opt/inquisition/
-      - redis-cli KEYS "*"
-      - coverage report -m
-      - coveralls
-      - cat /var/log/inquisition/app.log
 notifications:
-  webhooks: https://coveralls.io/webhook
+  webhooks:
+    urls:
+      - https://coveralls.io/webhook
