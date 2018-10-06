@@ -41,6 +41,10 @@ matrix:
       - "7.0"
       - "7.1"
     before_script:
+      - composer require --dev php-coveralls/php-coveralls
       - composer install
     script:
-      - phpunit web/tests/
+      - mkdir -p build/logs
+      - phpunit web/tests/ -c phpunit.xml
+    after_success:
+      - php vendor/bin/php-coveralls -v
