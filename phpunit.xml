@@ -12,6 +12,9 @@
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">web/lib</directory>
+            <exclude>
+                <file>web/lib/Autoloader.php</file>
+            </exclude>
         </whitelist>
     </filter>
 
