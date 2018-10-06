@@ -44,7 +44,6 @@ matrix:
       - composer require --dev php-coveralls/php-coveralls
       - composer install
     script:
-      - mkdir -p build/logs
-      - phpunit web/tests/ -c phpunit.xml
+      - phpunit -c phpunit.xml
     after_success:
       - php vendor/bin/php-coveralls -v
