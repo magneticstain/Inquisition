@@ -2,6 +2,18 @@ dist: trusty
 sudo: required
 matrix:
   include:
+  - language: php
+    php:
+    - "7.0"
+    - "7.1"
+    before_script:
+    - composer require --dev php-coveralls/php-coveralls
+    - composer install
+    script:
+    - mkdir -p build/logs
+    - phpunit -c phpunit.xml
+    after_success:
+    - php vendor/bin/php-coveralls -v
   - language: python
     python:
       - "3.4"
@@ -36,15 +48,5 @@ matrix:
       - coverage report -m
       - coveralls
       - cat /var/log/inquisition/app.log
-  - language: php
-    php:
-      - "7.0"
-      - "7.1"
-    before_script:
-      - composer require --dev php-coveralls/php-coveralls
-      - composer install
-    script:
-      - mkdir -p build/logs
-      - phpunit -c phpunit.xml
-    after_success:
-      - php vendor/bin/php-coveralls -v
+notifications:
+  webhooks: https://coveralls.io/webhook
