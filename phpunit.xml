@@ -11,7 +11,7 @@
 
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">web/tests</directory>
+            <directory suffix=".php">web/lib</directory>
         </whitelist>
     </filter>
 
