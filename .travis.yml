@@ -51,4 +51,4 @@ matrix:
     after_success:
       - php vendor/bin/php-coveralls -v
 notifications:
-  webhooks: https://coveralls.io/webhook
+  webhooks: https://coveralls.io/webhook?repo_token=atURxIwC56sa9H22bn939EZIniUzi7zO9
