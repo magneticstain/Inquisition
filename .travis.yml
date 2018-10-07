@@ -1,7 +1,6 @@
 dist: trusty
 sudo: required
-env:
-  - COVERALLS_PARALLEL=true
+#env:
 matrix:
   include:
   - language: python
@@ -36,7 +35,6 @@ matrix:
     - ls -l /opt/inquisition/
     - redis-cli KEYS "*"
     - coverage report -m
-    - coveralls
     - cat /var/log/inquisition/app.log
   - language: php
     php:
@@ -48,7 +46,10 @@ matrix:
     script:
     - mkdir -p build/logs
     - phpunit -c phpunit.xml
-#    after_success:
-#    - php vendor/bin/php-coveralls -v
+    after_success:
+    - php vendor/bin/php-coveralls -v
+after_success:
+  - COVERALLS_PARALLEL=true
+  - coveralls
 notifications:
   webhooks: https://coveralls.io/webhook
