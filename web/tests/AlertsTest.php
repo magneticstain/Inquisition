@@ -6,12 +6,12 @@ namespace API;
  */
 
 // required for Cache dependency
-require __DIR__.'/../../vendor/predis/predis/autoload.php';
+require_once __DIR__.'/../../vendor/predis/predis/autoload.php';
 \Predis\Autoloader::register();
 
-require __DIR__.'/../lib/Cache.php';
-require __DIR__.'/../lib/DB.php';
-require __DIR__.'/../lib/API/Alerts.php';
+require_once __DIR__.'/../lib/Cache.php';
+require_once __DIR__.'/../lib/DB.php';
+require_once __DIR__.'/../lib/API/Alerts.php';
 
 use PHPUnit\Framework\TestCase;
 

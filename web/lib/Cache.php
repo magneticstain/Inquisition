@@ -111,13 +111,10 @@ class Cache
             return false;
         }
 
-        // serial cache val data
-        $serializedCacheVal = json_encode($cacheVal);
+        // serialize cache val data and write to db
+        $this->cachingServerConn->set($cacheKey, json_encode($cacheVal));
 
-        // write data to db
-        $this->cachingServerConn->set($cacheKey, $serializedCacheVal);
-
-        // set timeout if appl.
+        // set cache timeout for entry if appl.
         $timeout = (int)$timeout;
         if(0 < $timeout)
         {

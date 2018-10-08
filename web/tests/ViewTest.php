@@ -5,7 +5,7 @@ namespace Perspective;
  *  ViewTest.php - Unit test for View.php lib
  */
 
-require __DIR__.'/../lib/Perspective/View.php';
+require_once __DIR__.'/../lib/Perspective/View.php';
 
 use PHPUnit\Framework\TestCase;
 

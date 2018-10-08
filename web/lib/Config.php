@@ -77,8 +77,18 @@ class Config
         $cfgKeyRegex = '/^([\w-]+) = [\S ]+$/';
 
         // get file contents
-        if(! $cfgFileContents = file($configFileName))
+        try
         {
+            if(! $cfgFileContents = file($configFileName))
+            {
+                return false;
+            }
+        }
+        catch(Exception $e)
+        {
+            error_log('error processing config file during update :: [ SEV: CRIT ] :: [ FILENAME: '.$configFileName.
+                ' ]');
+
             return false;
         }
 

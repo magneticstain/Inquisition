@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit>
     <testsuites>
-        <testsuite name="ViewTests">
+        <testsuite name="PerspectiveTests">
             <file>web/tests/ViewTest.php</file>
         </testsuite>
-        <testsuite name="AlertsTests">
+        <testsuite name="BaseLibTests">
+            <file>web/tests/CacheTest.php</file>
+            <file>web/tests/ConfigTest.php</file>
+        </testsuite>
+        <testsuite name="APITests">
             <file>web/tests/AlertsTest.php</file>
         </testsuite>
     </testsuites>
