@@ -248,7 +248,7 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
         if(!$(this).hasClass(selectedAlertClass)) {
             $(this).addClass(selectedAlertClass);
         } else {
-            $(this).removeClass(selectedAlertClass)
+            $(this).removeClass(selectedAlertClass);
         }
 
         // add event listener to display alert log details

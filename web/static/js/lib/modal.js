@@ -35,7 +35,7 @@ Modal.prototype.loadParserTemplateMappings = function (mappingContainer, parserD
 
     if(prependedHTML != null)
     {
-        modalHTML = prependedHTML
+        modalHTML = prependedHTML;
     }
 
     // send api request via mystic lib to fetch all parser-template mappings

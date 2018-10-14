@@ -7,7 +7,7 @@
 $(document).ready(function () {
     // configure main loading progress bar to not hide on completion
     Pace.on('done', function () {
-        $('#mainLoadingProgressBar').show()
+        $('#mainLoadingProgressBar').show();
     });
 
     // prep page

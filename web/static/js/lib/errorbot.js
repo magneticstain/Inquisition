@@ -33,7 +33,7 @@ ErrorBot.prototype.setErrorModalHTML = function () {
     {
         // message is indicative of a success
         modalImgHTML = '<img src="/static/imgs/icons/success.svg" alt="Request was SUCCESSFUL">';
-        modalBgColor = '#47E674'
+        modalBgColor = '#47E674';
     }
 
     errorModal.html(modalImgHTML + '<p>' + this.msg + '</p>');
