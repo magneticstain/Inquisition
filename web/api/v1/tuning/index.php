@@ -2,7 +2,7 @@
 namespace Inquisition\Web;
 
 /**
- *  Tuning API - endpoint for retrieving or setting any Inquisition configuration setting
+ *  Tuning API - endpoint for retrieving and setting any Inquisition configuration setting
  */
 
 use API\Tuning;
