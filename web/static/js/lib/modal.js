@@ -202,12 +202,14 @@ Modal.prototype.initModalContentSetDataListeners = function (contentSetType, par
     // CSD entry listeners (select and delete)
     $('.modalContentSetDataListEntry').off().click(function () {
         var parentObjId = $(this).parents('.modalContentSet').data('obj-id'),
+            parentContentDataType = $(this).parents('.modalContentWrapper').data('datatype'),
+            action = $(this).parents('.modalContent').data('action'),
             itemDataType = $(this).data('data-type'),
             itemKey = $(this).data('key'),
             itemRawCfgVal = $(this).data('item-id'),
             selectedClass = 'selected';
 
-        if(sendData)
+        if(action === 'edit')
         {
             if(parentContentDataType === 'parser' && itemDataType === 'template') {
                 var httpMethod = 'PUT';
