@@ -8,14 +8,14 @@
 
 var Global = function () {};
 
-Global.prototype.queryGlobalAccessData = function (action, moduleName, key, dataset) {
+Global.prototype.queryGlobalAccessData = function (action, moduleName, key, data) {
     /*
         Save given dataset - in JSON-encoded format - to global elmt
     */
 
     var paramMissing = false,
         paramName = '',
-        dataset = dataset || {};
+        dataset = data || {};
     if(action == null)
     {
         paramMissing = true;

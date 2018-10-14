@@ -145,7 +145,7 @@ Modal.prototype.generateModalContentHTML = function (optionData, modalContentSet
 
 // Post-Load/FadeOut
 // -> Content Set Data
-Modal.prototype.updateParserTemplateMapping = function (parser_id, template_id, httpMethod) {
+Modal.prototype.updateParserTemplateMapping = function (parserID, templateID, httpMethod) {
     /*
         Update any mappings that match given info via Inquisition API query
      */
@@ -159,7 +159,7 @@ Modal.prototype.updateParserTemplateMapping = function (parser_id, template_id, 
 
     // traverse mappings and try finding any that match our criteria
     $.each(parserTemplateMappings, function (ptMappingIdx, ptMapping) {
-        if (ptMapping.parser_id === parser_id && ptMapping.template_id === template_id)
+        if (ptMapping.parser_id === parserID && ptMapping.template_id === templateID)
         {
             matchFound = true;
             mappingID = ptMapping.mapping_id;
@@ -171,7 +171,7 @@ Modal.prototype.updateParserTemplateMapping = function (parser_id, template_id, 
     if (!matchFound)
     {
         keyData = {fields: ['parser_id', 'template_id']};
-        values = {values: [parser_id, template_id]};
+        values = {values: [parserID, templateID]};
     }
     else
     {
