@@ -39,14 +39,4 @@ class CacheTest extends TestCase
 
         $this->assertSame($data, $this->testCache->generateCacheKey($data));
     }
-
-//    public function testWriteToCache()
-//    {
-//
-//    }
-//
-//    public function testReadFromCache()
-//    {
-//
-//    }
 }

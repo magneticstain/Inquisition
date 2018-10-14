@@ -59,6 +59,9 @@ class Tuning
             $this->cfgHandler = new \Config();
         }
 
+        // TODO: add support for caching of tuning data
+        $this->cache = null;
+
         if(is_null($dbConn))
         {
             // no db handler provided; try creating one w/ default options
@@ -68,12 +71,7 @@ class Tuning
             }
             catch(\Exception $e)
             {
-                // a database connection may not be completely needed if we have access to the cache,
-                // though functionality will be degraded
-                if(is_null($this->cache))
-                {
-                    throw new \Exception('no data sources available (cache or data store)');
-                }
+                error_log('[ SEV: CRIT ] :: no data sources available :: [ MSG: '.$e->getMessage().' ]');
             }
         }
         else
@@ -90,7 +88,6 @@ class Tuning
 
     public function validateJSON($encodedData)
     {
-
         /*
          *  Purpose:
          *      * checks to see if value is valid json; returns decoded json if it is, raw val if it isn't
@@ -165,6 +162,8 @@ class Tuning
          *
          */
 
+        $optFound = false;
+
         foreach($tuningOpts as $optKey => $optVal)
         {
             switch(strtolower($optKey))
@@ -172,40 +171,39 @@ class Tuning
                 case 'section':
                 case 's':
                     $this->cfgSection = $optVal;
+                    $optFound = true;
                     break;
 
                 case 'type':
                 case 't':
                     $this->setMetadataTypeIdx($optVal);
-
+                    $optFound = true;
                     break;
 
                 case 'id':
                 case 'i':
                     $this->metadataID = $optVal;
-                    break;
-
-                case 'search_field':
-                case 'f':
-                    $this->metadataSearchOpts['field'] = $optVal;
-                    break;
-
-                case 'search_query':
-                case 'q':
-                    $this->metadataSearchOpts['search_query'] = $optVal;
+                    $optFound = true;
                     break;
 
                 case 'key':
                 case 'k':
                     $this->key = $this->validateJSON($optVal);
+                    $optFound = true;
                     break;
 
                 case 'val':
                 case 'v':
                     $this->val = $this->validateJSON($optVal);
+                    $optFound = true;
                     break;
+                default:
+                    error_log('[ SEV: WARN ] :: invalid tuning option provided :: [ KEY: '.$optKey.' // VAL: '.$optVal
+                        .' ]');
             }
         }
+
+        return $optFound;
     }
 
     // CONFIGS
@@ -225,22 +223,25 @@ class Tuning
 
         // define list of keys we should not return values for
         $bannedCfgKeys = [ 'sentry_api_key', 'db_pass' ];
-        if(in_array($this->key, $bannedCfgKeys))
-        {
-            throw new \Exception('invalid configuration key provided; cannot show value for security purposes');
-        }
+//        if(in_array($this->key, $bannedCfgKeys))
+//        {
+//            throw new \Exception('invalid configuration key provided; cannot show value for security purposes');
+//        }
 
         // check if no params were set; if so, return all configs
-        if(empty($this->cfgSection) && empty($this->key))
+        if(empty($this->key))
         {
-            $results = $this->cfgHandler->configVals;
-        }
-        elseif(!empty($this->cfgSection) && empty($this->key))
-        {
-            // get all cfg values from given section
-            if(isset($this->cfgHandler->configVals[$this->cfgSection]))
+            if(empty($this->cfgSection))
             {
-                $results = $this->cfgHandler->configVals[$this->cfgSection];
+                $results = $this->cfgHandler->configVals;
+            }
+            else
+            {
+                // get all cfg values from given section
+                if(isset($this->cfgHandler->configVals[$this->cfgSection]))
+                {
+                    $results = $this->cfgHandler->configVals[$this->cfgSection];
+                }
             }
         }
         else
@@ -290,6 +291,8 @@ class Tuning
         {
             $this->resultDataset['data'] = $results;
         }
+
+        return $results;
     }
 
     public function modifyCfgVal($cfgFilename = '/opt/inquisition/conf/main.cfg', $actionToTake = 'update')
@@ -351,7 +354,7 @@ class Tuning
             'idFieldName' => ''
         ];
 
-        switch($metadataType)
+        switch(strtolower($metadataType))
         {
             case 'parser':
                 $typeData['tableName'] = 'Parsers';

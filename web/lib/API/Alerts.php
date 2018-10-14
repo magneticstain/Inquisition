@@ -28,7 +28,7 @@ class Alerts
             catch(\Exception $e)
             {
                 // caching isn't absolutely required, so we can let it fail if needed
-                error_log('[ SEV: ERROR ] could not start cache for Alerts submodule :: [ MSG: '.$e->getMessage().' ]');
+                error_log('[ SEV: ERROR ] :: could not start cache for Alerts submodule :: [ MSG: '.$e->getMessage().' ]');
             }
         }
         else
@@ -121,7 +121,6 @@ class Alerts
          */
 
         // API response format framework: https://labs.omniti.com/labs/jsend
-        // TODO: document this in the project wiki
         $alertDataset = [
             'status' => 'success',
             'data_source' => 'cache',

@@ -10,6 +10,7 @@
         </testsuite>
         <testsuite name="APITests">
             <file>web/tests/AlertsTest.php</file>
+            <file>web/tests/TuningTest.php</file>
         </testsuite>
     </testsuites>
 

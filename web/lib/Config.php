@@ -42,12 +42,12 @@ class Config
             }
             else
             {
-                error_log('could not parse config file :: [ SEV: CRIT ] :: [ FILENAME: '.$configFilename.' ]');
+                error_log('[ SEV: CRIT ] :: could not parse config file :: [ FILENAME: '.$configFilename.' ]');
             }
         }
         else
         {
-            error_log('could not find config file :: [ SEV: CRIT ] :: [ FILENAME: '.$configFilename.' ]');
+            error_log('[ SEV: CRIT ] :: could not find config file :: [ FILENAME: '.$configFilename.' ]');
         }
 
         return false;
@@ -86,7 +86,7 @@ class Config
         }
         catch(Exception $e)
         {
-            error_log('error processing config file during update :: [ SEV: CRIT ] :: [ FILENAME: '.$configFileName.
+            error_log('[ SEV: CRIT ] :: error processing config file during update :: [ FILENAME: '.$configFileName.
                 ' ]');
 
             return false;
@@ -166,8 +166,8 @@ class Config
         if(!$configChanged)
         {
             $priErrorMsg = 'no config found with specified parameters';
-            error_log('[ WARN ] '.$priErrorMsg.' for Tuning API configuration change request :: [ SECTION: '.$configSection.' // KEY: '
-                .$configKey.' // NEW VAL: '.$configVal.' ]');
+            error_log('[ SEV: WARN ] :: '.$priErrorMsg.' for Tuning API configuration change request :: [ SECTION: '.
+                $configSection.' // KEY: '.$configKey.' // NEW VAL: '.$configVal.' ]');
             throw new Exception($priErrorMsg);
         }
 

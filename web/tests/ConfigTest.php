@@ -25,11 +25,6 @@ class ConfigTest extends TestCase
         $this->assertFalse($this->configSet->readConfigFile(__DIR__.'/../../build/src/conf/nonexistent-read.cfg'));
     }
 
-    public function testUpdateConfigFile_validFile()
-    {
-
-    }
-
     public function testUpdateConfigFile_invalidFile()
     {
         $this->assertFalse($this->configSet->updateConfigFile(
