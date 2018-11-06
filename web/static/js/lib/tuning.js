@@ -309,10 +309,10 @@ Tuning.prototype.loadTuningConfiguration = function (tuningData, contentWrapper,
         Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.parsing) +
         '           </div>' +
         '           <div class="optWrapper">' +
-        ConfigTable.prototype.getObjDataHTML('template', tuningDataset.template) +
+        ConfigTable.prototype.getConfigTableHTML('template', tuningDataset.template) +
         '           </div>' +
         '           <div class="optWrapper">' +
-        ConfigTable.prototype.getObjDataHTML('parser', tuningDataset.parser) +
+        ConfigTable.prototype.getConfigTableHTML('parser', tuningDataset.parser) +
         '           </div>' +
         '       </div>' +
         '       <div class="optSetBundle">' +
@@ -321,7 +321,7 @@ Tuning.prototype.loadTuningConfiguration = function (tuningData, contentWrapper,
         Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.analysis) +
         '           </div>' +
         '           <div class="optWrapper">' +
-        ConfigTable.prototype.getObjDataHTML('known_host', tuningDataset.known_host) +
+        ConfigTable.prototype.getConfigTableHTML('known_host', tuningDataset.known_host) +
         '           </div>' +
         '           <div class="optWrapper">' +
         '           </div>' +
@@ -332,7 +332,7 @@ Tuning.prototype.loadTuningConfiguration = function (tuningData, contentWrapper,
         Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.ioc) +
         '           </div>' +
         '           <div class="optWrapper">' +
-        ConfigTable.prototype.getObjDataHTML('ioc_field_mapping', tuningDataset.ioc_field_mapping, tuningDataset.field) +
+        ConfigTable.prototype.getConfigTableHTML('ioc_field_mapping', tuningDataset.ioc_field_mapping, tuningDataset.field) +
         '           </div>' +
         '       </div>' +
         '       <div class="optSetBundle">' +

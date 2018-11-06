@@ -137,8 +137,8 @@ Alerts.prototype.generateAlertsTableListingHTML = function (alertData) {
         updatedTimestamp = '';
 
     alertData.data.forEach(function (alert) {
-        createdTimestamp = Global.prototype.convertTimestampToISE9601(alert.created);
-        updatedTimestamp = Global.prototype.convertTimestampToISE9601(alert.updated)
+        createdTimestamp = Global.prototype.convertTimestampToISO9601(alert.created);
+        updatedTimestamp = Global.prototype.convertTimestampToISO9601(alert.updated)
 
         listingHTML += '' +
             '<tr class="alert">' +

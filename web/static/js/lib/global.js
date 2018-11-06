@@ -104,7 +104,7 @@ Global.initFuzzyTimestamps = function () {
     $('time.fuzzyTimestamp').timeago();
 };
 
-Global.prototype.convertTimestampToISE9601 = function (timestamp, timezoneExplicitlySet) {
+Global.prototype.convertTimestampToISO9601 = function (timestamp, timezoneExplicitlySet) {
     /*
         Convert given timestamp to ISO 8601 format, a requirement for use with the timeago plugin for fuzzy timestamps
      */

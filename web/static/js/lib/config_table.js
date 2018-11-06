@@ -9,6 +9,24 @@
 var ConfigTable = function () {};
 
 // Load Functs
+ConfigTable.prototype.wrapItemHTML = function (dataType, itemHTML) {
+    /*
+        Return output of given item html wrapped in a generic item box container
+     */
+
+    return '' +
+        '<div class="dataBlobContainer ' + dataType + 'Blob" data-datatype="' + dataType + '" data-identifier="0">' +
+        '   <h3 class="heading listingHeader add">' + Global.normalizeTitle(dataType) + 's</h3>' +
+        '   <div class="optSetListing">' +
+        '       <div class="listingDataWrapper">' +
+        '           <table class="listingData">' +
+        itemHTML +
+        '           </table>' +
+        '       </div>' +
+        '   </div>' +
+        '</div>';
+};
+
 ConfigTable.prototype.generateItemButtonHTML = function (addEditButton, addDeleteButton) {
     /*
         Generate HTML for item action buttons
@@ -31,24 +49,6 @@ ConfigTable.prototype.generateItemButtonHTML = function (addEditButton, addDelet
     buttonHTML += '</span>';
 
     return buttonHTML;
-};
-
-ConfigTable.prototype.generateItemBoxHTML = function (dataType, itemHTML) {
-    /*
-        Return output of given item html wrapped in a generic item box container
-     */
-
-    return '' +
-        '<div class="dataBlobContainer ' + dataType + 'Blob" data-datatype="' + dataType + '" data-identifier="0">' +
-        '   <h3 class="heading listingHeader add">' + Global.normalizeTitle(dataType) + 's</h3>' +
-        '   <div class="optSetListing">' +
-        '       <div class="listingDataWrapper">' +
-        '           <table class="listingData">' +
-        itemHTML +
-        '           </table>' +
-        '       </div>' +
-        '   </div>' +
-        '</div>';
 };
 
 ConfigTable.prototype.generateItemHTML = function (dataType, itemIdentifierFieldKey, itemFieldMetadata, itemData,
@@ -79,6 +79,7 @@ ConfigTable.prototype.generateItemHTML = function (dataType, itemIdentifierField
         '   <th>OPTIONS</th>' +
         '</tr>';
 
+    // table data
     itemData.forEach(function (item) {
         itemHTML += '<tr class="dataBlobWrapper" data-dataType="' + dataType + '" data-identifier="'
             + item[itemIdentifierFieldKey] + '">';
@@ -106,7 +107,7 @@ ConfigTable.prototype.generateItemHTML = function (dataType, itemIdentifierField
 
                     break;
                 case 'timestamp':
-                    var timestamp = Global.prototype.convertTimestampToISE9601(item[itemField.objKey]);
+                    var timestamp = Global.prototype.convertTimestampToISO9601(item[itemField.objKey]);
                     itemHTML += '<time class="fuzzyTimestamp" title="' + timestamp + '" datetime="' + timestamp
                         + '">' + timestamp + '</time>';
 
@@ -147,12 +148,12 @@ ConfigTable.prototype.generateItemHTML = function (dataType, itemIdentifierField
         itemHTML += '</tr>';
     });
 
-    return this.generateItemBoxHTML(dataType, itemHTML);
+    return this.wrapItemHTML(dataType, itemHTML);
 };
 
-ConfigTable.prototype.getObjDataHTML = function (objDataType, rawObjDataset, addlDatasetForCorrelation) {
+ConfigTable.prototype.getConfigTableHTML = function (objDataType, rawObjDataset, addlDatasetForCorrelation) {
     /*
-        Abstract function for generating HTML for given obj data type
+        Abstract function for generating config table HTML for given obj data type
      */
 
     var identifierFieldName = '',
@@ -393,7 +394,7 @@ ConfigTable.prototype.itemButtonHandler = function (itemElmnt, modalType, action
 
 ConfigTable.prototype.initConfigItemHandlers = function () {
     /*
-        Initialize the handlers for all config item blob table items
+        Initialize the handlers for all config table items
      */
 
     var actionSet = [
