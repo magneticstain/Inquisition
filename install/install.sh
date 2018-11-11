@@ -114,10 +114,9 @@ done
 
 echo "[ STARTING INSTALL ]"
 
-# create directories
+# prep install and sync files
+createServiceAccts
 createDirStructure "$APP_DIR" "$LOG_DIR"
-
-# sync files to app folder
 syncAppFiles "$APP_DIR"
 
 # run build prep if needed
