@@ -129,7 +129,7 @@ else
     MYSQL_PASS_FLAG='-p'
 fi
 
-# init inquisition database
+# init inquisition database if needed
 if [ $BUILD_FLAG == 1 ] || [ $STANDALONE_INSTALL_FLAG == 1 ]
 then
     initializeInquisitionDb "$MYSQL_TABLE_SCHEMA_FILE" "$MYSQL_PASS_FLAG"
