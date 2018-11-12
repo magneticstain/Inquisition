@@ -13,7 +13,7 @@ function createServiceAccts()
     then
         /usr/sbin/useradd -r inquisition > /dev/null 2>&1 || "[ ERROR ] could not create app service account"
     else
-        exho "Service account already present, skipping..."
+        echo "Service account already present, skipping..."
     fi
 }
 
