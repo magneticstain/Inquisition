@@ -9,6 +9,7 @@
 function createServiceAccts()
 {
     # create service accounts (including matching grp) for applications to run under
+    echo "Configuring application service account..."
     if ! grep '^inquisition:' /etc/passwd > /dev/null 2>&1
     then
         /usr/sbin/useradd -r inquisition > /dev/null 2>&1 || "[ ERROR ] could not create app service account"
@@ -31,7 +32,7 @@ function createDirStructure()
     fi
 
     # create directories
-    if [ -d "$APP_DIR" ]
+    if [ ! -d "$APP_DIR" ]
     then
         echo "Creating application directory @ [ $APP_DIR ]..."
         mkdir $APP_DIR > /dev/null 2>&1 || echo "[ ERROR ] could not create app directory; try checking permissions" && exit 1
@@ -39,7 +40,7 @@ function createDirStructure()
         echo "tmp/"
         mkdir $APP_DIR'/tmp/' > /dev/null 2>&1
     fi
-    if [ -d "$LOG_DIR" ]
+    if [ ! -d "$LOG_DIR" ]
     then
         echo "Creating log directory @ [ $LOG_DIR ]..."
         mkdir $LOG_DIR || echo "[ ERROR ] could not create log directory; try checking permissions" && exit 1
@@ -47,7 +48,7 @@ function createDirStructure()
 
     # set perms
     echo "Setting file permissions..."
-    chown -R inquisition:inquisition $APP_DIR $LOG_DIR > /dev/null 2>&1 || echo '[ ERROR ] could not set file permissions' && exit 1
+    chown -R inquisition:inquisition "$APP_DIR" "$LOG_DIR" > /dev/null 2>&1 || echo '[ ERROR ] could not set file permissions'
 }
 
 function syncAppFiles()
