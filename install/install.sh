@@ -49,6 +49,8 @@ function createDirStructure()
     # set perms
     echo "Setting file permissions..."
     chown -R inquisition:inquisition "$APP_DIR" "$LOG_DIR" > /dev/null 2>&1 || (echo '[ ERROR ] could not set file permissions' && exit 1)
+    # allow web access to config files
+    chgrp -R www-data $APP_DIR'/conf/'
 }
 
 function syncAppFiles()
