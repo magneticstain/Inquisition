@@ -165,14 +165,7 @@ try
         [ 'orderBy' => $orderBy, 'placement' => $placement, 'limit' => $resultLimit ]
     );
 
-    if(count($fetchedAlerts['data']) === 0)
-    {
-        // no results found
-        http_response_code(404);
-    }
-    else {
-        echo json_encode($fetchedAlerts);
-    }
+    echo json_encode($fetchedAlerts);
 }
 catch(\PDOException $e)
 {

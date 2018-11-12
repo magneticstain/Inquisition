@@ -55,7 +55,7 @@ function syncAppFiles()
 {
     # copy files to app dir
     echo "Syncing application files to [ $1 ]..."
-    rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' ./* $1 || exit 1
+    rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' --exclude 'web/tests' ./* $1 || exit 1
 }
 
 function runBuildPrep()
