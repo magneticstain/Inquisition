@@ -49,10 +49,6 @@ function createDirStructure()
     # set perms
     echo "Setting file permissions..."
     chown -R inquisition:inquisition "$APP_DIR" "$LOG_DIR" > /dev/null 2>&1 || (echo '[ ERROR ] could not set file permissions' && exit 1)
-    # allow web access to config files
-    chgrp -R www-data $APP_DIR'/conf/'
-    chmod 755 $APP_DIR'/conf/'
-    chmod 664 $APP_DIR'/conf/*'
 }
 
 function syncAppFiles()
@@ -60,6 +56,11 @@ function syncAppFiles()
     # copy files to app dir
     echo "Syncing application files to [ $1 ]..."
     rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' --exclude 'web/tests' ./* $1 || exit 1
+    
+    # allow web access to config files
+    chgrp -R www-data $APP_DIR'/conf/'
+    chmod 755 $APP_DIR'/conf/'
+    chmod 664 $APP_DIR'/conf/*'
 }
 
 function runBuildPrep()
