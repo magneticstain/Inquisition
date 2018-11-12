@@ -35,7 +35,7 @@ function createDirStructure()
     if [ ! -d "$APP_DIR" ]
     then
         echo "Creating application directory @ [ $APP_DIR ]..."
-        mkdir $APP_DIR > /dev/null 2>&1 || echo "[ ERROR ] could not create app directory; try checking permissions" && exit 1
+        mkdir $APP_DIR > /dev/null 2>&1 || (echo "[ ERROR ] could not create app directory; try checking permissions" && exit 1)
         echo "Creating application subdirectories..."
         echo "tmp/"
         mkdir $APP_DIR'/tmp/' > /dev/null 2>&1
@@ -43,12 +43,12 @@ function createDirStructure()
     if [ ! -d "$LOG_DIR" ]
     then
         echo "Creating log directory @ [ $LOG_DIR ]..."
-        mkdir $LOG_DIR || echo "[ ERROR ] could not create log directory; try checking permissions" && exit 1
+        mkdir $LOG_DIR || (echo "[ ERROR ] could not create log directory; try checking permissions" && exit 1)
     fi
 
     # set perms
     echo "Setting file permissions..."
-    chown -R inquisition:inquisition "$APP_DIR" "$LOG_DIR" > /dev/null 2>&1 || echo '[ ERROR ] could not set file permissions'
+    chown -R inquisition:inquisition "$APP_DIR" "$LOG_DIR" > /dev/null 2>&1 || (echo '[ ERROR ] could not set file permissions' && exit 1)
 }
 
 function syncAppFiles()
