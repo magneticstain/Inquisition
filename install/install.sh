@@ -9,7 +9,12 @@
 function createServiceAccts()
 {
     # create service accounts (including matching grp) for applications to run under
-    /usr/sbin/useradd -r inquisition
+    if ! grep '^redis:' /etc/passwd > /dev/null 2>&1
+    then
+        /usr/sbin/useradd -r inquisition > /dev/null 2>&1 || "[ ERROR ] could not create app service account"
+    else
+        exho "Service account already present, skipping..."
+    fi
 }
 
 function createDirStructure()
@@ -26,17 +31,23 @@ function createDirStructure()
     fi
 
     # create directories
-    echo "Creating application directory @ [ $APP_DIR ]..."
-    mkdir $APP_DIR || echo "[ ERROR ] could not create app directory; try checking permissions"
-    echo "Creating application subdirectories..."
-    echo "tmp/"
-    mkdir $APP_DIR'/tmp/'
-    echo "Creating log directory @ [ $LOG_DIR ]..."
-    mkdir $LOG_DIR || echo "[ ERROR ] could not create log directory; try checking permissions"
+    if [ -d "$APP_DIR" ]
+    then
+        echo "Creating application directory @ [ $APP_DIR ]..."
+        mkdir $APP_DIR > /dev/null 2>&1 || echo "[ ERROR ] could not create app directory; try checking permissions"
+        echo "Creating application subdirectories..."
+        echo "tmp/"
+        mkdir $APP_DIR'/tmp/' > /dev/null 2>&1
+    fi
+    if [ -d "$LOG_DIR" ]
+    then
+        echo "Creating log directory @ [ $LOG_DIR ]..."
+        mkdir $LOG_DIR || echo "[ ERROR ] could not create log directory; try checking permissions"
+    fi
 
     # set perms
     echo "Setting file permissions..."
-    chown -R inquisition:inquisition $APP_DIR $LOG_DIR || echo '[ ERROR ] could not set file permissions'
+    chown -R inquisition:inquisition $APP_DIR $LOG_DIR > /dev/null 2>&1 || echo '[ ERROR ] could not set file permissions'
 }
 
 function syncAppFiles()
@@ -88,7 +99,7 @@ function initializeInquisitionDb()
 # MAIN
 BUILD_FLAG=0
 STANDALONE_INSTALL_FLAG=0
-MYSQL_PASS_FLAG=''
+MYSQL_PASSWD_FLAG=''
 MYSQL_TABLE_SCHEMA_FILE='install/src/inquisition.sql'
 APP_DIR='/opt/inquisition'
 LOG_DIR='/var/log/inquisition'
@@ -125,16 +136,16 @@ then
     runBuildPrep "$APP_DIR" "$LOG_DIR"
 else
     # password is needed for accessing db
-    MYSQL_PASS_FLAG='-p'
+    MYSQL_PASSWD_FLAG='-p'
 fi
 
 # init inquisition database if needed
 if [ $BUILD_FLAG == 1 ] || [ $STANDALONE_INSTALL_FLAG == 1 ]
 then
-    initializeInquisitionDb "$MYSQL_TABLE_SCHEMA_FILE" "$MYSQL_PASS_FLAG"
+    initializeInquisitionDb "$MYSQL_TABLE_SCHEMA_FILE" "$MYSQL_PASSWD_FLAG"
 
     # check log db
-    redis-cli set log_id 0 && redis-cli del log_id || (echo "[ ERROR ] could not connect to Redis" && exit 1)
+    redis-cli ping || (echo "[ ERROR ] could not connect to Redis" && exit 1)
 fi
 
 # copy over logrotate manifest

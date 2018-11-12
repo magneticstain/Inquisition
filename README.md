@@ -30,7 +30,7 @@ Since it specifically identifies anomalous network events, Inquisition specializ
 # Installation
 Installation of Inquisition is easy: install the requirements, install the software, and run through setup for your environment.
 
-You can find instructions on how to install Inquisition by visiting the [installation guide](https://github.com/magneticstain/Inquisition/wiki/Installing-Inquisition-Suite) page in the project wiki.
+You can find instructions on how to install Inquisition by visiting the [installation guide](https://github.com/magneticstain/Inquisition/wiki/Installing-Inquisition) page in the project wiki.
 
 # Usage
 After installing the software, we're now ready to start using it. For information on how to use Inquisition, visit the [user guide](https://github.com/magneticstain/Inquisition/wiki/Inquisition-User-Guide).
