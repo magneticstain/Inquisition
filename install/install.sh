@@ -9,7 +9,7 @@
 function createServiceAccts()
 {
     # create service accounts (including matching grp) for applications to run under
-    if ! grep '^redis:' /etc/passwd
+    if ! grep '^inquisition:' /etc/passwd > /dev/null 2>&1
     then
         /usr/sbin/useradd -r inquisition > /dev/null 2>&1 || "[ ERROR ] could not create app service account"
     else
