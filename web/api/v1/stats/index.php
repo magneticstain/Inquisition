@@ -116,14 +116,7 @@ try
 {
     $fetchedStats = $statsHandler->getStats($statType, $statKey, $statName);
 
-    if(count($fetchedStats['data']) === 0)
-    {
-        // no results found
-        http_response_code(404);
-    }
-    else {
-        echo json_encode($fetchedStats);
-    }
+    echo json_encode($fetchedStats);
 }
 catch(\Exception $e)
 {
