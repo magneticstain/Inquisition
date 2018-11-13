@@ -160,7 +160,6 @@ class Config
         }
 
         // write config file to disk
-//        var_dump($cfgFileContents);
         file_put_contents($configFileName, $cfgFileContents);
 
         if(!$configChanged)
