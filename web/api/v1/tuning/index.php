@@ -21,7 +21,7 @@ try
 }
 catch(\Exception $e)
 {
-    $errorMsg = 'could not read configurations';
+    $errorMsg = 'could not start tuning engine';
 
     error_log($errorMsg.' :: [ MSG: { '.$e.' } ]');
     if(!empty($publicErrorMsg))
@@ -249,7 +249,7 @@ try
         exit(1);
     }
 
-    if(count($tuningHandler->resultDataset['data']) === 0)
+    if((isset($_GET['i']) || isset($_GET['id'])) && count($tuningHandler->resultDataset['data']) === 0)
     {
         // no results found
         http_response_code(404);

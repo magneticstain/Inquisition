@@ -17,7 +17,21 @@ $publicErrorMsg = '';
 $dbConn = null;
 $statsHandler = null;
 
-$cfg = new \Config();
+try
+{
+    $cfg = new \Config();
+}
+catch(\Exception $e)
+{
+    $errorMsg = 'could not read configurations';
+
+    error_log($errorMsg.' :: [ MSG: { '.$e.' } ]');
+    if(!empty($publicErrorMsg))
+    {
+        $publicErrorMsg .= '; ';
+    }
+    $publicErrorMsg .= $errorMsg;
+}
 // try to start and create needed engines and connections
 try
 {

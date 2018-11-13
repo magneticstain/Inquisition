@@ -16,7 +16,21 @@ $dbConn = null;
 $cache = null;
 $alertsHandler = null;
 
-$cfg = new \Config();
+try
+{
+    $cfg = new \Config();
+}
+catch(\Exception $e)
+{
+    $errorMsg = 'could not read configurations';
+
+    error_log($errorMsg.' :: [ MSG: { '.$e.' } ]');
+    if(!empty($publicErrorMsg))
+    {
+        $publicErrorMsg .= '; ';
+    }
+    $publicErrorMsg .= $errorMsg;
+}
 // try to start and create needed engines and connections
 try
 {
@@ -165,7 +179,15 @@ try
         [ 'orderBy' => $orderBy, 'placement' => $placement, 'limit' => $resultLimit ]
     );
 
-    echo json_encode($fetchedAlerts);
+    if((isset($_GET['i']) || isset($_GET['id'])) && count($fetchedAlerts['data']) === 0)
+    {
+        // no results found
+        http_response_code(404);
+    }
+    else
+    {
+        echo json_encode($fetchedAlerts);
+    }
 }
 catch(\PDOException $e)
 {
