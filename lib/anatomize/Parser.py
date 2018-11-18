@@ -433,6 +433,9 @@ class Parser(Inquisit):
             self.lgr.info('will NOT PROCESS log, max number of logs to process has been reached')
             return False
 
+        # remove prepended and trailing newlines/whitespace/etc
+        rawLog = rawLog.strip(" \r\n\t")
+
         # check if we should print the raw log in our log messages
         if self.getCfgValue(section='logging', name='printMatchValues', defaultVal=False, dataType=bool):
             rawLogValueForLogs = rawLog
@@ -440,9 +443,6 @@ class Parser(Inquisit):
             rawLogValueForLogs = '< REDACTED BY CONFIG >'
 
         self.lgr.debug('processing log [[[ ' + rawLogValueForLogs + ' ]]] using ' + self.__str__())
-
-        # remove prepended and trailing newlines/whitespace/etc
-        rawLog.strip(" \r\n\t")
 
         self.lgr.debug('POST-PROCESSED LOG [[[ ' + rawLogValueForLogs + ' ]]] using ' + self.__str__())
 
