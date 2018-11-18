@@ -120,9 +120,9 @@ class ParserTestCase(unittest.TestCase):
 
     def test_incrStat_strictInvalidKey(self):
         try:
-            statName = 'total_logs_processed'
+            statKey = 'nonexistant_stat_key_strict'
 
-            self.parser.incrStat(statKey=statName, amt=1, strict=True)
+            self.parser.incrStat(statKey=statKey, amt=1, strict=True)
 
             # if we get here, we didn't get to where we expected; considered failure
             self.assertTrue(False)
