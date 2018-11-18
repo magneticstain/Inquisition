@@ -156,8 +156,12 @@ class Anatomize(Inquisit):
                 sleepTime = self.getCfgValue(section='parsing', name='sleepTime', defaultVal=5, dataType=int)
                 while True:
                     # poll for new logs
-                    self.parserStore[parserId].pollLogFile(isTestRun=testRun, useHazyStateTracking=hazyStateTrackingStatus,
-                                                           numLogsBetweenTrackingUpdate=numLogsBetweenTrackingUpdate)
+                    try:
+                        self.parserStore[parserId].pollLogFile(isTestRun=testRun,
+                                                               useHazyStateTracking=hazyStateTrackingStatus,
+                                                               numLogsBetweenTrackingUpdate=numLogsBetweenTrackingUpdate)
+                    except (FileNotFoundError, ValueError) as e:
+                        self.lgr.error('error reading parser file :: [ ' + str(e) + ' ]')
 
                     # run complete, increase counter
                     numRuns += 1

@@ -13,6 +13,7 @@ CREATION_DATE: 2017-04-08
 # | Native
 import datetime
 from sys import getsizeof
+from os.path import isfile
 
 # | Third-Party
 from pygtail import Pygtail
@@ -480,6 +481,11 @@ class Parser(Inquisit):
         """
 
         totalRunStartTime = datetime.datetime.utcnow()
+
+        # pygtails will throw an exception if we give it a non-existant file, regardless of if we wrap the for loop
+        # below in a try/catch
+        if not isfile(self.logFile):
+            raise FileNotFoundError('target file for parsing not found :: [ FILE: ' + self.logFile + ' ]')
 
         # check tracking update if applicable
         if useHazyStateTracking:
