@@ -121,7 +121,8 @@ class Parser(Inquisit):
             dbResults = dbCursor.fetchall()
             for row in dbResults:
                 # add each template to template store
-                templates[row['TID']] = Template(row['TID'], row['field_name'], row['regex'], row['regex_group'], row['regex_match_index'], row['template_name'])
+                templates[row['TID']] = Template(row['TID'], row['field_name'], row['regex'], row['regex_group'],
+                                                 row['regex_match_index'], row['template_name'])
 
                 self.lgr.debug('loaded template SUCCESSFULLY :: ' + str(templates[row['TID']]))
 
@@ -249,7 +250,7 @@ class Parser(Inquisit):
         if storeInDb:
             self.updateStatInLogDB(statKey, incrAmt=amt, strict=strict)
 
-    def resetParserStats(self, statType=None, statData=None, updateLogDb=True):
+    def resetParserStats(self, statType=None, statData=0, updateLogDb=True):
         """
         Reset all or specific stat(s)
 
