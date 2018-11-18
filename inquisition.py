@@ -11,8 +11,7 @@ CREATION_DATE: 2017-04-07
 
 # MODULES
 # | Native
-import argparse
-import configparser
+import argparse, configparser
 from os import path
 
 # | Third-Party
