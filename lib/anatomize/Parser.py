@@ -62,6 +62,9 @@ class Parser(Inquisit):
         self.metricsMode = bool(metricsMode)
         self.baselineMode = bool(baselineMode)
 
+        # init run stats for parser
+        self.resetParserStats()
+
         # initialize offset file
         self.offsetFile = '/opt/inquisition/tmp/' + str(self.parserID) + '_' + self.parserName + '.offset'
 
