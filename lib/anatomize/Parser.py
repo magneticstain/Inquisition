@@ -434,9 +434,9 @@ class Parser(Inquisit):
 
         # check if we should print the raw log in our log messages
         if self.getCfgValue(section='logging', name='printMatchValues', defaultVal=False, dataType=bool):
-            rawLogValueForLogs = '< REDACTED BY CONFIG >'
-        else:
             rawLogValueForLogs = rawLog
+        else:
+            rawLogValueForLogs = '< REDACTED BY CONFIG >'
 
         self.lgr.debug('processing log [[[ ' + rawLogValueForLogs + ' ]]] using ' + self.__str__())
 
