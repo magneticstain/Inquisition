@@ -372,7 +372,7 @@ class Parser(Inquisit):
 
                 # check if we should log matched value or not
                 templateMatchLogMsg = 'template MATCHED log :: ' + str(self.templateStore[templateId])
-                if self.getCfgValue(section='logging', name='printMatchValues', defaultVal=False):
+                if self.getCfgValue(section='logging', name='printMatchValues', defaultVal=False, dataType=bool):
                     # value should be added in
                     templateMatchLogMsg += ' :: [ VALUE: ' + matchedString + ' ]'
                 self.lgr.debug(templateMatchLogMsg)
@@ -433,7 +433,7 @@ class Parser(Inquisit):
             return False
 
         # check if we should print the raw log in our log messages
-        if self.getCfgValue(section='logging', name='printMatchValues', defaultVal=False):
+        if self.getCfgValue(section='logging', name='printMatchValues', defaultVal=False, dataType=bool):
             rawLogValueForLogs = '< REDACTED BY CONFIG >'
         else:
             rawLogValueForLogs = rawLog
