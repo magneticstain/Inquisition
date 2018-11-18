@@ -45,10 +45,6 @@ function createDirStructure()
         echo "Creating log directory @ [ $LOG_DIR ]..."
         mkdir $LOG_DIR || (echo "[ ERROR ] could not create log directory; try checking permissions" && exit 1)
     fi
-
-    # set perms
-    echo "Setting file permissions..."
-    chown -R inquisition:inquisition "$APP_DIR" "$LOG_DIR" > /dev/null 2>&1 || (echo '[ ERROR ] could not set file permissions' && exit 1)
 }
 
 function syncAppFiles()
@@ -57,10 +53,14 @@ function syncAppFiles()
     echo "Syncing application files to [ $1 ]..."
     rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' --exclude 'web/tests' --exclude 'composer.*' --exclude 'phpunit.xml' --exclude 'requirements.txt' ./* $1 || exit 1
 
+    # set perms
+    echo "Setting file permissions..."
+    chown -R inquisition:inquisition "$APP_DIR" "$LOG_DIR" > /dev/null 2>&1 || (echo '[ ERROR ] could not set file permissions' && exit 1)
+
     # allow web access to config files
     chgrp -R www-data $APP_DIR'/conf/'
     chmod 755 $APP_DIR'/conf/'
-    chmod 664 $APP_DIR'/conf/main.cfg' $APP_DIR'/conf/min.cfg'
+    chmod 660 $APP_DIR'/conf/main.cfg' $APP_DIR'/conf/min.cfg'
 }
 
 function runBuildPrep()
