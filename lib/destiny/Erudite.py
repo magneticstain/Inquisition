@@ -309,8 +309,6 @@ class Erudite(Destiny):
 
         nodeFieldType = nodeFieldType.lower()
 
-        if not nodeFieldName:
-            raise ValueError('node field name not specified for OCC calculations')
         if nodeFieldType not in self.nodeTypes:
             raise ValueError('invalid node field type specified for traffic node OCC calculation')
 
