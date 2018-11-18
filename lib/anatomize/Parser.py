@@ -260,7 +260,7 @@ class Parser(Inquisit):
         """
 
         # see if stat type exists, and set it if it does
-        if statType in self.stats:
+        if statType and statType in self.stats:
             # stat type exists, reset it
             self.stats[statType] = statData
 
