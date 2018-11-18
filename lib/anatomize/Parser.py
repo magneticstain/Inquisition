@@ -138,7 +138,7 @@ class Parser(Inquisit):
         :param action: db action to perform on stat || Valid actions: incrby, set
         :param incrAmt: if action=incrby, states the amount to increase stat by
         :param newVal: if action=set, this is the new value field is set to
-        :param strict: if set to true, only fine stat avg if stat key exists; if not, IndexError is raised
+        :param strict: if set to true, only update stat if stat key exists; if not, IndexError is raised
         :param statKey: name of key to save/update stat of
         :param statsType: type of stat to update
         :return: void

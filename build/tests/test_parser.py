@@ -60,8 +60,8 @@ class ParserTestCase(unittest.TestCase):
         self.assertEqual(newNumLogs, currentNumLogs + 1)
 
     def test_updateStatInLogDB_strictInvalidKey(self):
-        statKey = '2_fake_apache'
-        statName = 'doesn\'t_exist'
+        statKey = 'doesn\'t_exist'
+        statName = 'fake_name'
 
         try:
             # set log
