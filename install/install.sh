@@ -54,12 +54,14 @@ function syncAppFiles()
     CONF_EXCLUDE_PARAM=""
     if [ "$2" -eq 1 ]
     then
-        CONF_EXCLUDE_PARAM="--exclude 'conf'"
+        # DEV NOTE: for some reason, wrapping 'conf' in quotes will cause bash to escape those quotes, causing rsync to
+        # fail to actually exclude the dir
+        CONF_EXCLUDE_PARAM="--exclude conf"
     fi
 
     # copy files to app dir
     echo "Syncing application files to [ $1 ]..."
-    rsync -av "$CONF_EXCLUDE_PARAM" --exclude 'build' --exclude 'install' --exclude '.travis.yml' --exclude 'web/tests' --exclude 'composer.*' --exclude 'phpunit.xml' --exclude 'requirements.txt' ./* $1 || exit 1
+    rsync -av $CONF_EXCLUDE_PARAM --exclude 'build' --exclude 'install' --exclude '.travis.yml' --exclude 'web/tests' --exclude 'composer.*' --exclude 'phpunit.xml' --exclude 'requirements.txt' ./* $1 || exit 1
 
     # set perms
     echo "Setting file permissions..."
