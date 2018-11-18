@@ -49,9 +49,17 @@ function createDirStructure()
 
 function syncAppFiles()
 {
+    # add params to rsync cmd if upgrade
+    # params will prevent transferring config files from source
+    CONF_EXCLUDE_PARAM=""
+    if [ "$2" -eq 1 ]
+    then
+        CONF_EXCLUDE_PARAM="--exclude 'conf'"
+    fi
+
     # copy files to app dir
     echo "Syncing application files to [ $1 ]..."
-    rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' --exclude 'web/tests' --exclude 'composer.*' --exclude 'phpunit.xml' --exclude 'requirements.txt' ./* $1 || exit 1
+    rsync -av "$CONF_EXCLUDE_PARAM" --exclude 'build' --exclude 'install' --exclude '.travis.yml' --exclude 'web/tests' --exclude 'composer.*' --exclude 'phpunit.xml' --exclude 'requirements.txt' ./* $1 || exit 1
 
     # set perms
     echo "Setting file permissions..."
@@ -105,7 +113,8 @@ function initializeInquisitionDb()
 # MAIN
 BUILD_FLAG=0
 STANDALONE_INSTALL_FLAG=0
-MYSQL_PASSWD_FLAG=''
+UPGRADE_FLAG=0
+MYSQL_PASSWD_PARAM=''
 MYSQL_TABLE_SCHEMA_FILE='install/src/inquisition.sql'
 APP_DIR='/opt/inquisition'
 LOG_DIR='/var/log/inquisition'
@@ -121,6 +130,9 @@ do
         -S|--standalone)
             STANDALONE_INSTALL_FLAG=1
             ;;
+        -U|--upgrade)
+            UPGRADE_FLAG=1
+            ;;
         *)
             echo "UNKNOWN ARGUMENT :: [ $1 ]"
             ;;
@@ -134,7 +146,7 @@ echo "[ STARTING INSTALL ]"
 # prep install and sync files
 createServiceAccts
 createDirStructure "$APP_DIR" "$LOG_DIR"
-syncAppFiles "$APP_DIR"
+syncAppFiles "$APP_DIR" "$UPGRADE_FLAG"
 
 # run build prep if needed
 if [ $BUILD_FLAG == 1 ]
@@ -142,13 +154,13 @@ then
     runBuildPrep "$APP_DIR" "$LOG_DIR"
 else
     # password is needed for accessing db
-    MYSQL_PASSWD_FLAG='-p'
+    MYSQL_PASSWD_PARAM='-p'
 fi
 
 # init inquisition database if needed
 if [ $BUILD_FLAG == 1 ] || [ $STANDALONE_INSTALL_FLAG == 1 ]
 then
-    initializeInquisitionDb "$MYSQL_TABLE_SCHEMA_FILE" "$MYSQL_PASSWD_FLAG"
+    initializeInquisitionDb "$MYSQL_TABLE_SCHEMA_FILE" "$MYSQL_PASSWD_PARAM"
 
     # check log db
     redis-cli ping || (echo "[ ERROR ] could not connect to Redis" && exit 1)
