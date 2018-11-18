@@ -55,7 +55,7 @@ function syncAppFiles()
 {
     # copy files to app dir
     echo "Syncing application files to [ $1 ]..."
-    rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' --exclude 'web/tests' ./* $1 || exit 1
+    rsync -av --exclude 'build' --exclude 'install' --exclude '.travis.yml' --exclude 'web/tests' --exclude 'composer.*' --exclude 'phpunit.xml' --exclude 'requirements.txt' ./* $1 || exit 1
 
     # allow web access to config files
     chgrp -R www-data $APP_DIR'/conf/'
