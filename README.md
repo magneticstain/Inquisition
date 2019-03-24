@@ -3,7 +3,6 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/1ea690d01f5ee5f1ec88/maintainability)](https://codeclimate.com/github/magneticstain/Inquisition/maintainability)
 [![Coverage Status](https://coveralls.io/repos/github/magneticstain/Inquisition/badge.svg?branch=master)](https://coveralls.io/github/magneticstain/Inquisition?branch=master)
 [![Build Status](https://travis-ci.org/magneticstain/Inquisition.svg?branch=master)](https://travis-ci.org/magneticstain/Inquisition)
-[![Stories in Ready](https://badge.waffle.io/magneticstain/Inquisition.svg?label=ready&title=Ready)](http://waffle.io/magneticstain/Inquisition)
 
 An advanced and versatile network anomaly detection platform for SMB and enterprise alike.
 
