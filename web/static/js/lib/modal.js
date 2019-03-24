@@ -12,13 +12,25 @@ var Modal = function (contentDataType, parentObjID, modalOpts, modalType, master
     this.modalOpts = modalOpts || {};
     this.modalType = modalType;
     this.masterAction = masterAction;
+
+    // modals operate using two functions: one ran during the fade out of data, and one performed after data is loaded
     this.fadeInFunct = function () {};
     this.fadeOutFunct = function () {};
-
     this.setModalTransitionFunctions();
 
-    // set modal theme (requirement of vex)
+    // set modal theme (requirement of vex) and other options
+    this.setVexOpts();
+};
+
+Modal.prototype.setVexOpts = function () {
+    /*
+        Sets various options that we'll need that are used by the Vex library
+
+        https://github.hubspot.com/vex/docs/welcome/
+     */
+
     vex.defaultOptions.className = 'vex-theme-default';
+    vex.defaultOptions.afterClose = Modal.prototype.modalCloseHandler;
 };
 
 // Modal Content Functs
@@ -249,31 +261,23 @@ Modal.prototype.getConfigValData = function (dataType) {
     return configData;
 };
 
-Modal.prototype.postDataSaveHandler = function (apiResponse, dataType) {
+Modal.prototype.modalCloseHandler = function () {
     /*
-        Handler function for after a config data within a modal is saved/created
+        Handler function used to perform post-logic for any time a modal is closed
      */
 
-    // check if extra operations are needed
-    if(dataType === 'parser')
-    {
-        var parserID = apiResponse.data['id'] || 0;
+    var dataType = Global.prototype.queryGlobalAccessData('get', 'tuning', 'postActionDataType'),
+        apiRequestURL = '/api/v1/tuning/?t=' + dataType;
 
-        // generate PT mapping for each selected template
-        $('.modalContentSetDataListEntry').each(function () {
-            if($(this).hasClass('selected'))
-            {
-                var templateID = $(this).data('item-id');
-                Modal.prototype.updateParserTemplateMapping(parserID, templateID, 'PUT');
-            }
-        });
+    // check if there are any existing modals; if so, reload their data
+    if(Object.keys(vex.getAll()).length >= 1)
+    {
+        // reload relevant content set data
+        ContentSet.prototype.loadModalContentSet(dataType, '', true, true);
     }
-
-    // process primary post-save logic
-    if(apiResponse.status === 'success')
+    else
     {
-        // reload dataset blob
-        var apiRequestURL = '/api/v1/tuning/?t=' + dataType;
+        // no modals left open other than active one; close it
         // override API url when dealing with IOC field mappings since it's a "correlated" object type
         // see Issue #107 < https://github.com/magneticstain/Inquisition/issues/107 >
         if(dataType === 'ioc_field_mapping')
@@ -282,56 +286,63 @@ Modal.prototype.postDataSaveHandler = function (apiResponse, dataType) {
             apiRequestURL = '/api/v1/tuning/?t=all';
         }
 
-        // DEV NOTE: due to a race condition with the fadeOut() animation used along with vex, we must get the
-        //  parent data-type before manipulating any modals
-        var parentDataType = $('.modalContentWrapper:nth-last-child(2)').data('datatype');
+        // query api and reload relevant config item table with returned data
+        Mystic.queryAPI('GET', apiRequestURL, 20000, null, function (apiResponse) {
+            var apiData = apiResponse.data,
+                addlDataForCorrelation = null,
+                dataType = Global.prototype.queryGlobalAccessData('get', 'tuning', 'postActionDataType');
 
-        // check if there are any existing modals; if so, reload their data
-        if(Object.keys(vex.getAll()).length >= 2)
+            // ioc field mappings require special handling; see above
+            if(dataType === 'ioc_field_mapping')
+            {
+                apiData = apiResponse.data.ioc_field_mapping;
+                addlDataForCorrelation = apiResponse.data.field;
+            }
+
+            $('.' + dataType + 'Blob').replaceWith(ConfigTable.prototype.getConfigTableHTML(dataType, apiData,
+                addlDataForCorrelation));
+
+            // add events and other post-generation magic now that the html is in place
+            Tuning.prototype.runPostConfigLoad();
+        }, function (apiResponse) {
+            var apiError = '';
+            if(apiResponse.error != null)
+            {
+                apiError = ' :: [ ' + apiResponse.error + ' ]';
+            }
+
+            ErrorBot.generateError(4, dataType + ' data could not be reloaded' + apiError);
+        });
+    }
+};
+
+Modal.prototype.postDataSaveHandler = function (apiResponse, dataType) {
+    /*
+        Handler function for after a config data within a modal is saved/created
+     */
+
+    // process primary post-save logic
+    if(apiResponse.status === 'success')
+    {
+        // check if extra operations are needed
+        if(dataType === 'parser')
         {
-            // modal is still open; close it and reload the relevant CSD within it
-            vex.closeTop();
+            var parserID = apiResponse.data['id'] || 0;
 
-            var modalContainer = $('.modalContent.' + parentDataType + 'Modal'),
-                parentAction = modalContainer.data('action');
-            Modal.prototype.setModalTransitionFunctions(parentDataType);
-            Modal.prototype.runTransitionFunctionsOnDemand(modalContainer, parentAction);
-        }
-        else
-        {
-            // no modals left open other than active one; close it
-            vex.closeTop();
-
-            // query api and reload relevant config item table with returned data
-            // set data type for use later in api query callback funct (dataType isn't in scope for callback funct)
-            Global.prototype.queryGlobalAccessData('set', 'tuning', 'postActionDataType', dataType);
-            Mystic.queryAPI('GET', apiRequestURL, 20000, null, function (apiResponse) {
-                var apiData = apiResponse.data,
-                    addlDataForCorrelation = null,
-                    dataType = Global.prototype.queryGlobalAccessData('get', 'tuning', 'postActionDataType');
-
-                // ioc field mappings require special handling; see above
-                if(dataType === 'ioc_field_mapping')
+            // generate PT mapping for each selected template
+            $('.modalContentSetDataListEntry').each(function () {
+                if($(this).hasClass('selected'))
                 {
-                    apiData = apiResponse.data.ioc_field_mapping;
-                    addlDataForCorrelation = apiResponse.data.field;
+                    var templateID = $(this).data('item-id');
+                    Modal.prototype.updateParserTemplateMapping(parserID, templateID, 'PUT');
                 }
-
-                $('.' + dataType + 'Blob').replaceWith(ConfigTable.prototype.getConfigTableHTML(dataType, apiData,
-                    addlDataForCorrelation));
-
-                // add events and other post-generation magic now that the html is in place
-                Tuning.prototype.runPostConfigLoad();
-            }, function (apiResponse) {
-                var apiError = '';
-                if(apiResponse.error != null)
-                {
-                    apiError = ' :: [ ' + apiResponse.error + ' ]';
-                }
-
-                ErrorBot.generateError(4, dataType + ' data could not be reloaded' + apiError);
             });
         }
+
+        // set data type for use later in api query callback funct (dataType isn't in scope for callback funct)
+        Global.prototype.queryGlobalAccessData('set', 'tuning', 'postActionDataType', dataType);
+
+        vex.closeTop();
     }
 };
 
@@ -356,6 +367,8 @@ Modal.prototype.setFormActionButtonHandlers = function () {
             inputData = Modal.prototype.getConfigValData(dataType),
             callbackFunct = Modal.prototype.postDataSaveHandler;
 
+
+
         // send add query
         Tuning.prototype.updateConfigVal(dataType, null, null, inputData['keyData'], inputData['valData'], 'PUT',
             callbackFunct);
@@ -372,6 +385,10 @@ Modal.prototype.setModalTransitionFunctions = function (dataTypeOverride) {
     {
         dataType = dataTypeOverride;
     }
+
+    // set data type for use later in other callback funct(s)
+    Global.prototype.queryGlobalAccessData('set', 'tuning', 'initialDataType', dataType);
+    Global.prototype.queryGlobalAccessData('set', 'tuning', 'postActionDataType', dataType);
 
     switch(dataType)
     {

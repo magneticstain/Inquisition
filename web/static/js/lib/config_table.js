@@ -96,6 +96,8 @@ ConfigTable.prototype.generateItemHTML = function (dataType, itemIdentifierField
                 case 'status':
                     var statusDisplayName = 'enabled',
                         statusHTMLChar = '&#10004;';
+
+                    // '==' below is *not* a typo
                     if(item.status == false)
                     {
                         statusDisplayName = 'disabled';

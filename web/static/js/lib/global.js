@@ -40,7 +40,12 @@ Global.prototype.queryGlobalAccessData = function (action, moduleName, key, data
     switch (action.toLowerCase())
     {
         case 'get':
-            return JSON.parse(targetElmnt.data(key));
+            try {
+                return JSON.parse(targetElmnt.data(key));
+            } catch (e) {
+                ErrorBot.generateError(0, 'cannot parse global app data object');
+                return false;
+            }
 
         case 'set':
             targetElmnt.data(key, JSON.stringify(dataset));
@@ -116,10 +121,9 @@ Global.prototype.convertTimestampToISO9601 = function (timestamp, timezoneExplic
         timestamp += ' GMT';
     }
 
-    var date = new Date(timestamp),
-        dateTimestamp = date.toISOString();
+    var date = new Date(timestamp);
 
-    return dateTimestamp;
+    return date.toISOString();
 };
 
 Global.getContentKeyFromCleanURL = function () {

@@ -87,7 +87,7 @@ ContentSet.prototype.initModalContentSetDataListeners = function (contentSetType
         }
     });
 
-    // DEV NOTE: we perform the hover leave callback separately, on the container element instead of the entry element,+Add
+    // DEV NOTE: we perform the hover leave callback separately, on the container element instead of the entry element
     //  so that we can have the action button outside of the entry itself, but the mouseleave logic won't trigger when
     //  the user hovers over the action button
     $('.modalContentSetDataListEntryContainer').hover(function () {}, function () {
@@ -214,23 +214,24 @@ ContentSet.prototype.loadModalContentSet = function (contentSetType, parentConte
     }
 
     Mystic.queryAPI('GET', '/api/v1/tuning/?t=' + contentSetType, 5000, null, function (apiData) {
-        $('.modalContentSetData.' + contentSetType + 'List').html(
-            '<p title="' + titleCaseParentContentDataType + ' ' + titleCaseContentSetType + ' Selections" ' +
-            'class="modalContentSetHeader title">' +
-            '   <label for="' + contentSetType + 'DataSet" class="add">' + titleCaseContentSetType + '</label>' +
-            '</p>' +
-            ContentSet.prototype.generateModalContentSetDataHTML(contentSetType, apiData.data)
-        );
+            $('.modalContentSetData.' + contentSetType + 'List').html(
+                '<p title="' + titleCaseParentContentDataType + ' ' + titleCaseContentSetType + ' Selections" ' +
+                'class="modalContentSetHeader title">' +
+                '   <label for="' + contentSetType + 'DataSet" class="add">' + titleCaseContentSetType + '</label>' +
+                '</p>' +
+                ContentSet.prototype.generateModalContentSetDataHTML(contentSetType, apiData.data)
+            );
 
-        ContentSet.prototype.initModalContentSetDataListeners(contentSetType, parentContentDataType,
-            useExclusiveSelections, allowFullDeselection);
-    }, function (apiResponse) {
-        var apiError = '';
-        if(apiResponse.error != null)
-        {
-            apiError = ' [ ' + apiResponse.error + ' ]';
+            ContentSet.prototype.initModalContentSetDataListeners(contentSetType, parentContentDataType,
+                useExclusiveSelections, allowFullDeselection);
+        }, function (apiResponse) {
+            var apiError = '';
+            if(apiResponse.error != null)
+            {
+                apiError = ' [ ' + apiResponse.error + ' ]';
+            }
+
+            ErrorBot.generateError(4, 'could not load ' + contentSetType + ' data from the Inquisition API' + apiError);
         }
-
-        ErrorBot.generateError(4, 'could not load ' + contentSetType + ' data from the Inquisition API' + apiError);
-    });
+    );
 };

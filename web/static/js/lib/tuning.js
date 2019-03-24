@@ -332,7 +332,8 @@ Tuning.prototype.loadTuningConfiguration = function (tuningData, contentWrapper,
         Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.ioc) +
         '           </div>' +
         '           <div class="optWrapper">' +
-        ConfigTable.prototype.getConfigTableHTML('ioc_field_mapping', tuningDataset.ioc_field_mapping, tuningDataset.field) +
+        ConfigTable.prototype.getConfigTableHTML('ioc_field_mapping', tuningDataset.ioc_field_mapping,
+            tuningDataset.field) +
         '           </div>' +
         '       </div>' +
         '       <div class="optSetBundle">' +
