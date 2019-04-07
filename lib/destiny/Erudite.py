@@ -266,7 +266,7 @@ class Erudite(Destiny):
         else:
             self.lgr.debug('using [ ' + hostField + ' ] as host-identifying field name')
 
-            self.lgr.info('beginning unknown host identification')
+            self.lgr.info('starting unknown host identification')
             unknownHosts = self.identifyUnknownHosts(hostField)
             self.lgr.info(
                 'host identification complete: [ ' + str(len(unknownHosts)) + ' ] unknown hosts identified')
