@@ -106,7 +106,7 @@ class Inquisit:
                 # NOTE: we need to get the logFormat val with the raw flag set in order to avoid logging from interpolating
                 logFormat = cfg.get('logging', 'logFormat', raw=True)
             except (configparser.NoSectionError, configparser.NoOptionError, KeyError):
-                logFormat = '%(asctime)s [ %(levelname)s ] [ %(name)s ] %(message)s'
+                logFormat = '%(asctime)s inquisition: [ %(levelname)s ] [ %(name)s ] %(message)s'
             frmtr = logging.Formatter(logFormat)
             fileHandler.setFormatter(frmtr)
 
