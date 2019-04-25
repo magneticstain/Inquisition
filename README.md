@@ -4,9 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/magneticstain/Inquisition/badge.svg?branch=master)](https://coveralls.io/github/magneticstain/Inquisition?branch=master)
 [![Build Status](https://travis-ci.org/magneticstain/Inquisition.svg?branch=master)](https://travis-ci.org/magneticstain/Inquisition)
 
-An advanced and versatile network anomaly detection platform for SMB and enterprise alike.
-
-** Currently a work-in-progress **
+An advanced and versatile network anomaly detection platform for SMB and enterprise users alike.
 
 # Introduction
 Inquisition utilizes three pieces of software in order to analyze your environment's logs and generate security alerts
