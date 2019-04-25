@@ -296,7 +296,7 @@ ConfigTable.prototype.getConfigTableHTML = function (objDataType, rawObjDataset,
     }
 
     return ConfigTable.prototype.generateItemHTML(objDataType, identifierFieldName, fieldOpts, rawObjDataset,
-        actionButtonFlags)
+        actionButtonFlags);
 };
 
 // Post-Load Functs

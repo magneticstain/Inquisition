@@ -755,7 +755,7 @@ Modal.prototype.setModalTransitionFunctions = function (dataTypeOverride) {
                 var useManualActionButtons = false;
                 if(action != null && action.toLowerCase() === 'add')
                 {
-                    useManualActionButtons = true
+                    useManualActionButtons = true;
                 }
 
                 Tuning.prototype.setConfigChangeTriggerEvts(useManualActionButtons);

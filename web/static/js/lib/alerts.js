@@ -138,7 +138,7 @@ Alerts.prototype.generateAlertsTableListingHTML = function (alertData) {
 
     alertData.data.forEach(function (alert) {
         createdTimestamp = Global.prototype.convertTimestampToISO9601(alert.created);
-        updatedTimestamp = Global.prototype.convertTimestampToISO9601(alert.updated)
+        updatedTimestamp = Global.prototype.convertTimestampToISO9601(alert.updated);
 
         listingHTML += '' +
             '<tr class="alert">' +
@@ -295,7 +295,7 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
 
             // perform post-click logic
             Alerts.performPostAlertLoadOptionProcessing('content_limit', alertLimit, alertFieldName,
-                alertOrderPlacement, alertLimit, '.option', '.alertShow' + alertLimit)
+                alertOrderPlacement, alertLimit, '.option', '.alertShow' + alertLimit);
         });
     }
 };
