@@ -4,7 +4,7 @@
     - JS lib for globally-used general functions
  */
 
-"use strict";
+'use strict';
 
 var Global = function () {};
 
@@ -60,7 +60,8 @@ Global.normalizeTitle = function (contentTitle, allowUnderscores) {
         Format content title in titlecase
      */
 
-    var title = '';
+    var title = '',
+        titleClauses = [];
 
     if(contentTitle == null)
     {
@@ -73,7 +74,7 @@ Global.normalizeTitle = function (contentTitle, allowUnderscores) {
             contentTitle = contentTitle.replace(/_/g, ' ');
         }
 
-        var titleClauses = contentTitle.split(' ');
+        titleClauses = contentTitle.split(' ');
     }
 
     titleClauses.forEach(function (clause) {

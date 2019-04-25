@@ -6,6 +6,8 @@
  *  - SRC: https://github.com/magneticstain/CLTools/blob/master/CLWeb/static/js/errorbot.js
  */
 
+'use strict';
+
 var errorModal = $('#mainErrorModal');
 
 var errorSeverities = [

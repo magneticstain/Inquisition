@@ -4,7 +4,7 @@
     - JS lib for view-related functions in context of MVC framework
  */
 
-"use strict";
+'use strict';
 
 var View = function () {};
 

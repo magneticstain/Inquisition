@@ -4,6 +4,8 @@
     - lib for navigation menu related functionality
  */
 
+'use strict';
+
 var Nav = function () {};
 
 Nav.prepNavMenu = function () {

@@ -4,7 +4,7 @@
     - JS lib for loading and displaying inquisition stats
  */
 
-"use strict";
+'use strict';
 
 var Stats = function () {
     Module.call(this);
@@ -108,7 +108,7 @@ Stats.prototype.prepCharts = function () {
             // traverse each piece of stat data we have and see if our data point is present
             $.map(Stats.rawStatData, function (statData, statKey) {
                 // check if current data point has a value in stat data
-                if(typeof statData[dataPointKey] !== "undefined") {
+                if(typeof statData[dataPointKey] !== 'undefined') {
                     // value present - let's add it to the master set
                     labelSet.push(statKey);
                     statDataSet.push(statData[dataPointKey]);

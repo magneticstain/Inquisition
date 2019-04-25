@@ -4,7 +4,7 @@
     - JS lib for tuning-related functionality, i.e. all data within tuning submodule of the UI
  */
 
-"use strict";
+'use strict';
 
 var Tuning = function () {
     Module.call(this);

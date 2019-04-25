@@ -4,7 +4,7 @@
     - JS lib for all logic related to modals used throughout Celestial
  */
 
-"use strict";
+'use strict';
 
 var Modal = function (contentDataType, parentObjID, modalOpts, modalType, masterAction) {
     this.contentDataType = contentDataType || '';
@@ -526,7 +526,7 @@ Modal.prototype.setModalTransitionFunctions = function (dataTypeOverride) {
                 var useManualActionButtons = false;
                 if(action != null && action.toLowerCase() === 'add')
                 {
-                    useManualActionButtons = true
+                    useManualActionButtons = true;
                 }
 
                 Tuning.prototype.setConfigChangeTriggerEvts(useManualActionButtons);

@@ -4,7 +4,7 @@
     - library for creating and manipulating sets of data within the content portion of View
  */
 
-"use strict";
+'use strict';
 
 var ContentSet = function () {};
 
@@ -211,27 +211,27 @@ ContentSet.prototype.loadModalContentSet = function (contentSetType, parentConte
     {
         var titleCaseContentSetType = Global.normalizeTitle(contentSetType),
             titleCaseParentContentDataType = Global.normalizeTitle(parentContentDataType);
-    }
 
-    Mystic.queryAPI('GET', '/api/v1/tuning/?t=' + contentSetType, 5000, null, function (apiData) {
-            $('.modalContentSetData.' + contentSetType + 'List').html(
-                '<p title="' + titleCaseParentContentDataType + ' ' + titleCaseContentSetType + ' Selections" ' +
-                'class="modalContentSetHeader title">' +
-                '   <label for="' + contentSetType + 'DataSet" class="add">' + titleCaseContentSetType + '</label>' +
-                '</p>' +
-                ContentSet.prototype.generateModalContentSetDataHTML(contentSetType, apiData.data)
-            );
+        Mystic.queryAPI('GET', '/api/v1/tuning/?t=' + contentSetType, 5000, null, function (apiData) {
+                $('.modalContentSetData.' + contentSetType + 'List').html(
+                    '<p title="' + titleCaseParentContentDataType + ' ' + titleCaseContentSetType + ' Selections" ' +
+                    'class="modalContentSetHeader title">' +
+                    '   <label for="' + contentSetType + 'DataSet" class="add">' + titleCaseContentSetType + '</label>' +
+                    '</p>' +
+                    ContentSet.prototype.generateModalContentSetDataHTML(contentSetType, apiData.data)
+                );
 
-            ContentSet.prototype.initModalContentSetDataListeners(contentSetType, parentContentDataType,
-                useExclusiveSelections, allowFullDeselection);
-        }, function (apiResponse) {
-            var apiError = '';
-            if(apiResponse.error != null)
-            {
-                apiError = ' [ ' + apiResponse.error + ' ]';
+                ContentSet.prototype.initModalContentSetDataListeners(contentSetType, parentContentDataType,
+                    useExclusiveSelections, allowFullDeselection);
+            }, function (apiResponse) {
+                var apiError = '';
+                if(apiResponse.error != null)
+                {
+                    apiError = ' [ ' + apiResponse.error + ' ]';
+                }
+
+                ErrorBot.generateError(4, 'could not load ' + contentSetType + ' data from the Inquisition API' + apiError);
             }
-
-            ErrorBot.generateError(4, 'could not load ' + contentSetType + ' data from the Inquisition API' + apiError);
-        }
-    );
+        );
+    }
 };

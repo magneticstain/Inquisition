@@ -4,7 +4,7 @@
     - Library representing the model for the listing tables located in the Tuning submodule
  */
 
-"use strict";
+'use strict';
 
 var ConfigTable = function () {};
 

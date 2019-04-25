@@ -4,7 +4,7 @@
     - JS lib for internal controller functions in context of MVC framework
  */
 
-"use strict";
+'use strict';
 
 var Controller = function (contentWrapper, contentKey) {
     this.contentWrapper = contentWrapper;

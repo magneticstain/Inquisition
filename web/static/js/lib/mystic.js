@@ -4,7 +4,7 @@
     - JS lib for loading remote data via API calls and any other public controller-related functions
  */
 
-"use strict";
+'use strict';
 
 var Mystic = function () {};
 

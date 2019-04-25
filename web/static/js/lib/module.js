@@ -4,7 +4,7 @@
     - Base class for all modules (alerts, stats, etc)
  */
 
-"use strict";
+'use strict';
 
 var Module = function (parentDataContainer, contentWrapper, contentKey) {
     Module.parentDataContainer = parentDataContainer || $('#primaryContentData');

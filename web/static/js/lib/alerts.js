@@ -4,7 +4,7 @@
     - JS lib for data manipulation and front-end controller portion of MVC framework
  */
 
-"use strict";
+'use strict';
 
 var Alerts = function () {
     Module.call(this);
