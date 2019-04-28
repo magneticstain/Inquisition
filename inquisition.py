@@ -4,7 +4,7 @@
 Inquisition.py
 
 APP: Inquisition
-DESC: The main running container for the Inquisition SIEM platform
+DESC: The main running container for the Inquisition platform
 CREATION_DATE: 2017-04-07
 
 """
@@ -26,9 +26,8 @@ from lib.destiny.Augur import Augur
 
 # METADATA
 __author__ = 'Joshua Carlson-Purcell'
-__copyright__ = 'Copyright 2017, CarlsoNet'
 __license__ = 'MIT'
-__version__ = '1.0.0-alpha'
+__version__ = '2019.0.0.1-alpha'
 __maintainer__ = 'Joshua Carlson-Purcell'
 __email__ = 'jcarlson@carlso.net'
 __status__ = 'Development'

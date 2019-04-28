@@ -23,9 +23,8 @@ from lib.revelation.Revelation import Revelation
 
 # METADATA
 __author__ = 'Joshua Carlson-Purcell'
-__copyright__ = 'Copyright 2017, CarlsoNet'
 __license__ = 'MIT'
-__version__ = '1.0.0-alpha'
+__version__ = '2019.0.0.1-alpha'
 __maintainer__ = 'Joshua Carlson-Purcell'
 __email__ = 'jcarlson@carlso.net'
 __status__ = 'Development'

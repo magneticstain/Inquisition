@@ -58,7 +58,7 @@ class View
 
         // CSP
         // this has been set to only allow content to be loaded from the current subdomain EXCEPT XHR requests,
-        // i.e. to the API, just in case the client wants to host the api on its own subdomain
+        // i.e. to the API, just in case the user wants to host the api on their own subdomain
         header('Content-Security-Policy: default-src \'self\'; connect-src https:;');
 
         // Cross-Domain Policies
