@@ -1,0 +1,15 @@
+[Unit]
+Description=Inquisition NADS
+After=network.target
+StartLimitBurst=5
+StartLimitIntervalSec=2
+
+[Service]
+Type=forking
+Restart=always
+RestartSec=2
+User=inquisition
+ExecStart=/usr/bin/env python3 /opt/inquisition/inquisition.py -c /opt/inquisition/conf/main.cfg
+
+[Install]
+WantedBy=multi-user.target

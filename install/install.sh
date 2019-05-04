@@ -112,6 +112,21 @@ function initializeInquisitionDb()
     mysql -u root $2 inquisition < $TABLE_SCHEMA || exit 1
 }
 
+function initInquisitionServiceCfg()
+{
+    unitFile='/etc/systemd/system/inquisition.service'
+
+    # check for existing systemd unit file
+    if [ ! -e $unitFile ]
+    then
+        # unit file not present; copy over from source
+        cp install/src/inquisition.service /etc/systemd/system/
+
+        # enable service to start on boot
+        systemctl enable inquisition
+    fi
+}
+
 # MAIN
 BUILD_FLAG=0
 STANDALONE_INSTALL_FLAG=0
@@ -171,6 +186,12 @@ fi
 # copy over logrotate manifest
 echo "Generating log rotation config..."
 /bin/cp -f install/src/inquisition_logrotate_manifest /etc/logrotate.d/inquisition
+
+if [ $BUILD_FLAG != 1 ]
+then
+    echo "Adding Inquisition as a service on the system..."
+    initInquisitionServiceCfg
+fi
 
 echo "[ INSTALL COMPLETE! ]"
 
