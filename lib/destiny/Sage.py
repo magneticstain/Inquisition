@@ -54,7 +54,7 @@ class Sage(Destiny):
         :return: None
         """
 
-        self.networkThreatClassifier = svm.SVC()
+        self.networkThreatClassifier = svm.SVC(gamma='scale')
 
     def gatherAllData(self):
         """
