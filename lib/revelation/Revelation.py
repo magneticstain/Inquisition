@@ -13,7 +13,7 @@ CREATION_DATE: 2017-10-15
 import json
 
 # | Third-Party
-from pymysql import err
+from pymysql import OperationalError
 
 # | Custom
 from lib.inquisit.Inquisit import Inquisit
@@ -78,7 +78,7 @@ class Revelation(Inquisit):
                 if self.getCfgValue(section='logging', name='verbose', defaultVal=False, dataType=bool):
                     self.lgr.debug(
                         'successfully added alert ' + str(alert) + ' to Inquisition database')
-            except err as e:
+            except OperationalError as e:
                 self.inquisitionDbHandle.rollback()
                 self.lgr.critical(
                     'database error when adding new alert ' + str(alert) + ' :: [ ' + str(e) + ' ]')
