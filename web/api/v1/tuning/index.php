@@ -9,9 +9,6 @@ use API\Tuning;
 
 require $_SERVER['DOCUMENT_ROOT'].'/lib/Autoloader.php';
 
-// set http headers for api response
-\Perspective\View::setHTTPHeaders('application/json', 0);
-
 $publicErrorMsg = '';
 $dbConn = $tuningHandler = null;
 
@@ -30,6 +27,15 @@ catch(\Exception $e)
     }
     $publicErrorMsg .= $errorMsg;
 }
+
+// set http headers
+$cacheTimeout = 0;
+if(isset($cfg->configVals['caching']['tuning_config_expiration']))
+{
+    $cacheTimeout = $cfg->configVals['caching']['tuning_config_expiration'];
+}
+\Perspective\View::setHTTPHeaders('application/json', $cacheTimeout);
+
 // try to start and create needed engines and connections
 try
 {

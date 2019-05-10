@@ -9,9 +9,6 @@ use API\Stats;
 
 require $_SERVER['DOCUMENT_ROOT'].'/lib/Autoloader.php';
 
-// set http headers
-\Perspective\View::setHTTPHeaders('application/json', 30);
-
 $errorMsg = '';
 $publicErrorMsg = '';
 $dbConn = null;
@@ -32,6 +29,15 @@ catch(\Exception $e)
     }
     $publicErrorMsg .= $errorMsg;
 }
+
+// set http headers
+$cacheTimeout = 30;
+if(isset($cfg->configVals['caching']['stat_expiration']))
+{
+    $cacheTimeout = $cfg->configVals['caching']['stat_expiration'];
+}
+\Perspective\View::setHTTPHeaders('application/json', $cacheTimeout);
+
 // try to start and create needed engines and connections
 try
 {

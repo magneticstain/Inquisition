@@ -7,9 +7,6 @@ namespace Inquisition\Web;
 
 require $_SERVER['DOCUMENT_ROOT'].'/lib/Autoloader.php';
 
-// set http headers
-\Perspective\View::setHTTPHeaders('application/json', 15);
-
 $errorMsg = '';
 $publicErrorMsg = '';
 $dbConn = null;
@@ -31,6 +28,15 @@ catch(\Exception $e)
     }
     $publicErrorMsg .= $errorMsg;
 }
+
+// set http headers
+$cacheTimeout = 15;
+if(isset($cfg->configVals['caching']['alert_expiration']))
+{
+    $cacheTimeout = $cfg->configVals['caching']['alert_expiration'];
+}
+\Perspective\View::setHTTPHeaders('application/json', $cacheTimeout);
+
 // try to start and create needed engines and connections
 try
 {
