@@ -227,7 +227,7 @@ class Alerts
                 // write to cache if possible
                 if(!is_null($this->cache))
                 {
-                    $this->cache->writeToCache($cacheKey, $this->alertStore, 120);
+                    $this->cache->writeToCache($cacheKey, $this->alertStore);
                 }
             }
         }

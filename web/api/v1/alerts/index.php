@@ -40,25 +40,8 @@ if(isset($cfg->configVals['caching']['alert_expiration']))
 // try to start and create needed engines and connections
 try
 {
-    $dbConn = new \DB(
-        $cfg->configVals['mysql_database']['db_host'],
-        $cfg->configVals['mysql_database']['db_port'],
-        $cfg->configVals['mysql_database']['db_name'],
-        $cfg->configVals['mysql_database']['db_user'],
-        $cfg->configVals['mysql_database']['db_pass']
-    );
-}
-catch(\PDOException $e)
-{
-    $errorMsg = 'could not create database connection';
-
-    error_log($errorMsg.' :: [ MSG: { '.$e.' } ]');
-    $publicErrorMsg = $errorMsg;
-}
-
-try
-{
     $cache = new \Cache(
+        $cacheTimeout,
         null,
         $cfg->configVals['log_database']['host'],
         $cfg->configVals['log_database']['port']
@@ -74,6 +57,24 @@ catch(\Exception $e)
         $publicErrorMsg .= '; ';
     }
     $publicErrorMsg .= $errorMsg;
+}
+
+try
+{
+    $dbConn = new \DB(
+        $cfg->configVals['mysql_database']['db_host'],
+        $cfg->configVals['mysql_database']['db_port'],
+        $cfg->configVals['mysql_database']['db_name'],
+        $cfg->configVals['mysql_database']['db_user'],
+        $cfg->configVals['mysql_database']['db_pass']
+    );
+}
+catch(\PDOException $e)
+{
+    $errorMsg = 'could not create database connection';
+
+    error_log($errorMsg.' :: [ MSG: { '.$e.' } ]');
+    $publicErrorMsg = $errorMsg;
 }
 
 try

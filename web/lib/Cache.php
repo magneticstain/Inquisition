@@ -8,8 +8,10 @@ class Cache
 {
     public $cachingServerConn = null;
     public $cacheKeyHashAlgo = 'sha256';
+    private $cacheTimeout = 0;
 
-    public function __construct($cachingServerConn = null, $cachingServerHost = '127.0.0.1', $cachingServerPort = 6379)
+    public function __construct($cacheTimeout = 300, $cachingServerConn = null,
+                                $cachingServerHost = '127.0.0.1', $cachingServerPort = 6379)
     {
         if(!is_null($cachingServerConn))
         {
@@ -20,6 +22,30 @@ class Cache
             // predis project repo: https://github.com/nrk/predis
             $this->cachingServerConn = Cache::generateRedisConn($cachingServerHost, $cachingServerPort);
         }
+
+        $this->setCacheTimeout($cacheTimeout);
+    }
+
+    private function setCacheTimeout($cacheTimeout)
+    {
+        /*
+         *  Purpose:
+         *      * set the timout - in sconds - that given data should be cached for
+         *
+         *  Params:
+         *      * $cacheTimeout :: INT :: timeout value
+         *
+         *  Returns: Bool
+         */
+
+        if($cacheTimeout < 0)
+        {
+            throw new \Exception('invalid cache timeout provided');
+        }
+
+        $this->cacheTimeout = $cacheTimeout;
+
+        return true;
     }
 
     public static function generateRedisConn($redisServerHost = '127.0.0.1', $redisServerPort = 6379)
@@ -89,7 +115,7 @@ class Cache
         return json_decode($this->cachingServerConn->get($cacheKey));
     }
 
-    public function writeToCache($cacheKey, $cacheVal, $timeout = 300)
+    public function writeToCache($cacheKey, $cacheVal)
     {
         /*
          *  Purpose: write data to cache using given key
@@ -97,7 +123,6 @@ class Cache
          *  Params:
          *      * $cacheKey :: STR :: database key to use for cache db
          *      * $cacheVal :: ARRAY :: dataset to save in cache
-         *      * $timeout :: INT :: number of seconds to keep results in cache; "freshness" setting
          *
          *  Returns: BOOL
          *
@@ -114,11 +139,10 @@ class Cache
         // serialize cache val data and write to db
         $this->cachingServerConn->set($cacheKey, json_encode($cacheVal));
 
-        // set cache timeout for entry if appl.
-        $timeout = (int)$timeout;
-        if(0 < $timeout)
+        // set cache timeout for entry, if needed
+        if(0 < $this->cacheTimeout)
         {
-            $this->cachingServerConn->expire($cacheKey, $timeout);
+            $this->cachingServerConn->expire($cacheKey, $this->cacheTimeout);
         }
 
         return true;
