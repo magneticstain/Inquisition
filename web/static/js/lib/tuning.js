@@ -201,6 +201,38 @@ Tuning.getAllAppConfigOpts = function (cfgData) {
                 key: 'keepPersistentStats',
                 rawVal: cfgData.stats.keepPersistentStats
             }
+        ],
+        'caching': [
+            {
+                inputType: 'number',
+                label: 'Alerts',
+                desc: 'How long to cache alert data before requiring a refresh from the database. ' +
+                    '(default: 15 seconds)',
+                dataType: 'cfg',
+                section: 'caching',
+                key: 'alert_expiration',
+                rawVal: cfgData.caching.alert_expiration
+            },
+            {
+                inputType: 'number',
+                label: 'Stats',
+                desc: 'How long to cache stat data before requiring a refresh from the database. ' +
+                    '(default: 30 seconds)',
+                dataType: 'cfg',
+                section: 'caching',
+                key: 'stat_expiration',
+                rawVal: cfgData.caching.stat_expiration
+            },
+            {
+                inputType: 'number',
+                label: 'Tuning Configurations',
+                desc: 'How long to cache tuning config data before requiring a refresh from the database. ' +
+                    '(default: 0 [not cached])',
+                dataType: 'cfg',
+                section: 'caching',
+                key: 'tuning_config_expiration',
+                rawVal: cfgData.caching.tuning_config_expiration
+            }
         ]
     };
 };
@@ -340,6 +372,12 @@ Tuning.prototype.loadTuningConfiguration = function (tuningData, contentWrapper,
         '           <h2 class="title subtitle">Application Configuration Options</h2>' +
         '           <div class="optWrapper configs">' +
         Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.general) +
+        '           </div>' +
+        '       </div>' +
+        '       <div class="optSetBundle">' +
+        '           <h2 class="title subtitle">API Caching Options</h2>' +
+        '           <div class="optWrapper configs">' +
+        Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.caching) +
         '           </div>' +
         '       </div>' +
         '   </div>' +
