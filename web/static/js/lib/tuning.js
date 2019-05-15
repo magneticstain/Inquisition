@@ -375,7 +375,7 @@ Tuning.prototype.loadTuningConfiguration = function (tuningData, contentWrapper,
         '           </div>' +
         '       </div>' +
         '       <div class="optSetBundle">' +
-        '           <h2 class="title subtitle">API Caching Options</h2>' +
+        '           <h2 class="title subtitle">API Data Caching Options</h2>' +
         '           <div class="optWrapper configs">' +
         Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.caching) +
         '           </div>' +
