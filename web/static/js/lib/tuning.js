@@ -336,7 +336,7 @@ Tuning.prototype.loadTuningConfiguration = function (tuningData, contentWrapper,
         '<div id="primaryContentData" class="contentModule">' +
         '   <div id="tuningOptsWrapper" class="moduleDataWrapper">' +
         '       <div class="optSetBundle">' +
-        '           <h2 class="title subtitle">Parsing Options</h2>' +
+        '           <h2 class="title subtitle">Parsing</h2>' +
         '           <div class="optWrapper configs">' +
         Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.parsing) +
         '           </div>' +
@@ -348,7 +348,7 @@ Tuning.prototype.loadTuningConfiguration = function (tuningData, contentWrapper,
         '           </div>' +
         '       </div>' +
         '       <div class="optSetBundle">' +
-        '           <h2 class="title subtitle">Analysis Options</h2>' +
+        '           <h2 class="title subtitle">Analysis</h2>' +
         '           <div class="optWrapper configs">' +
         Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.analysis) +
         '           </div>' +
@@ -359,7 +359,7 @@ Tuning.prototype.loadTuningConfiguration = function (tuningData, contentWrapper,
         '           </div>' +
         '       </div>' +
         '       <div class="optSetBundle">' +
-        '           <h2 class="title subtitle">Intel Options</h2>' +
+        '           <h2 class="title subtitle">Intel</h2>' +
         '           <div class="optWrapper configs">' +
         Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.ioc) +
         '           </div>' +
@@ -369,13 +369,13 @@ Tuning.prototype.loadTuningConfiguration = function (tuningData, contentWrapper,
         '           </div>' +
         '       </div>' +
         '       <div class="optSetBundle">' +
-        '           <h2 class="title subtitle">Application Configuration Options</h2>' +
+        '           <h2 class="title subtitle">Application Configuration</h2>' +
         '           <div class="optWrapper configs">' +
         Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.general) +
         '           </div>' +
         '       </div>' +
         '       <div class="optSetBundle">' +
-        '           <h2 class="title subtitle">API Data Caching Options</h2>' +
+        '           <h2 class="title subtitle">API Data Caching</h2>' +
         '           <div class="optWrapper configs">' +
         Tuning.prototype.generateAppCfgOptHTML(appConfigOpts.caching) +
         '           </div>' +
