@@ -61,12 +61,21 @@ class Cache
          *  Returns: Predis obj
          *
          */
-
-        return new Predis\Client([
+        $cacheDBConn = new Predis\Client([
             'scheme' => 'tcp',
             'host' => $redisServerHost,
             'port' => $redisServerPort
         ]);
+
+        // Fixes Issue #111
+        //
+        // predis uses lazy connecting, so any connection-related exceptions don't get raised until an action is taken
+        // this logic forces it to try to connect
+        //
+        // https://github.com/nrk/predis/issues/223
+        $cacheDBConn->connect();
+
+        return $cacheDBConn;
     }
 
     public function generateCacheKey($queryData, $srcModule = 'any')

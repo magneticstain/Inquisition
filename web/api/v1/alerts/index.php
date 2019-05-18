@@ -47,6 +47,17 @@ try
         $cfg->configVals['log_database']['port']
     );
 }
+catch(\Predis\Connection\ConnectionException $e)
+{
+    $errorMsg = 'unable to connect to in-memory DB for caching';
+
+    error_log($errorMsg.' :: [ MSG: { '.$e->getMessage().' } ]');
+    if(!empty($publicErrorMsg))
+    {
+        $publicErrorMsg .= '; ';
+    }
+    $publicErrorMsg .= $errorMsg;
+}
 catch(\Exception $e)
 {
     $errorMsg = 'could not start caching engine';
