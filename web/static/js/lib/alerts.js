@@ -12,18 +12,19 @@ var Alerts = function () {
 
 Alerts.getAvailableFieldNames = function () {
     /*
-        Return array of all field names - in [ DB COLN NAME , CANONICAL NAME ] format - available for alerts
+        Return array of all field names - in [ DB COLN NAME , CANONICAL NAME, ALLOW SORT ] format - available for alerts
      */
 
     return [
-        ['alert_type', 'TYPE'],
-        ['alert_id', 'ALERT ID'],
-        ['created', 'CREATED'],
-        ['updated', 'LAST UPDATED'],
-        ['host', 'HOST'],
-        ['src_node', 'SOURCE'],
-        ['dst_node', 'DESTINATION'],
-        ['alert_detail', 'SUMMARY']
+        ['alert_type', 'TYPE', true],
+        ['alert_id', 'ALERT ID', true],
+        ['created', 'CREATED', true],
+        ['updated', 'LAST UPDATED', true],
+        ['host', 'HOST', true],
+        ['src_node', 'SOURCE', true],
+        ['dst_node', 'DESTINATION', true],
+        ['alert_detail', 'SUMMARY', true],
+        ['', 'OPTIONS', false]
     ];
 };
 
@@ -105,7 +106,8 @@ Alerts.prototype.generateAlertsTableHeaderHTML = function (orderByField, orderBy
             orderByIconPath = '',
             orderByIconHTML = '',
             alertFieldKey = fieldNameData[0],
-            alertFieldVal = fieldNameData[1];
+            alertFieldVal = fieldNameData[1],
+            allowSortBy = fieldNameData[2];
 
         // check if currently selected order by field
         if(alertFieldKey === orderByField) {
@@ -120,8 +122,12 @@ Alerts.prototype.generateAlertsTableHeaderHTML = function (orderByField, orderBy
             orderByIconHTML = '<img alt="Alert sort order" class="placementIcon" src="' + orderByIconPath + '">';
         }
 
-        headerHTML += '<th data-sort-field-name="' + alertFieldKey + '" class="alertField-' + alertFieldKey
-            + addlClasses + '">' + orderByIconHTML + '<span>' + alertFieldVal + '</span></th>';
+        if(allowSortBy === true) {
+            headerHTML += '<th data-sort-field-name="' + alertFieldKey + '" class="alertField-' + alertFieldKey
+                + addlClasses + ' columnName sortEnabled">' + orderByIconHTML + '<span>' + alertFieldVal + '</span></th>';
+        } else {
+            headerHTML += '<th class="columnName sortDisabled"><span>' + alertFieldVal + '</span></th>';
+        }
     });
 
     return headerHTML;
@@ -141,7 +147,7 @@ Alerts.prototype.generateAlertsTableListingHTML = function (alertData) {
         updatedTimestamp = Global.prototype.convertTimestampToISO9601(alert.updated);
 
         listingHTML += '' +
-            '<tr class="alert">' +
+            '<tr class="alert" data-alert-id="' + alert.alert_id + '">' +
             '   <td>' + alert.alert_type + '</td>' +
             '   <td>' + alert.alert_id + '</td>' +
             '   <td>' +
@@ -156,6 +162,7 @@ Alerts.prototype.generateAlertsTableListingHTML = function (alertData) {
             '   <td>' + alert.src_node + '</td>' +
             '   <td>' + alert.dst_node + '</td>' +
             '   <td>' + alert.alert_detail + '</td>' +
+            '   <td>' + ConfigTable.prototype.generateItemButtonHTML(false, true) + '</td>' +
             '</tr>' +
             '<tr class="alertLogDetails">' +
             '   <td colspan="' + Alerts.getAvailableFieldNames().length + '">' +
@@ -232,6 +239,35 @@ Alerts.performPostAlertLoadOptionProcessing = function (cookieKey, newValue, ord
     appCtrlr.initContent(alertDataContainer, 'alerts', limit, [orderBy, orderByPlacement], true);
 };
 
+Alerts.prototype.deleteAlert = function (identifier) {
+    /*
+        Delete given alert using Inquisition API
+     */
+
+    if(identifier !== null && 1 <= identifier) {
+        // send api request via mystic lib
+        Mystic.queryAPI('DELETE', '/api/v1/alerts/?i=' + identifier, 20000, {}, function () {
+            ErrorBot.generateError(-1, 'alert deleted successfully');
+
+            var deletedAlertID = Global.prototype.queryGlobalAccessData('get', 'alerts', 'alertIDForDeletion'),
+                alertListing = $('.alert[data-alert-id=' + deletedAlertID + ']');
+            alertListing.fadeOut();
+            alertListing.next('.alertLogDetails').fadeOut();
+        }, function (apiResponse) {
+            var apiError = '';
+            if (apiResponse.error != null) {
+                apiError = ' :: [ ' + apiResponse.error + ' ]';
+            }
+
+            ErrorBot.generateError(4, 'could not delete alert via Inquisition API' + apiError);
+        });
+    } else {
+        ErrorBot.generateError(2, 'invalid alert ID provided');
+
+        return false
+    }
+};
+
 Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
     /*
         Sets various event listeners, etc for after alerts have been loaded
@@ -255,8 +291,20 @@ Alerts.prototype.setPostAlertLoadingOptions = function (onlyContent) {
         $(this).next().toggle();
     });
 
+    // set listeners for alert options
+    $('.alert .delete').off().click(function () {
+        var parentAlertListing = $(this).parents('.alert'),
+            alertID = parentAlertListing.data('alert-id');
+
+        if(alertID !== null)
+        {
+            Global.prototype.queryGlobalAccessData('set', 'alerts', 'alertIDForDeletion', alertID);
+            Alerts.prototype.deleteAlert(alertID);
+        }
+    });
+
     // add listener for sorting by headers
-    $('.listingHeader th').off().click(function () {
+    $('.listingHeader th.sortEnabled').off().click(function () {
         var newAlertFieldName = $(this).data('sort-field-name'),
             currentAlertFieldName = $('.listingHeader th.selected').data('sort-field-name'),
             alertLimit = $('.contentOptions .option.selected').text(),

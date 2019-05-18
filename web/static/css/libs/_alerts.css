@@ -14,21 +14,24 @@
     background: #25AAE1;
 }
 
-.alertTable th {
-    cursor: pointer;
+.alertTable .columnName {
     padding: 6px;
     white-space: nowrap;
 }
 
-.alertTable th:hover {
+.alertTable .columnName.sortEnabled {
+    cursor: pointer;
+}
+
+.alertTable .columnName.sortEnabled:hover {
     color: #626073;
 }
 
-.alertTable th.selected {
+.alertTable .columnName.sortEnabled.selected {
     color: #DD4D21;
 }
 
-.alertTable th.selected .placementIcon, .alertTable th.selected span {
+.alertTable .columnName.sortEnabled.selected .placementIcon, .alertTable th.selected span {
     margin: 0 4px;
     vertical-align: middle;
 }

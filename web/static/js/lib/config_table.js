@@ -57,7 +57,7 @@ ConfigTable.prototype.generateItemHTML = function (dataType, itemIdentifierField
         Generate HTML of all given items using provided constraints
      */
 
-    if(itemFieldMetadata == null || itemFieldMetadata == null || itemData == null)
+    if(itemFieldMetadata == null || itemData == null)
     {
         throw 'missing item data provided during configuration item HTML generation';
     }
