@@ -189,15 +189,50 @@ foreach($_GET as $key => $val)
 }
 
 // try to fetch alerts, serialize them, and return to the user
+$httpMethod = $_SERVER['REQUEST_METHOD'];
 try
 {
-    $fetchedAlerts = $alertsHandler->getAlerts($alertID, $alertType,
-        [ 'startTime' => $startTime, 'endTime' => $endTime ],
-        [ 'host' => $host, 'src_node' => $src, 'dst_node' => $dst ],
-        [ 'orderBy' => $orderBy, 'placement' => $placement, 'limit' => $resultLimit ]
-    );
+    switch($httpMethod)
+    {
+        case 'GET':
+            // user is requesting data
 
-    if((isset($_GET['i']) || isset($_GET['id'])) && count($fetchedAlerts['data']) === 0)
+            $fetchedAlerts = $alertsHandler->getAlerts($alertID, $alertType,
+                [ 'startTime' => $startTime, 'endTime' => $endTime ],
+                [ 'host' => $host, 'src_node' => $src, 'dst_node' => $dst ],
+                [ 'orderBy' => $orderBy, 'placement' => $placement, 'limit' => $resultLimit ]
+            );
+
+            break;
+        case 'DELETE':
+            // user is trying to update data
+            try
+            {
+                $fetchedAlerts = $alertsHandler->deleteAlert($alertID);
+            }
+            catch(\Exception $e)
+            {
+                $errorMsg = $e->getMessage();
+            }
+
+            break;
+        default:
+            $errorMsg = 'unknown HTTP method provided';
+    }
+
+    if(!empty($errorMsg))
+    {
+        http_response_code(400);
+
+        echo json_encode([
+            'status' => 'fail',
+            'error' => $errorMsg
+        ]);
+
+        exit(1);
+    }
+
+    if($httpMethod !== 'DELETE' && (isset($_GET['i']) || isset($_GET['id'])) && count($fetchedAlerts['data']) === 0)
     {
         // no results found
         http_response_code(404);

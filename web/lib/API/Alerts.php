@@ -2,6 +2,8 @@
 
 namespace API;
 
+use mysql_xdevapi\Exception;
+
 /**
  *  API/Alerts.php - API submodule library for alert-related logic
  */
@@ -120,7 +122,7 @@ class Alerts
          *
          */
 
-        // API response format framework: https://labs.omniti.com/labs/jsend
+        // API response format framework: https://github.com/omniti-labs/jsend
         $alertDataset = [
             'status' => 'success',
             'data_source' => 'cache',
@@ -230,6 +232,75 @@ class Alerts
                     $this->cache->writeToCache($cacheKey, $this->alertStore);
                 }
             }
+            else
+            {
+                throw new \Exception('no database connection available');
+            }
+        }
+
+        return $alertDataset;
+    }
+
+    public function deleteAlert($alertID)
+    {
+        /*
+         *  Purpose: delete alert with given alert ID
+         *
+         *  Params:
+         *      * $alertId :: INT :: ID of alert to delete
+         *
+         *  Returns: Associative Array
+         *
+         */
+
+        if($alertID < 1)
+        {
+            throw new \Exception('invalid alert ID provided');
+        }
+
+
+        $alertDataset = [
+            'status' => 'success',
+            'data_source' => 'data_store',
+            'data' => []
+        ];
+
+        // set base query
+        $this->alertDBQueryData['query'] =
+            "
+              /* Celestial // Alerts.php // Delete alert */
+              DELETE FROM 
+                Alerts
+            ";
+
+        // generate subquery for constraints
+        $this->addSQLQueryConstraints('alert_id', $alertID);
+        if(!empty($this->alertDBQueryData['whereClause']))
+        {
+            $this->alertDBQueryData['query'] .= ' WHERE '.$this->alertDBQueryData['whereClause'];
+        }
+
+        // add a limit restriction for safe query best practices
+        $this->alertDBQueryData['query'] .= ' LIMIT 1';
+
+        // run DB query
+        if(!is_null($this->dbConn))
+        {
+            // set query and opts in dbConn obj
+            $this->dbConn->dbQueryOptions['query'] = $this->alertDBQueryData['query'];
+            $this->dbConn->dbQueryOptions['optionVals'] = $this->alertDBQueryData['vals'];
+
+            $alertDataset['data_source'] = 'data_store';
+
+            $queryResult = $this->dbConn->runQuery('delete');
+            if(!$queryResult)
+            {
+                throw new \Exception('failed to delete alert from DB');
+            }
+        }
+        else
+        {
+            throw new \Exception('no database connection available');
         }
 
         return $alertDataset;
