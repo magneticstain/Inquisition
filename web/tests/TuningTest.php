@@ -182,9 +182,9 @@ class TuningTest extends TestCase
 
     public function testGetSqlInfoForMetadataType_invalidType()
     {
-        $metadataType = 'nonexistant_type';
+        $this->expectException(\Exception::class);
 
-        $this->assertEmpty($this->tuning->getSqlInfoForMetadataType($metadataType)['tableName']);
-        $this->assertEmpty($this->tuning->getSqlInfoForMetadataType($metadataType)['idFieldName']);
+        $metadataType = 'nonexistant_type';
+        $this->tuning->getSqlInfoForMetadataType($metadataType);
     }
 }

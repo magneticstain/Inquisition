@@ -25,6 +25,7 @@ class Tuning
             'regex',
             'field',
             'field_type',
+            'ioc_source',
             'ioc_field_mapping',
             'parser_template_mapping',
             'known_host'
@@ -33,6 +34,7 @@ class Tuning
             'parser_id',
             'template_id',
             'field_id',
+            'source_id',
             'mapping_id',
             'host_id'
         ]
@@ -118,7 +120,7 @@ class Tuning
          *      * set type index object value based on given metadata type
          *
          *  Params:
-         *      * $metadataType :: STR :: metatdata type to set index for
+         *      * $metadataType :: STR :: metadata type to set index for
          *
          *  Returns: INT || BOOL
          *
@@ -223,10 +225,6 @@ class Tuning
 
         // define list of keys we should not return values for
         $bannedCfgKeys = [ 'sentry_api_key', 'db_pass' ];
-//        if(in_array($this->key, $bannedCfgKeys))
-//        {
-//            throw new \Exception('invalid configuration key provided; cannot show value for security purposes');
-//        }
 
         // check if no params were set; if so, return all configs
         if(empty($this->key))
@@ -381,6 +379,11 @@ class Tuning
                 $typeData['idFieldName'] = 'type_id';
 
                 break;
+            case 'ioc_source':
+                $typeData['tableName'] = 'IOCSources';
+                $typeData['idFieldName'] = 'source_id';
+
+                break;
             case 'ioc_field_mapping':
                 $typeData['tableName'] = 'IOCItemToFieldMapping';
                 $typeData['idFieldName'] = 'mapping_id';
@@ -396,6 +399,12 @@ class Tuning
                 $typeData['idFieldName'] = 'host_id';
 
                 break;
+            default:
+                $errorMsg = 'invalid metadata type provided for SQL info mapping :: [ '
+                    .$metadataType.' ]';
+                error_log('[ SEV: CRIT ] :: '.$errorMsg);
+
+                throw new \Exception($errorMsg);
         }
 
         return $typeData;
@@ -435,7 +444,6 @@ class Tuning
                 $columnNameClause = '*';
             }
 
-            // check if identifier is set; if not, try search params
             if(0 < $this->metadataID)
             {
                 $sqlWhereClause = 'WHERE '.$sqlQueryData['idFieldName'].' = ?';
