@@ -367,8 +367,6 @@ Modal.prototype.setFormActionButtonHandlers = function () {
             inputData = Modal.prototype.getConfigValData(dataType),
             callbackFunct = Modal.prototype.postDataSaveHandler;
 
-
-
         // send add query
         Tuning.prototype.updateConfigVal(dataType, null, null, inputData['keyData'], inputData['valData'], 'PUT',
             callbackFunct);

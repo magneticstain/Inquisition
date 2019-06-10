@@ -64,10 +64,6 @@ Controller.prototype.initContent = function (contentWrapper, contentKey, content
         stats = new Stats(),
         tuning = new Tuning(),
         apiEndpointAndParams = '',
-        titleHTML = '' +
-            '<div id="contentTitleWrapper" class="contentModule">' +
-            '   <h1 class="title">' + Global.normalizeTitle(contentKey) + '</h1>' +
-            '</div>',
         optionsHTML = '';
 
     // set vars based on type of content we have to load
@@ -150,6 +146,10 @@ Controller.prototype.initContent = function (contentWrapper, contentKey, content
     Global.setActiveElement('.navOption', '.' + contentKey);
 
     // load data for user
+    var titleHTML = '' +
+        '<div id="contentTitleWrapper" class="contentModule">' +
+        '   <h1 class="title">' + Global.normalizeTitle(contentKey) + '</h1>' +
+        '</div>';
     Mystic.initAPILoad(contentWrapper, 'GET', '/api/v1/' + apiEndpointAndParams, this.fadeOutFunct, this.fadeInFunct,
         20000, onlyContent, titleHTML + optionsHTML, contentSortFieldOpts);
 };

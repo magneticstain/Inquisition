@@ -12,8 +12,8 @@ class View
 
     public function __construct($content = '', $subTitle = 'Home')
     {
-        $this->subTitle = $subTitle;
         $this->content = $content;
+        $this->setSubTitle($subTitle);
     }
 
     public static function sanatizeDataForView($originalData)
@@ -28,6 +28,30 @@ class View
          */
 
         return htmlentities($originalData, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
+    public function setSubTitle($subTitle)
+    {
+        /*
+         *  Purpose: set subtitle of page if valid
+         *
+         *  Params:
+         * 		* subTitle :: STR :: csubtitle to set
+         *
+         *  Returns: BOOL
+         */
+
+        $subTitle = strtolower($subTitle);
+        $whitelistedSubtitles = [ 'home', 'alerts', 'stats', 'tuning' ];
+
+        if(in_array($subTitle, $whitelistedSubtitles))
+        {
+            $this->subTitle = $subTitle;
+
+            return true;
+        }
+
+        return false;
     }
 
     public static function setHTTPHeaders($contentType = '', $cacheTime = 3600)
