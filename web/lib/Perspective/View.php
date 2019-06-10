@@ -126,7 +126,7 @@ class View
         
         <link rel="stylesheet" href="/static/css/main.css" media="all">
         
-        <title>'.$this->subTitle.' - Inquisition</title>
+        <title>'.ucwords($this->subTitle).' - Inquisition</title>
     </head>
     <body id="'.strtolower($this->subTitle).'">
         <div id="mainLoadingProgressBar"></div>

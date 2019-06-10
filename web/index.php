@@ -17,7 +17,7 @@ try {
     if(isset($_GET['content']))
     {
         // format content as title
-        $normalizedContentTitle = \Perspective\View::sanatizeDataForView(ucwords($_GET['content']));
+        $normalizedContentTitle = \Perspective\View::sanatizeDataForView($_GET['content']);
     }
 
     $view = new \Perspective\View($contentHTML, $normalizedContentTitle);
